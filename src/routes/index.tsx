@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,10 +59,11 @@ function Landing() {
           <nav className="hidden items-center gap-8 text-sm font-semibold md:flex">
             <a href="#features" className="hover:text-primary">Features</a>
             <a href="#compare" className="hover:text-primary">Why HoopRoom</a>
+            <Link to="/lobby" className="hover:text-primary">Lobby</Link>
             <a href="#waitlist" className="hover:text-primary">Early Access</a>
           </nav>
           <Button asChild size="sm" className="font-bold">
-            <a href="#waitlist">Get Early Access</a>
+            <Link to="/lobby">Browse Drafts</Link>
           </Button>
         </div>
       </header>
