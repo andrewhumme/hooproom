@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { fetchActivePlayers, type DraftablePlayer } from "@/lib/balldontlie";
 import { compareByRank } from "@/lib/playerRankings";
@@ -275,19 +276,24 @@ function DraftRoomPage() {
 
   // ------- Actions -------
   const handleJoin = async () => {
-    if (!user) {
-      navigate({ to: "/auth", search: { redirect: `/draft/${roomId}` } });
-      return;
-    }
     setActionBusy(true);
     setError(null);
-    const { error } = await supabase.from("draft_participants").insert({
-      room_id: roomId,
-      user_id: user.id,
-      team_name: (user.user_metadata?.display_name as string) ?? "Team",
-    });
-    setActionBusy(false);
-    if (error) setError(error.message);
+    try {
+      await ensureGuestSession();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const currentUser = sessionData.session?.user ?? user;
+      if (!currentUser) throw new Error("Could not start guest session");
+      const { error } = await supabase.from("draft_participants").insert({
+        room_id: roomId,
+        user_id: currentUser.id,
+        team_name: (currentUser.user_metadata?.display_name as string) ?? "Team",
+      });
+      if (error) throw error;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to join");
+    } finally {
+      setActionBusy(false);
+    }
   };
 
   const handleLeave = async () => {
