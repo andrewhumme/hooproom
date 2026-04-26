@@ -93,6 +93,8 @@ function DraftRoomPage() {
     let mounted = true;
 
     const loadAll = async () => {
+      // Ensure a session before reading — RLS requires authenticated.
+      await ensureGuestSession();
       const [r, p, pk] = await Promise.all([
         supabase.from("draft_rooms").select("*").eq("id", roomId).single(),
         supabase.from("draft_participants").select("*").eq("room_id", roomId),
