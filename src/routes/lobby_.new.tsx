@@ -11,7 +11,7 @@ import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/lobby/new")({
+export const Route = createFileRoute("/lobby_/new")({
   component: NewRoomPage,
   head: () => ({
     meta: [
