@@ -13,6 +13,7 @@ import { Route as LobbyRouteImport } from './routes/lobby'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyNewRouteImport } from './routes/lobby.new'
+import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
 
 const LobbyRoute = LobbyRouteImport.update({
   id: '/lobby',
@@ -34,17 +35,24 @@ const LobbyNewRoute = LobbyNewRouteImport.update({
   path: '/new',
   getParentRoute: () => LobbyRoute,
 } as any)
+const DraftRoomIdRoute = DraftRoomIdRouteImport.update({
+  id: '/draft/$roomId',
+  path: '/draft/$roomId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRouteWithChildren
+  '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRouteWithChildren
+  '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRouteWithChildren
+  '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/lobby' | '/lobby/new'
+  fullPaths: '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/lobby' | '/lobby/new'
-  id: '__root__' | '/' | '/auth' | '/lobby' | '/lobby/new'
+  to: '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby/new'
+  id: '__root__' | '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   LobbyRoute: typeof LobbyRouteWithChildren
+  DraftRoomIdRoute: typeof DraftRoomIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -98,6 +108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LobbyNewRouteImport
       parentRoute: typeof LobbyRoute
     }
+    '/draft/$roomId': {
+      id: '/draft/$roomId'
+      path: '/draft/$roomId'
+      fullPath: '/draft/$roomId'
+      preLoaderRoute: typeof DraftRoomIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -115,6 +132,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   LobbyRoute: LobbyRouteWithChildren,
+  DraftRoomIdRoute: DraftRoomIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
