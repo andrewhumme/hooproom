@@ -50,6 +50,7 @@ function LobbyPage() {
     let mounted = true;
 
     const load = async () => {
+      await ensureGuestSession();
       const { data: roomData, error } = await supabase
         .from("draft_rooms")
         .select("*")
