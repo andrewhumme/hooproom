@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { ArrowRight, Clock, Plus, Trophy, Users, Zap } from "lucide-react";
 
@@ -105,11 +106,8 @@ function LobbyPage() {
     };
   }, []);
 
-  const handleCreate = () => {
-    if (!user) {
-      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
-      return;
-    }
+  const handleCreate = async () => {
+    await ensureGuestSession();
     navigate({ to: "/lobby/new" });
   };
 
@@ -182,18 +180,8 @@ function LobbyPage() {
         )}
 
         {!user && !authLoading && (
-          <Card className="mt-10 flex flex-col items-center justify-between gap-4 border-2 border-primary/30 bg-primary/5 p-6 text-center sm:flex-row sm:text-left">
-            <div>
-              <div className="text-base font-black">Ready to draft?</div>
-              <div className="text-sm text-muted-foreground">
-                Create a free account to join any room or host your own.
-              </div>
-            </div>
-            <Button asChild size="lg" className="font-bold">
-              <Link to="/auth" search={{ redirect: "/lobby" }}>
-                Sign up free <ArrowRight />
-              </Link>
-            </Button>
+          <Card className="mt-10 border-2 border-dashed border-primary/40 bg-primary/5 p-4 text-center text-sm text-muted-foreground">
+            <span className="font-bold text-foreground">Testing mode:</span> jump into any room — we'll spin up a guest identity for you. No signup needed.
           </Card>
         )}
       </section>
