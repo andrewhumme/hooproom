@@ -41,22 +41,9 @@ function Landing() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [hostBusy, setHostBusy] = useState(false);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) setSubmitted(true);
-  };
-
-  const handleHostDraft = async () => {
-    setHostBusy(true);
-    try {
-      await ensureGuestSession();
-      navigate({ to: "/lobby/new" });
-    } catch (err) {
-      console.error("Failed to start guest session", err);
-      setHostBusy(false);
-    }
   };
 
   return (
@@ -103,12 +90,13 @@ function Landing() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
+                asChild
                 size="lg"
-                onClick={handleHostDraft}
-                disabled={hostBusy}
                 className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
               >
-                {hostBusy ? "Starting…" : "Host a Draft"} <ArrowRight className="ml-1" />
+                <Link to="/lobby/new">
+                  Host a Draft <ArrowRight className="ml-1" />
+                </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 border-2 px-6 text-base font-bold">
                 <Link to="/lobby">Browse Lobby</Link>
