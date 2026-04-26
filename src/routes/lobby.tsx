@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
-import { mockSessions, formatRelative, type DraftSession } from "@/lib/mockSessions";
-import { Clock, Users, Zap, Trophy, ArrowRight, LogOut, Filter } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { AppHeader } from "@/components/AppHeader";
+import { ArrowRight, Clock, Plus, Trophy, Users, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/lobby")({
   component: LobbyPage,
@@ -14,137 +15,178 @@ export const Route = createFileRoute("/lobby")({
       { title: "Draft Lobby — HoopRoom" },
       {
         name: "description",
-        content: "Browse upcoming live NBA mock drafts. Join a public room or quick-match into your format.",
+        content: "Browse live NBA snake drafts. Join an open room or spin up your own in seconds.",
       },
-      { property: "og:title", content: "HoopRoom Lobby — Live NBA Mock Drafts" },
+      { property: "og:title", content: "HoopRoom Lobby — Live NBA Drafts" },
       {
         property: "og:description",
-        content: "Browse upcoming live NBA mock drafts and join in seconds.",
+        content: "Browse live NBA snake drafts and join in seconds.",
       },
     ],
   }),
 });
 
-const SKILLS = ["All", "Casual", "Competitive", "Sharks"] as const;
-const FORMATS = ["All", "9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
+type Room = {
+  id: string;
+  name: string;
+  host_user_id: string;
+  team_count: number;
+  rounds: number;
+  pick_clock_sec: number;
+  scoring_format: string;
+  status: "waiting" | "drafting" | "complete";
+  created_at: string;
+  participant_count?: number;
+};
 
 function LobbyPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [skill, setSkill] = useState<(typeof SKILLS)[number]>("All");
-  const [format, setFormat] = useState<(typeof FORMATS)[number]>("All");
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const sessions = mockSessions.filter(
-    (s) => (skill === "All" || s.skill === skill) && (format === "All" || s.scoringFormat === format),
-  );
+  useEffect(() => {
+    let mounted = true;
 
-  const handleJoin = (sessionId: string) => {
+    const load = async () => {
+      const { data: roomData, error } = await supabase
+        .from("draft_rooms")
+        .select("*")
+        .in("status", ["waiting", "drafting"])
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error("Failed to load rooms", error);
+        if (mounted) setLoading(false);
+        return;
+      }
+
+      const ids = (roomData ?? []).map((r) => r.id);
+      let counts: Record<string, number> = {};
+      if (ids.length) {
+        const { data: parts } = await supabase
+          .from("draft_participants")
+          .select("room_id")
+          .in("room_id", ids);
+        counts = (parts ?? []).reduce<Record<string, number>>((acc, p) => {
+          acc[p.room_id] = (acc[p.room_id] ?? 0) + 1;
+          return acc;
+        }, {});
+      }
+
+      if (mounted) {
+        setRooms(
+          (roomData ?? []).map((r) => ({ ...r, participant_count: counts[r.id] ?? 0 })) as Room[]
+        );
+        setLoading(false);
+      }
+    };
+
+    load();
+
+    const channel = supabase
+      .channel("lobby-rooms")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "draft_rooms" },
+        () => load()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "draft_participants" },
+        () => load()
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const handleCreate = () => {
     if (!user) {
-      navigate({ to: "/auth", search: { redirect: `/lobby?join=${sessionId}` } });
+      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
       return;
     }
-    // TODO step 3: navigate into the live draft room
-    alert(`Joining session ${sessionId} — draft room coming next.`);
-  };
-
-  const handleQuickJoin = () => {
-    if (!user) {
-      navigate({ to: "/auth", search: { redirect: "/lobby" } });
-      return;
-    }
-    const next = sessions[0];
-    if (next) handleJoin(next.id);
+    navigate({ to: "/lobby/new" });
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Nav */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-black">
-              H
-            </div>
-            <span className="text-lg font-black tracking-tight">HoopRoom</span>
-          </Link>
-          <nav className="hidden items-center gap-8 text-sm font-semibold md:flex">
-            <Link to="/" className="hover:text-primary">Home</Link>
-            <Link to="/lobby" className="text-primary">Lobby</Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            {loading ? (
-              <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
-            ) : user ? (
-              <>
-                <span className="hidden text-sm font-semibold sm:inline">
-                  {user.user_metadata?.display_name ?? user.email}
-                </span>
-                <Button size="sm" variant="outline" onClick={signOut} className="font-bold">
-                  <LogOut /> Sign out
-                </Button>
-              </>
-            ) : (
-              <Button asChild size="sm" className="font-bold">
-                <Link to="/auth" search={{ redirect: "/lobby" }}>Sign in</Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      <AppHeader active="lobby" />
 
-      {/* Hero strip */}
       <section className="border-b border-border bg-secondary text-secondary-foreground">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-10 lg:flex-row lg:items-center">
           <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-primary">Live Lobby</div>
-            <h1 className="mt-2 text-4xl font-black md:text-5xl">Pick a room. Tip-off in minutes.</h1>
+            <div className="text-xs font-bold uppercase tracking-widest text-primary">
+              Live Lobby
+            </div>
+            <h1 className="mt-2 text-4xl font-black md:text-5xl">
+              Pick a room. Tip-off in minutes.
+            </h1>
             <p className="mt-3 max-w-xl text-secondary-foreground/75">
-              Browse public NBA mock drafts. Filter by skill and format, or quick-join the next room that fits.
+              Browse open snake drafts or host your own — set the format, clock, and team count,
+              then invite your league.
             </p>
           </div>
           <Button
             size="lg"
-            onClick={handleQuickJoin}
+            onClick={handleCreate}
             className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
           >
-            <Zap /> Quick Join
+            <Plus /> Host a draft
             <ArrowRight />
           </Button>
         </div>
       </section>
 
-      {/* Filters + sessions */}
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
-            <Filter className="h-4 w-4" /> Filter
-          </div>
-          <FilterGroup label="Skill" options={SKILLS} value={skill} onChange={setSkill} />
-          <FilterGroup label="Format" options={FORMATS} value={format} onChange={setFormat} />
-          <div className="ml-auto text-sm font-semibold text-muted-foreground">
-            {sessions.length} {sessions.length === 1 ? "room" : "rooms"} live
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-black">Open rooms</h2>
+            <p className="text-sm text-muted-foreground">
+              {loading
+                ? "Loading…"
+                : `${rooms.length} ${rooms.length === 1 ? "room" : "rooms"} live`}
+            </p>
           </div>
         </div>
 
-        {sessions.length === 0 ? (
-          <Card className="p-10 text-center">
-            <p className="text-lg font-bold">No rooms match those filters.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Try widening the skill or format.</p>
+        {loading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-56 animate-pulse rounded-xl bg-muted" />
+            ))}
+          </div>
+        ) : rooms.length === 0 ? (
+          <Card className="flex flex-col items-center gap-4 p-10 text-center">
+            <Zap className="h-10 w-10 text-primary" />
+            <div>
+              <p className="text-lg font-black">No live rooms right now.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Be the first — host a draft and share the link with your league.
+              </p>
+            </div>
+            <Button onClick={handleCreate} size="lg" className="font-bold">
+              <Plus /> Host a draft <ArrowRight />
+            </Button>
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {sessions.map((s) => (
-              <SessionCard key={s.id} session={s} isAuthed={!!user} onJoin={() => handleJoin(s.id)} />
+            {rooms.map((r) => (
+              <RoomCard key={r.id} room={r} isAuthed={!!user} />
             ))}
           </div>
         )}
 
-        {!user && !loading && (
+        {!user && !authLoading && (
           <Card className="mt-10 flex flex-col items-center justify-between gap-4 border-2 border-primary/30 bg-primary/5 p-6 text-center sm:flex-row sm:text-left">
             <div>
               <div className="text-base font-black">Ready to draft?</div>
               <div className="text-sm text-muted-foreground">
-                Create a free account to join any room or save your rankings.
+                Create a free account to join any room or host your own.
               </div>
             </div>
             <Button asChild size="lg" className="font-bold">
@@ -159,73 +201,50 @@ function LobbyPage() {
   );
 }
 
-function FilterGroup<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: readonly T[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
-      <span className="px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
-      {options.map((opt) => (
-        <button
-          key={opt}
-          onClick={() => onChange(opt)}
-          className={`rounded-md px-2.5 py-1 text-xs font-bold transition ${
-            value === opt
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function SessionCard({
-  session,
-  isAuthed,
-  onJoin,
-}: {
-  session: DraftSession;
-  isAuthed: boolean;
-  onJoin: () => void;
-}) {
-  const filling = session.joined / session.teams >= 0.75;
+function RoomCard({ room, isAuthed }: { room: Room; isAuthed: boolean }) {
+  const filling = (room.participant_count ?? 0) / room.team_count >= 0.75;
+  const isLive = room.status === "drafting";
   return (
     <Card className="flex flex-col overflow-hidden border-2 transition hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--shadow-bold)]">
       <div className="border-b-2 border-border bg-muted/40 p-4">
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className="font-bold">{session.scoringFormat}</Badge>
-          <SkillPill skill={session.skill} />
+          <Badge variant="outline" className="font-bold">
+            {room.scoring_format}
+          </Badge>
+          {isLive ? (
+            <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-primary">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+              Live
+            </span>
+          ) : (
+            <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-muted-foreground">
+              Open
+            </span>
+          )}
         </div>
-        <h3 className="mt-3 text-lg font-black leading-tight">{session.name}</h3>
-        <div className="mt-1 text-xs font-semibold text-muted-foreground">
-          Hosted by @{session.host}
-        </div>
+        <h3 className="mt-3 text-lg font-black leading-tight">{room.name}</h3>
       </div>
       <div className="grid grid-cols-3 divide-x divide-border border-b border-border text-center">
-        <Stat icon={<Users />} label="Teams" value={`${session.joined}/${session.teams}`} highlight={filling} />
-        <Stat icon={<Trophy />} label="Rounds" value={String(session.rounds)} />
-        <Stat icon={<Clock />} label="Clock" value={`${session.pickClockSec}s`} />
+        <Stat
+          icon={<Users />}
+          label="Teams"
+          value={`${room.participant_count ?? 0}/${room.team_count}`}
+          highlight={filling}
+        />
+        <Stat icon={<Trophy />} label="Rounds" value={String(room.rounds)} />
+        <Stat icon={<Clock />} label="Clock" value={`${room.pick_clock_sec}s`} />
       </div>
-      <div className="flex items-center justify-between gap-3 p-4">
-        <div>
-          <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Starts
-          </div>
-          <div className="text-sm font-black text-primary">{formatRelative(session.startsAt)}</div>
-        </div>
-        <Button onClick={onJoin} className="font-bold" size="sm">
-          {isAuthed ? "Join" : "Sign in to join"} <ArrowRight />
+      <div className="flex items-center justify-end gap-3 p-4">
+        <Button asChild className="font-bold" size="sm" disabled={!isAuthed}>
+          {isAuthed ? (
+            <Link to="/draft/$roomId" params={{ roomId: room.id }}>
+              {isLive ? "Watch / Join" : "Open room"} <ArrowRight />
+            </Link>
+          ) : (
+            <Link to="/auth" search={{ redirect: `/draft/${room.id}` }}>
+              Sign in to join <ArrowRight />
+            </Link>
+          )}
         </Button>
       </div>
     </Card>
@@ -251,19 +270,5 @@ function Stat({
       </div>
       <div className={`mt-1 text-base font-black ${highlight ? "text-primary" : ""}`}>{value}</div>
     </div>
-  );
-}
-
-function SkillPill({ skill }: { skill: DraftSession["skill"] }) {
-  const styles =
-    skill === "Sharks"
-      ? "bg-secondary text-secondary-foreground"
-      : skill === "Competitive"
-        ? "bg-primary/15 text-primary"
-        : "bg-muted text-muted-foreground";
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-widest ${styles}`}>
-      {skill}
-    </span>
   );
 }
