@@ -14,6 +14,151 @@ export type Database = {
   }
   public: {
     Tables: {
+      draft_participants: {
+        Row: {
+          draft_position: number | null
+          id: string
+          joined_at: string
+          room_id: string
+          team_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          draft_position?: number | null
+          id?: string
+          joined_at?: string
+          room_id: string
+          team_name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          draft_position?: number | null
+          id?: string
+          joined_at?: string
+          room_id?: string
+          team_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draft_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "draft_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draft_picks: {
+        Row: {
+          id: string
+          pick_number: number
+          picked_at: string
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          room_id: string
+          round: number
+          team_idx: number
+          user_id: string | null
+          was_autopick: boolean
+        }
+        Insert: {
+          id?: string
+          pick_number: number
+          picked_at?: string
+          player_id: string
+          player_name: string
+          player_position?: string | null
+          player_team?: string | null
+          room_id: string
+          round: number
+          team_idx: number
+          user_id?: string | null
+          was_autopick?: boolean
+        }
+        Update: {
+          id?: string
+          pick_number?: number
+          picked_at?: string
+          player_id?: string
+          player_name?: string
+          player_position?: string | null
+          player_team?: string | null
+          room_id?: string
+          round?: number
+          team_idx?: number
+          user_id?: string | null
+          was_autopick?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draft_picks_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "draft_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draft_rooms: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_pick_number: number
+          host_user_id: string
+          id: string
+          league_id: string | null
+          name: string
+          pick_clock_sec: number
+          pick_deadline: string | null
+          rounds: number
+          scoring_format: string
+          started_at: string | null
+          status: string
+          team_count: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_pick_number?: number
+          host_user_id: string
+          id?: string
+          league_id?: string | null
+          name: string
+          pick_clock_sec: number
+          pick_deadline?: string | null
+          rounds: number
+          scoring_format?: string
+          started_at?: string | null
+          status?: string
+          team_count: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_pick_number?: number
+          host_user_id?: string
+          id?: string
+          league_id?: string | null
+          name?: string
+          pick_clock_sec?: number
+          pick_deadline?: string | null
+          rounds?: number
+          scoring_format?: string
+          started_at?: string | null
+          status?: string
+          team_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -43,7 +188,62 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      make_pick: {
+        Args: {
+          _autopick?: boolean
+          _player_id: string
+          _player_name: string
+          _player_position: string
+          _player_team: string
+          _room_id: string
+        }
+        Returns: {
+          id: string
+          pick_number: number
+          picked_at: string
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          room_id: string
+          round: number
+          team_idx: number
+          user_id: string | null
+          was_autopick: boolean
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_picks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      start_draft: {
+        Args: { _room_id: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          current_pick_number: number
+          host_user_id: string
+          id: string
+          league_id: string | null
+          name: string
+          pick_clock_sec: number
+          pick_deadline: string | null
+          rounds: number
+          scoring_format: string
+          started_at: string | null
+          status: string
+          team_count: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_rooms"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
