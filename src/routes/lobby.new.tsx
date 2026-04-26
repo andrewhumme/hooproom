@@ -1,5 +1,5 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { Loader2 } from "lucide-react";
 
@@ -33,7 +34,7 @@ const CLOCK_OPTIONS = [30, 60, 90] as const;
 const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
 
 function NewRoomPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
@@ -43,9 +44,11 @@ function NewRoomPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!loading && !user) {
-    throw redirect({ to: "/auth", search: { redirect: "/lobby/new" } });
-  }
+  // Make sure a guest session exists as soon as the form mounts so the host
+  // can submit immediately. (Testing mode — replace with real auth later.)
+  useEffect(() => {
+    ensureGuestSession().catch((e) => console.error("guest session failed", e));
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,13 +65,17 @@ function NewRoomPage() {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
     }
-    if (!user) return;
 
     setBusy(true);
     try {
+      await ensureGuestSession();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const currentUser = sessionData.session?.user ?? user;
+      if (!currentUser) throw new Error("Could not start guest session");
+
       const { data: room, error: roomErr } = await supabase
         .from("draft_rooms")
-        .insert({ ...parsed.data, host_user_id: user.id })
+        .insert({ ...parsed.data, host_user_id: currentUser.id })
         .select()
         .single();
       if (roomErr) throw roomErr;
@@ -76,8 +83,8 @@ function NewRoomPage() {
       // Auto-join host as first participant
       const { error: joinErr } = await supabase.from("draft_participants").insert({
         room_id: room.id,
-        user_id: user.id,
-        team_name: (user.user_metadata?.display_name as string) ?? "Host",
+        user_id: currentUser.id,
+        team_name: (currentUser.user_metadata?.display_name as string) ?? "Host",
       });
       if (joinErr) throw joinErr;
 

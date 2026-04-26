@@ -1,10 +1,11 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { ArrowRight, Clock, Plus, Trophy, Users, Zap } from "lucide-react";
 
@@ -49,6 +50,7 @@ function LobbyPage() {
     let mounted = true;
 
     const load = async () => {
+      await ensureGuestSession();
       const { data: roomData, error } = await supabase
         .from("draft_rooms")
         .select("*")
@@ -105,11 +107,8 @@ function LobbyPage() {
     };
   }, []);
 
-  const handleCreate = () => {
-    if (!user) {
-      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
-      return;
-    }
+  const handleCreate = async () => {
+    await ensureGuestSession();
     navigate({ to: "/lobby/new" });
   };
 
@@ -176,24 +175,14 @@ function LobbyPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {rooms.map((r) => (
-              <RoomCard key={r.id} room={r} isAuthed={!!user} />
+              <RoomCard key={r.id} room={r} />
             ))}
           </div>
         )}
 
         {!user && !authLoading && (
-          <Card className="mt-10 flex flex-col items-center justify-between gap-4 border-2 border-primary/30 bg-primary/5 p-6 text-center sm:flex-row sm:text-left">
-            <div>
-              <div className="text-base font-black">Ready to draft?</div>
-              <div className="text-sm text-muted-foreground">
-                Create a free account to join any room or host your own.
-              </div>
-            </div>
-            <Button asChild size="lg" className="font-bold">
-              <Link to="/auth" search={{ redirect: "/lobby" }}>
-                Sign up free <ArrowRight />
-              </Link>
-            </Button>
+          <Card className="mt-10 border-2 border-dashed border-primary/40 bg-primary/5 p-4 text-center text-sm text-muted-foreground">
+            <span className="font-bold text-foreground">Testing mode:</span> jump into any room — we'll spin up a guest identity for you. No signup needed.
           </Card>
         )}
       </section>
@@ -201,9 +190,16 @@ function LobbyPage() {
   );
 }
 
-function RoomCard({ room, isAuthed }: { room: Room; isAuthed: boolean }) {
+function RoomCard({ room }: { room: Room }) {
+  const navigate = useNavigate();
   const filling = (room.participant_count ?? 0) / room.team_count >= 0.75;
   const isLive = room.status === "drafting";
+
+  const handleOpen = async () => {
+    await ensureGuestSession();
+    navigate({ to: "/draft/$roomId", params: { roomId: room.id } });
+  };
+
   return (
     <Card className="flex flex-col overflow-hidden border-2 transition hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--shadow-bold)]">
       <div className="border-b-2 border-border bg-muted/40 p-4">
@@ -235,16 +231,8 @@ function RoomCard({ room, isAuthed }: { room: Room; isAuthed: boolean }) {
         <Stat icon={<Clock />} label="Clock" value={`${room.pick_clock_sec}s`} />
       </div>
       <div className="flex items-center justify-end gap-3 p-4">
-        <Button asChild className="font-bold" size="sm" disabled={!isAuthed}>
-          {isAuthed ? (
-            <Link to="/draft/$roomId" params={{ roomId: room.id }}>
-              {isLive ? "Watch / Join" : "Open room"} <ArrowRight />
-            </Link>
-          ) : (
-            <Link to="/auth" search={{ redirect: `/draft/${room.id}` }}>
-              Sign in to join <ArrowRight />
-            </Link>
-          )}
+        <Button onClick={handleOpen} className="font-bold" size="sm">
+          {isLive ? "Watch / Join" : "Open room"} <ArrowRight />
         </Button>
       </div>
     </Card>
