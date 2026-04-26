@@ -478,13 +478,7 @@ function DraftRoomPage() {
             )}
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              {!user ? (
-                <Button asChild size="lg" className="font-bold">
-                  <Link to="/auth" search={{ redirect: `/draft/${roomId}` }}>
-                    Sign in to join
-                  </Link>
-                </Button>
-              ) : !isJoined ? (
+              {!isJoined ? (
                 <Button
                   onClick={handleJoin}
                   size="lg"
