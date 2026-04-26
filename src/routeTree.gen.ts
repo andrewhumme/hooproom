@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as NewRouteImport } from './routes/new'
 import { Route as LobbyRouteImport } from './routes/lobby'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyNewRouteImport } from './routes/lobby.new'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
 
+const NewRoute = NewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LobbyRoute = LobbyRouteImport.update({
   id: '/lobby',
   path: '/lobby',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRouteWithChildren
+  '/new': typeof NewRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRouteWithChildren
+  '/new': typeof NewRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
 }
@@ -60,26 +68,42 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRouteWithChildren
+  '/new': typeof NewRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby/new'
+  fullPaths: '/' | '/auth' | '/lobby' | '/new' | '/draft/$roomId' | '/lobby/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby/new'
-  id: '__root__' | '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby/new'
+  to: '/' | '/auth' | '/lobby' | '/new' | '/draft/$roomId' | '/lobby/new'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/lobby'
+    | '/new'
+    | '/draft/$roomId'
+    | '/lobby/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   LobbyRoute: typeof LobbyRouteWithChildren
+  NewRoute: typeof NewRoute
   DraftRoomIdRoute: typeof DraftRoomIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/new': {
+      id: '/new'
+      path: '/new'
+      fullPath: '/new'
+      preLoaderRoute: typeof NewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lobby': {
       id: '/lobby'
       path: '/lobby'
@@ -132,6 +156,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   LobbyRoute: LobbyRouteWithChildren,
+  NewRoute: NewRoute,
   DraftRoomIdRoute: DraftRoomIdRoute,
 }
 export const routeTree = rootRouteImport
