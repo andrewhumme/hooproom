@@ -261,11 +261,11 @@ function DraftRoomPage() {
     if (currentPickNumber > totalPicks) return;
     if (autopickFiredRef.current === currentPickNumber) return;
 
-    const slotUser = slotMap.get(currentTeamIdx)?.user_id;
-    const isEmptySeat = !slotUser;
+    // Autopick fires ONLY when the pick clock expires — empty seats wait the
+    // full clock too, which keeps pacing realistic and prevents the UI from
+    // thrashing through dozens of picks per second when most seats are empty.
     const clockExpired = secondsLeft <= 0 && !!room.pick_deadline;
-
-    if (!(isEmptySeat || clockExpired)) return;
+    if (!clockExpired) return;
     if (!players.length) return; // wait until pool loaded
 
     const best = availablePlayers[0];
