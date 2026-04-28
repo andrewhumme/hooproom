@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { DraftablePlayer } from "@/lib/balldontlie";
+import { buildFallbackPlayerPool, toDraftablePlayer } from "@/lib/playerPool";
 
 type BdlPlayer = {
   id: number;
@@ -30,7 +31,7 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" }).handle
   async (): Promise<DraftablePlayer[]> => {
     const apiKey = process.env.BALLDONTLIE_API_KEY;
     if (!apiKey) {
-      throw new Error("BALLDONTLIE_API_KEY is not configured");
+      return buildFallbackPlayerPool();
     }
 
     const all: BdlPlayer[] = [];
@@ -49,6 +50,9 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" }).handle
       }
 
       if (!res.ok) {
+        if ([429, 500, 502, 503, 504].includes(res.status)) {
+          return buildFallbackPlayerPool();
+        }
         throw new Error(`balldontlie player fetch failed: ${res.status}`);
       }
 
@@ -60,8 +64,7 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" }).handle
 
     return all
       .filter((p) => p.team && p.team.abbreviation)
-      .map<DraftablePlayer>((p) => ({
-        id: String(p.id),
+      .map<DraftablePlayer>((p) => toDraftablePlayer({
         name: `${p.first_name} ${p.last_name}`.trim(),
         position: p.position || "—",
         team: p.team!.abbreviation,
