@@ -280,13 +280,17 @@ export function toDraftablePlayer(input: {
   position?: string | null;
   team?: string | null;
   teamFull?: string | null;
+  nbaPlayerId?: number | null;
+  playerKey?: string | null;
 }): DraftablePlayer {
+  const name = input.name.trim();
   return {
-    id: playerKeyFromName(input.name),
-    name: input.name.trim(),
+    id: input.playerKey?.trim() || playerKeyFromName(name),
+    name,
     position: input.position?.trim() || "—",
     team: input.team?.trim() || "—",
     teamFull: input.teamFull?.trim() || "Unknown team",
+    nbaPlayerId: input.nbaPlayerId ?? null,
   };
 }
 

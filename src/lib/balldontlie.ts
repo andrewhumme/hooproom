@@ -10,11 +10,12 @@ export type BdlPlayer = {
 };
 
 export type DraftablePlayer = {
-  id: string; // stringified balldontlie id, used as draft_picks.player_id
+  id: string; // stable player_key, used as draft_picks.player_id
   name: string;
   position: string;
   team: string;
   teamFull: string;
+  nbaPlayerId?: number | null; // NBA stats id used for CDN headshots
 };
 
 const BDL_BASE = "https://api.balldontlie.io/v1";
