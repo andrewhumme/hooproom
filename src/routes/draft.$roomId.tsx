@@ -196,6 +196,21 @@ function DraftRoomPage() {
     };
   }, [room]);
 
+  // Bulk-load most recent season stats for the loaded player pool
+  useEffect(() => {
+    if (players.length === 0) return;
+    let cancelled = false;
+    const keys = players.map((p) => p.id);
+    fetchLatestStatsForPlayersServer({ data: { playerKeys: keys } })
+      .then((map) => {
+        if (!cancelled) setLatestStats(map);
+      })
+      .catch((e) => console.error("latest stats fetch failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, [players]);
+
   // ------- Derived: participant-by-position, current slot, on-the-clock -------
   const meParticipant = useMemo(
     () => participants.find((p) => p.user_id === user?.id) ?? null,
