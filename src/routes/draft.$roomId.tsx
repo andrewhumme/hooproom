@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { type DraftablePlayer } from "@/lib/balldontlie";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { compareByRank } from "@/lib/playerRankings";
@@ -87,6 +88,7 @@ function DraftRoomPage() {
   const [copied, setCopied] = useState(false);
   const [search, setSearch] = useState("");
   const [posFilter, setPosFilter] = useState<string>("ALL");
+  const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
@@ -661,15 +663,22 @@ function DraftRoomPage() {
                     key={p.id}
                     className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/50"
                   >
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setStatsPlayer(p)}
+                      className="flex min-w-0 flex-1 items-center gap-3 text-left transition hover:opacity-80"
+                      title="View season stats"
+                    >
                       <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} />
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-bold">{p.name}</div>
+                        <div className="truncate text-sm font-bold underline-offset-2 hover:underline">
+                          {p.name}
+                        </div>
                         <div className="text-xs text-muted-foreground">
                           {p.team} · {p.position}
                         </div>
                       </div>
-                    </div>
+                    </button>
                     <Button
                       size="sm"
                       onClick={() => handlePick(p)}
@@ -796,6 +805,22 @@ function DraftRoomPage() {
           )}
         </div>
       </main>
+
+      <PlayerStatsModal
+        open={!!statsPlayer}
+        onOpenChange={(o) => !o && setStatsPlayer(null)}
+        player={
+          statsPlayer
+            ? {
+                id: statsPlayer.id,
+                name: statsPlayer.name,
+                team: statsPlayer.team,
+                position: statsPlayer.position,
+                nbaPlayerId: statsPlayer.nbaPlayerId ?? null,
+              }
+            : null
+        }
+      />
     </div>
   );
 }
