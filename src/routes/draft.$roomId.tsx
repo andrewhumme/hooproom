@@ -853,3 +853,14 @@ function DraftRoomPage() {
     </div>
   );
 }
+
+function Stat({ label, value }: { label: string; value: number | null | undefined }) {
+  return (
+    <div className="flex w-10 flex-col items-center leading-tight">
+      <span className="text-foreground">{value == null ? "—" : Number(value).toFixed(1)}</span>
+      <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+    </div>
+  );
+}
