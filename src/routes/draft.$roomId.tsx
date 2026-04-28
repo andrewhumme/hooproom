@@ -675,38 +675,50 @@ function DraftRoomPage() {
               </div>
             ) : (
               <ul className="divide-y divide-border">
-                {availablePlayers.map((p) => (
-                  <li
-                    key={p.id}
-                    className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/50"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setStatsPlayer(p)}
-                      className="flex min-w-0 flex-1 items-center gap-3 text-left transition hover:opacity-80"
-                      title="View season stats"
+                {availablePlayers.map((p) => {
+                  const s = latestStats[p.id];
+                  return (
+                    <li
+                      key={p.id}
+                      className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/50"
                     >
-                      <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} />
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-bold underline-offset-2 hover:underline">
-                          {p.name}
+                      <button
+                        type="button"
+                        onClick={() => setStatsPlayer(p)}
+                        className="flex min-w-0 flex-1 items-center gap-3 text-left transition hover:opacity-80"
+                        title="View season stats"
+                      >
+                        <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} />
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-bold underline-offset-2 hover:underline">
+                            {p.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {p.team} · {p.position}
+                          </div>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {p.team} · {p.position}
-                        </div>
+                      </button>
+
+                      <div className="hidden shrink-0 items-center gap-3 text-[11px] font-bold tabular-nums sm:flex">
+                        <Stat label="PTS" value={s?.pts} />
+                        <Stat label="REB" value={s?.reb} />
+                        <Stat label="AST" value={s?.ast} />
+                        <Stat label="STL" value={s?.stl} />
+                        <Stat label="BLK" value={s?.blk} />
                       </div>
-                    </button>
-                    <Button
-                      size="sm"
-                      onClick={() => handlePick(p)}
-                      disabled={!isMyTurn || actionBusy}
-                      className="font-bold"
-                      variant={isMyTurn ? "default" : "outline"}
-                    >
-                      Draft
-                    </Button>
-                  </li>
-                ))}
+
+                      <Button
+                        size="sm"
+                        onClick={() => handlePick(p)}
+                        disabled={!isMyTurn || actionBusy}
+                        className="font-bold"
+                        variant={isMyTurn ? "default" : "outline"}
+                      >
+                        Draft
+                      </Button>
+                    </li>
+                  );
+                })}
                 {availablePlayers.length === 0 && !playersLoading && (
                   <li className="px-4 py-10 text-center text-sm text-muted-foreground">
                     No matching players.
