@@ -159,6 +159,90 @@ export type Database = {
         }
         Relationships: []
       }
+      player_season_stats: {
+        Row: {
+          ast: number | null
+          blk: number | null
+          created_at: string
+          dreb: number | null
+          fg_pct: number | null
+          fg3_pct: number | null
+          fg3a: number | null
+          fg3m: number | null
+          fga: number | null
+          fgm: number | null
+          ft_pct: number | null
+          fta: number | null
+          ftm: number | null
+          games_played: number | null
+          id: string
+          min: number | null
+          oreb: number | null
+          pf: number | null
+          player_key: string
+          pts: number | null
+          reb: number | null
+          season: number
+          stl: number | null
+          turnover: number | null
+          updated_at: string
+        }
+        Insert: {
+          ast?: number | null
+          blk?: number | null
+          created_at?: string
+          dreb?: number | null
+          fg_pct?: number | null
+          fg3_pct?: number | null
+          fg3a?: number | null
+          fg3m?: number | null
+          fga?: number | null
+          fgm?: number | null
+          ft_pct?: number | null
+          fta?: number | null
+          ftm?: number | null
+          games_played?: number | null
+          id?: string
+          min?: number | null
+          oreb?: number | null
+          pf?: number | null
+          player_key: string
+          pts?: number | null
+          reb?: number | null
+          season: number
+          stl?: number | null
+          turnover?: number | null
+          updated_at?: string
+        }
+        Update: {
+          ast?: number | null
+          blk?: number | null
+          created_at?: string
+          dreb?: number | null
+          fg_pct?: number | null
+          fg3_pct?: number | null
+          fg3a?: number | null
+          fg3m?: number | null
+          fga?: number | null
+          fgm?: number | null
+          ft_pct?: number | null
+          fta?: number | null
+          ftm?: number | null
+          games_played?: number | null
+          id?: string
+          min?: number | null
+          oreb?: number | null
+          pf?: number | null
+          player_key?: string
+          pts?: number | null
+          reb?: number | null
+          season?: number
+          stl?: number | null
+          turnover?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           bdl_player_id: number | null
