@@ -8,7 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
-import { fetchActivePlayers, type DraftablePlayer } from "@/lib/balldontlie";
+import { type DraftablePlayer } from "@/lib/balldontlie";
+import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
 import {
@@ -152,17 +153,21 @@ function DraftRoomPage() {
   }, [roomId]);
 
   // ------- Load player pool when draft starts -------
+  const playersFetchedRef = useRef(false);
   useEffect(() => {
-    if (!room || room.status === "waiting" || players.length > 0 || playersLoading) return;
+    if (!room || room.status === "waiting") return;
+    if (playersFetchedRef.current) return;
+    playersFetchedRef.current = true;
     setPlayersLoading(true);
-    fetchActivePlayers()
+    fetchActivePlayersServer()
       .then((list) => setPlayers(list))
       .catch((e) => {
         console.error(e);
         setError("Failed to load player pool");
+        playersFetchedRef.current = false;
       })
       .finally(() => setPlayersLoading(false));
-  }, [room, players.length, playersLoading]);
+  }, [room]);
 
   // ------- Derived: participant-by-position, current slot, on-the-clock -------
   const meParticipant = useMemo(
