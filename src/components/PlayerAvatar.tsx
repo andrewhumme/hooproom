@@ -1,7 +1,9 @@
-// Initials-based player avatar with deterministic background color from team
-// abbreviation. We deliberately don't fetch external headshots yet — those
-// require NBA stats player IDs which we'll get when we seed our own players
-// table. Until then, initials keep the UI fast, offline-friendly, and free.
+// Player avatar: shows NBA headshot from the official CDN when we have an
+// NBA stats player ID, otherwise falls back to initials with a team-tinted
+// background. Headshot URL pattern:
+//   https://cdn.nba.com/headshots/nba/latest/1040x760/{nbaPlayerId}.png
+
+import { useState } from "react";
 
 const TEAM_COLORS: Record<string, string> = {
   ATL: "oklch(0.55 0.20 25)",
@@ -47,15 +49,20 @@ export function PlayerAvatar({
   name,
   team,
   size = 36,
+  nbaPlayerId,
 }: {
   name: string;
   team: string;
   size?: number;
+  nbaPlayerId?: number | null;
 }) {
   const bg = TEAM_COLORS[team.toUpperCase()] ?? "oklch(0.4 0.05 250)";
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImg = !!nbaPlayerId && !imgFailed;
+
   return (
     <div
-      className="flex shrink-0 items-center justify-center rounded-full font-black text-white"
+      className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-full font-black text-white"
       style={{
         width: size,
         height: size,
@@ -65,7 +72,18 @@ export function PlayerAvatar({
       }}
       aria-hidden
     >
-      {getInitials(name)}
+      {showImg ? (
+        <img
+          src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${nbaPlayerId}.png`}
+          alt=""
+          loading="lazy"
+          onError={() => setImgFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        getInitials(name)
+      )}
     </div>
   );
 }
+
