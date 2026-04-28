@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
+import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { type DraftablePlayer } from "@/lib/balldontlie";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { compareByRank } from "@/lib/playerRankings";
@@ -261,11 +262,11 @@ function DraftRoomPage() {
     if (currentPickNumber > totalPicks) return;
     if (autopickFiredRef.current === currentPickNumber) return;
 
-    const slotUser = slotMap.get(currentTeamIdx)?.user_id;
-    const isEmptySeat = !slotUser;
+    // Autopick fires ONLY when the pick clock expires — empty seats wait the
+    // full clock too, which keeps pacing realistic and prevents the UI from
+    // thrashing through dozens of picks per second when most seats are empty.
     const clockExpired = secondsLeft <= 0 && !!room.pick_deadline;
-
-    if (!(isEmptySeat || clockExpired)) return;
+    if (!clockExpired) return;
     if (!players.length) return; // wait until pool loaded
 
     const best = availablePlayers[0];
@@ -296,8 +297,6 @@ function DraftRoomPage() {
     isDrafting,
     secondsLeft,
     currentPickNumber,
-    currentTeamIdx,
-    slotMap,
     availablePlayers,
     players.length,
     totalPicks,
@@ -662,10 +661,13 @@ function DraftRoomPage() {
                     key={p.id}
                     className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/50"
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-bold">{p.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {p.team} · {p.position}
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <PlayerAvatar name={p.name} team={p.team} />
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-bold">{p.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {p.team} · {p.position}
+                        </div>
                       </div>
                     </div>
                     <Button
