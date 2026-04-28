@@ -296,8 +296,6 @@ function DraftRoomPage() {
     isDrafting,
     secondsLeft,
     currentPickNumber,
-    currentTeamIdx,
-    slotMap,
     availablePlayers,
     players.length,
     totalPicks,
