@@ -90,6 +90,7 @@ function DraftRoomPage() {
   const [search, setSearch] = useState("");
   const [posFilter, setPosFilter] = useState<string>("ALL");
   const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
+  const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
