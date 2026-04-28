@@ -42,13 +42,14 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const playerKey = player?.id ?? null;
   useEffect(() => {
-    if (!open || !player) return;
+    if (!open || !playerKey) return;
     let cancelled = false;
     setLoading(true);
     setErr(null);
     setStats(null);
-    fetchPlayerStatsServer({ data: { playerKey: player.id } })
+    fetchPlayerStatsServer({ data: { playerKey } })
       .then((rows) => {
         if (!cancelled) setStats(rows);
       })
@@ -61,7 +62,7 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [open, player]);
+  }, [open, playerKey]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
