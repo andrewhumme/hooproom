@@ -1,0 +1,220 @@
+import { createServerFn } from "@tanstack/react-start";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { playerKeyFromName } from "@/lib/playerPool";
+
+const SEASONS = [2023, 2024, 2025];
+
+type NbaApiPlayerTotal = {
+  playerId: string;
+  playerName: string;
+  position: string;
+  team: string;
+  season: number;
+  games: number;
+  gamesStarted: number;
+  minutesPg: number;
+  fieldGoals: number;
+  fieldAttempts: number;
+  fieldPercent: number;
+  threeFg: number;
+  threeAttempts: number;
+  threePercent: number;
+  effectFgPercent: number;
+  ft: number;
+  ftAttempts: number;
+  ftPercent: number;
+  offensiveRb: number;
+  defensiveRb: number;
+  totalRb: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  turnovers: number;
+  points: number;
+};
+
+type NbaApiResponse = {
+  data: NbaApiPlayerTotal[];
+  pagination: { total: number; page: number; pageSize: number; pages: number };
+};
+
+const PAGE_SIZE = 500;
+
+const r2 = (n: number, d = 2) =>
+  n == null || isNaN(n) ? null : Math.round(n * 10 ** d) / 10 ** d;
+
+async function fetchSeason(season: number): Promise<NbaApiPlayerTotal[]> {
+  const all: NbaApiPlayerTotal[] = [];
+  let page = 1;
+  while (true) {
+    const url = `https://api.server.nbaapi.com/api/playertotals?season=${season}&pageSize=${PAGE_SIZE}&page=${page}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`nbaapi ${season} p${page}: ${res.status}`);
+    const json = (await res.json()) as NbaApiResponse;
+    all.push(...json.data);
+    if (page >= json.pagination.pages) break;
+    page++;
+  }
+  return all;
+}
+
+/**
+ * Aggregate multi-stint rows (TRADED players appear once per team) into a
+ * single season line by summing totals, then derive per-game averages.
+ * We keep the team from the row with the most games (their primary club).
+ */
+function aggregateBySeasonPlayer(rows: NbaApiPlayerTotal[]) {
+  const map = new Map<string, NbaApiPlayerTotal>();
+  for (const r of rows) {
+    const key = `${r.playerId}|${r.season}`;
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, { ...r });
+      continue;
+    }
+    // Sum cumulative totals
+    existing.games += r.games;
+    existing.gamesStarted += r.gamesStarted;
+    existing.minutesPg += r.minutesPg;
+    existing.fieldGoals += r.fieldGoals;
+    existing.fieldAttempts += r.fieldAttempts;
+    existing.threeFg += r.threeFg;
+    existing.threeAttempts += r.threeAttempts;
+    existing.ft += r.ft;
+    existing.ftAttempts += r.ftAttempts;
+    existing.offensiveRb += r.offensiveRb;
+    existing.defensiveRb += r.defensiveRb;
+    existing.totalRb += r.totalRb;
+    existing.assists += r.assists;
+    existing.steals += r.steals;
+    existing.blocks += r.blocks;
+    existing.turnovers += r.turnovers;
+    existing.points += r.points;
+    if (r.games > existing.games / 2) existing.team = r.team;
+  }
+  return [...map.values()];
+}
+
+function toRow(p: NbaApiPlayerTotal) {
+  const gp = p.games || 0;
+  if (gp === 0) return null;
+  const fgPct = p.fieldAttempts > 0 ? p.fieldGoals / p.fieldAttempts : null;
+  const fg3Pct = p.threeAttempts > 0 ? p.threeFg / p.threeAttempts : null;
+  const ftPct = p.ftAttempts > 0 ? p.ft / p.ftAttempts : null;
+  const efgPct =
+    p.fieldAttempts > 0
+      ? (p.fieldGoals + 0.5 * p.threeFg) / p.fieldAttempts
+      : null;
+
+  return {
+    player_key: playerKeyFromName(p.playerName),
+    season: p.season,
+    team: p.team,
+    games_played: gp,
+    games_started: p.gamesStarted,
+    minutes_per_game: r2(p.minutesPg / gp, 1),
+    pts: r2(p.points / gp),
+    reb: r2(p.totalRb / gp),
+    ast: r2(p.assists / gp),
+    stl: r2(p.steals / gp),
+    blk: r2(p.blocks / gp),
+    tov: r2(p.turnovers / gp),
+    oreb: r2(p.offensiveRb / gp),
+    dreb: r2(p.defensiveRb / gp),
+    fg_made: r2(p.fieldGoals / gp),
+    fg_att: r2(p.fieldAttempts / gp),
+    fg_pct: r2(fgPct ?? 0, 3),
+    fg3_made: r2(p.threeFg / gp),
+    fg3_att: r2(p.threeAttempts / gp),
+    fg3_pct: r2(fg3Pct ?? 0, 3),
+    ft_made: r2(p.ft / gp),
+    ft_att: r2(p.ftAttempts / gp),
+    ft_pct: r2(ftPct ?? 0, 3),
+    ef_fg_pct: r2(efgPct ?? 0, 3),
+    source: "nbaapi",
+  };
+}
+
+export const seedPlayerStatsServer = createServerFn({ method: "POST" }).handler(
+  async () => {
+    const summary: Record<number, { fetched: number; upserted: number }> = {};
+
+    for (const season of SEASONS) {
+      const raw = await fetchSeason(season);
+      const aggregated = aggregateBySeasonPlayer(raw);
+      const rows = aggregated.map(toRow).filter((r): r is NonNullable<typeof r> => r !== null);
+
+      // Chunked upsert
+      const chunkSize = 500;
+      let upserted = 0;
+      for (let i = 0; i < rows.length; i += chunkSize) {
+        const chunk = rows.slice(i, i + chunkSize);
+        const { error } = await supabaseAdmin
+          .from("player_season_stats")
+          .upsert(chunk, { onConflict: "player_key,season" });
+        if (error) throw new Error(`upsert ${season}: ${error.message}`);
+        upserted += chunk.length;
+      }
+
+      summary[season] = { fetched: raw.length, upserted };
+    }
+
+    return { ok: true as const, summary };
+  },
+);
+
+export type PlayerSeasonStats = {
+  season: number;
+  team: string | null;
+  games_played: number | null;
+  minutes_per_game: number | null;
+  pts: number | null;
+  reb: number | null;
+  ast: number | null;
+  stl: number | null;
+  blk: number | null;
+  tov: number | null;
+  fg_pct: number | null;
+  fg3_pct: number | null;
+  ft_pct: number | null;
+  ef_fg_pct: number | null;
+};
+
+export const fetchPlayerStatsServer = createServerFn({ method: "GET" })
+  .inputValidator((data: { playerKey: string }) => data)
+  .handler(async ({ data }): Promise<PlayerSeasonStats[]> => {
+    const { data: rows, error } = await supabaseAdmin
+      .from("player_season_stats")
+      .select(
+        "season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
+      )
+      .eq("player_key", data.playerKey)
+      .order("season", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as PlayerSeasonStats[];
+  });
+
+export const fetchLatestStatsForPlayersServer = createServerFn({ method: "POST" })
+  .inputValidator((data: { playerKeys: string[] }) => data)
+  .handler(
+    async ({ data }): Promise<Record<string, PlayerSeasonStats>> => {
+      if (data.playerKeys.length === 0) return {};
+      const latest = Math.max(...SEASONS);
+      const { data: rows, error } = await supabaseAdmin
+        .from("player_season_stats")
+        .select(
+          "player_key, season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
+        )
+        .eq("season", latest)
+        .in("player_key", data.playerKeys);
+
+      if (error) throw new Error(error.message);
+      const out: Record<string, PlayerSeasonStats> = {};
+      for (const r of rows ?? []) {
+        const { player_key, ...rest } = r as { player_key: string } & PlayerSeasonStats;
+        out[player_key] = rest;
+      }
+      return out;
+    },
+  );
