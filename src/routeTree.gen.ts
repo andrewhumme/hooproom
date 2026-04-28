@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
+import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
 
 const LobbyRoute = LobbyRouteImport.update({
   id: '/lobby',
@@ -40,6 +41,11 @@ const DraftRoomIdRoute = DraftRoomIdRouteImport.update({
   path: '/draft/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSeedStatsRoute = ApiPublicSeedStatsRouteImport.update({
+  id: '/api/public/seed-stats',
+  path: '/api/public/seed-stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/lobby': typeof LobbyRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
+  '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/lobby': typeof LobbyRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
+  '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/lobby': typeof LobbyRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby_/new': typeof LobbyNewRoute
+  '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby/new'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/lobby'
+    | '/draft/$roomId'
+    | '/lobby/new'
+    | '/api/public/seed-stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby/new'
-  id: '__root__' | '/' | '/auth' | '/lobby' | '/draft/$roomId' | '/lobby_/new'
+  to:
+    | '/'
+    | '/auth'
+    | '/lobby'
+    | '/draft/$roomId'
+    | '/lobby/new'
+    | '/api/public/seed-stats'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/lobby'
+    | '/draft/$roomId'
+    | '/lobby_/new'
+    | '/api/public/seed-stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   LobbyRoute: typeof LobbyRoute
   DraftRoomIdRoute: typeof DraftRoomIdRoute
   LobbyNewRoute: typeof LobbyNewRoute
+  ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DraftRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/seed-stats': {
+      id: '/api/public/seed-stats'
+      path: '/api/public/seed-stats'
+      fullPath: '/api/public/seed-stats'
+      preLoaderRoute: typeof ApiPublicSeedStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   LobbyRoute: LobbyRoute,
   DraftRoomIdRoute: DraftRoomIdRoute,
   LobbyNewRoute: LobbyNewRoute,
+  ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

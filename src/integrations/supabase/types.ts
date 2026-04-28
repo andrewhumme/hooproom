@@ -159,6 +159,99 @@ export type Database = {
         }
         Relationships: []
       }
+      player_season_stats: {
+        Row: {
+          ast: number | null
+          blk: number | null
+          created_at: string
+          dreb: number | null
+          ef_fg_pct: number | null
+          fg_att: number | null
+          fg_made: number | null
+          fg_pct: number | null
+          fg3_att: number | null
+          fg3_made: number | null
+          fg3_pct: number | null
+          ft_att: number | null
+          ft_made: number | null
+          ft_pct: number | null
+          games_played: number | null
+          games_started: number | null
+          id: string
+          minutes_per_game: number | null
+          oreb: number | null
+          player_key: string
+          pts: number | null
+          reb: number | null
+          season: number
+          source: string
+          stl: number | null
+          team: string | null
+          tov: number | null
+          updated_at: string
+        }
+        Insert: {
+          ast?: number | null
+          blk?: number | null
+          created_at?: string
+          dreb?: number | null
+          ef_fg_pct?: number | null
+          fg_att?: number | null
+          fg_made?: number | null
+          fg_pct?: number | null
+          fg3_att?: number | null
+          fg3_made?: number | null
+          fg3_pct?: number | null
+          ft_att?: number | null
+          ft_made?: number | null
+          ft_pct?: number | null
+          games_played?: number | null
+          games_started?: number | null
+          id?: string
+          minutes_per_game?: number | null
+          oreb?: number | null
+          player_key: string
+          pts?: number | null
+          reb?: number | null
+          season: number
+          source?: string
+          stl?: number | null
+          team?: string | null
+          tov?: number | null
+          updated_at?: string
+        }
+        Update: {
+          ast?: number | null
+          blk?: number | null
+          created_at?: string
+          dreb?: number | null
+          ef_fg_pct?: number | null
+          fg_att?: number | null
+          fg_made?: number | null
+          fg_pct?: number | null
+          fg3_att?: number | null
+          fg3_made?: number | null
+          fg3_pct?: number | null
+          ft_att?: number | null
+          ft_made?: number | null
+          ft_pct?: number | null
+          games_played?: number | null
+          games_started?: number | null
+          id?: string
+          minutes_per_game?: number | null
+          oreb?: number | null
+          player_key?: string
+          pts?: number | null
+          reb?: number | null
+          season?: number
+          source?: string
+          stl?: number | null
+          team?: string | null
+          tov?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           bdl_player_id: number | null
