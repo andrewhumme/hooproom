@@ -3,96 +3,84 @@ import type { DraftablePlayer } from "@/lib/balldontlie";
 import { buildFallbackPlayerPool, playerKeyFromName, toDraftablePlayer } from "@/lib/playerPool";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-type BdlPlayer = {
-  id: number;
-  first_name: string;
-  last_name: string;
-  position: string | null;
-  team: { id: number; abbreviation: string; full_name: string } | null;
+type NbaIndexResponse = {
+  resultSets: Array<{
+    name: string;
+    headers: string[];
+    rowSet: Array<Array<string | number | null>>;
+  }>;
 };
 
-type BdlResponse = {
-  data: BdlPlayer[];
-  meta: { next_cursor: number | null };
+const POSITION_MAP: Record<string, string> = {
+  Guard: "G",
+  Forward: "F",
+  Center: "C",
+  "Guard-Forward": "G-F",
+  "Forward-Guard": "F-G",
+  "Forward-Center": "F-C",
+  "Center-Forward": "C-F",
 };
-
-async function fetchPlayersPage(endpoint: string, apiKey: string, cursor: number | null) {
-  const url = new URL(endpoint);
-  url.searchParams.set("per_page", "100");
-  if (cursor) url.searchParams.set("cursor", String(cursor));
-
-  return fetch(url.toString(), {
-    headers: { accept: "application/json", Authorization: apiKey },
-  });
-}
-
-async function fetchAllFromBdl(): Promise<BdlPlayer[]> {
-  const apiKey = process.env.BALLDONTLIE_API_KEY;
-  if (!apiKey) throw new Error("BALLDONTLIE_API_KEY not configured");
-
-  const all: BdlPlayer[] = [];
-  let cursor: number | null = 0;
-  let safety = 0;
-  let endpoint = "https://api.balldontlie.io/v1/players/active";
-
-  while (cursor !== null && safety < 40) {
-    let res = await fetchPlayersPage(endpoint, apiKey, cursor);
-    if (!res.ok && endpoint.endsWith("/players/active") && [401, 403, 404].includes(res.status)) {
-      endpoint = "https://api.balldontlie.io/v1/players";
-      cursor = 0;
-      safety = 0;
-      all.length = 0;
-      res = await fetchPlayersPage(endpoint, apiKey, cursor);
-    }
-    if (!res.ok) throw new Error(`balldontlie fetch failed: ${res.status}`);
-
-    const json = (await res.json()) as BdlResponse;
-    all.push(...json.data);
-    cursor = json.meta?.next_cursor ?? null;
-    safety += 1;
-  }
-
-  return all.filter((p) => p.team && p.team.abbreviation);
-}
 
 /**
- * Map balldontlie ID -> NBA stats player ID. balldontlie does not expose this,
- * but the NBA CDN headshot URL uses NBA's own IDs. We don't ship a static
- * mapping yet, so we leave nba_player_id null on seed; future work can backfill
- * via name match against an NBA roster snapshot. PlayerAvatar gracefully falls
- * back to initials when nba_player_id is null.
+ * Seed `public.players` from the NBA CDN player index. This is the canonical
+ * source: it includes NBA's own PERSON_ID values which power the headshot CDN
+ * (https://cdn.nba.com/headshots/nba/latest/1040x760/{id}.png), so every
+ * seeded row gets a working portrait with no name-matching guesswork.
+ *
+ * We only keep players currently rostered to a team (TEAM_ABBREVIATION present).
  */
-async function seedPlayersFromBdl(): Promise<void> {
-  const players = await fetchAllFromBdl();
-  if (players.length === 0) return;
+async function seedPlayersFromNba(): Promise<void> {
+  const res = await fetch(
+    "https://cdn.nba.com/static/json/staticData/playerIndex.json",
+    { headers: { "User-Agent": "Mozilla/5.0", Referer: "https://www.nba.com/" } },
+  );
+  if (!res.ok) throw new Error(`NBA player index fetch failed: ${res.status}`);
 
-  const rows = players.map((p) => {
-    const fullName = `${p.first_name} ${p.last_name}`.trim();
-    return {
-      player_key: playerKeyFromName(fullName),
-      bdl_player_id: p.id,
-      nba_player_id: null as number | null,
-      first_name: p.first_name,
-      last_name: p.last_name,
-      full_name: fullName,
-      position: p.position || null,
-      team_abbreviation: p.team!.abbreviation,
-      team_full_name: p.team!.full_name,
-      is_active: true,
-    };
-  });
+  const json = (await res.json()) as NbaIndexResponse;
+  const rs = json.resultSets?.[0];
+  if (!rs) throw new Error("NBA player index missing resultSets");
 
-  // Dedupe by player_key in case of name collisions before sending to DB
+  const idx: Record<string, number> = {};
+  rs.headers.forEach((h, i) => (idx[h] = i));
+
   const seen = new Set<string>();
-  const unique = rows.filter((r) => {
-    if (seen.has(r.player_key)) return false;
-    seen.add(r.player_key);
-    return true;
-  });
+  const rows = [];
+  for (const row of rs.rowSet) {
+    const teamAbbr = row[idx.TEAM_ABBREVIATION] as string | null;
+    const teamId = row[idx.TEAM_ID] as number | null;
+    if (!teamAbbr || !teamId) continue; // free agents — skip
+
+    const first = String(row[idx.PLAYER_FIRST_NAME] ?? "").trim();
+    const last = String(row[idx.PLAYER_LAST_NAME] ?? "").trim();
+    const fullName = `${first} ${last}`.trim();
+    if (!fullName) continue;
+
+    const key = playerKeyFromName(fullName);
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const posRaw = (row[idx.POSITION] as string | null) ?? "";
+    const position = POSITION_MAP[posRaw] ?? (posRaw ? posRaw.slice(0, 3) : null);
+
+    rows.push({
+      player_key: key,
+      nba_player_id: row[idx.PERSON_ID] as number,
+      bdl_player_id: null as number | null,
+      first_name: first,
+      last_name: last,
+      full_name: fullName,
+      position,
+      team_abbreviation: teamAbbr,
+      team_full_name: `${row[idx.TEAM_CITY] ?? ""} ${row[idx.TEAM_NAME] ?? ""}`.trim(),
+      is_active: true,
+    });
+  }
+
+  if (rows.length === 0) return;
 
   await supabaseAdmin
     .from("players")
-    .upsert(unique, { onConflict: "player_key", ignoreDuplicates: false });
+    .upsert(rows, { onConflict: "player_key", ignoreDuplicates: false });
 }
 
 export const fetchActivePlayersServer = createServerFn({ method: "GET" }).handler(
@@ -117,9 +105,9 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" }).handle
       );
     }
 
-    // 2) DB empty — try a one-time seed from balldontlie, then re-read.
+    // 2) DB empty — try a one-time seed from NBA CDN, then re-read.
     try {
-      await seedPlayersFromBdl();
+      await seedPlayersFromNba();
       const { data: seeded } = await supabaseAdmin
         .from("players")
         .select("player_key, full_name, position, team_abbreviation, team_full_name, nba_player_id")
