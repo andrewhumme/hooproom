@@ -159,6 +159,54 @@ export type Database = {
         }
         Relationships: []
       }
+      players: {
+        Row: {
+          bdl_player_id: number | null
+          created_at: string
+          first_name: string
+          full_name: string
+          id: string
+          is_active: boolean
+          last_name: string
+          nba_player_id: number | null
+          player_key: string
+          position: string | null
+          team_abbreviation: string | null
+          team_full_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          bdl_player_id?: number | null
+          created_at?: string
+          first_name: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          last_name: string
+          nba_player_id?: number | null
+          player_key: string
+          position?: string | null
+          team_abbreviation?: string | null
+          team_full_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bdl_player_id?: number | null
+          created_at?: string
+          first_name?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          last_name?: string
+          nba_player_id?: number | null
+          player_key?: string
+          position?: string | null
+          team_abbreviation?: string | null
+          team_full_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
