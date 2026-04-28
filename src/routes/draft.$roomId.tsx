@@ -159,14 +159,36 @@ function DraftRoomPage() {
     if (playersFetchedRef.current) return;
     playersFetchedRef.current = true;
     setPlayersLoading(true);
-    fetchActivePlayersServer()
-      .then((list) => setPlayers(list))
-      .catch((e) => {
-        console.error(e);
-        setError("Failed to load player pool");
-        playersFetchedRef.current = false;
-      })
-      .finally(() => setPlayersLoading(false));
+
+    let cancelled = false;
+    const loadWithRetry = async () => {
+      const maxAttempts = 3;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const list = await fetchActivePlayersServer();
+          if (!cancelled) setPlayers(list);
+          return;
+        } catch (e) {
+          console.error(`Player pool fetch attempt ${attempt} failed`, e);
+          if (attempt === maxAttempts) {
+            if (!cancelled) {
+              setError("Failed to load player pool");
+              playersFetchedRef.current = false;
+            }
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 500 * attempt));
+        }
+      }
+    };
+
+    loadWithRetry().finally(() => {
+      if (!cancelled) setPlayersLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [room]);
 
   // ------- Derived: participant-by-position, current slot, on-the-clock -------
