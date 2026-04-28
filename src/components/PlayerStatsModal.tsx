@@ -71,7 +71,7 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
             {player && (
               <PlayerAvatar
                 name={player.name}
-                team={player.team}
+                team={player.team ?? ""}
                 nbaPlayerId={player.nbaPlayerId ?? null}
               />
             )}
