@@ -57,6 +57,12 @@ type Room = {
   status: "waiting" | "drafting" | "complete";
   current_pick_number: number;
   pick_deadline: string | null;
+  slots_pg: number;
+  slots_sg: number;
+  slots_sf: number;
+  slots_pf: number;
+  slots_c: number;
+  slots_flx: number;
 };
 
 type Participant = {
