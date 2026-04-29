@@ -34,6 +34,7 @@ const SCHEMA = z.object({
   slots_pf: z.number().int().min(0).max(10),
   slots_c: z.number().int().min(0).max(10),
   slots_flx: z.number().int().min(0).max(10),
+  slots_bn: z.number().int().min(0).max(15),
 });
 
 const TEAM_OPTIONS = [8, 10, 12, 14] as const;
@@ -75,6 +76,7 @@ function NewRoomPage() {
       slots_pf: slots.PF,
       slots_c: slots.C,
       slots_flx: slots.FLX,
+      slots_bn: slots.BN,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
@@ -155,7 +157,7 @@ function NewRoomPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 Players auto-fill the first matching slot. FLX accepts any position.
               </p>
-              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+              <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
                 {SLOT_KEYS.map((k) => (
                   <div key={k} className="rounded-md border-2 border-border bg-card p-2">
                     <div className="text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -164,14 +166,15 @@ function NewRoomPage() {
                     <Input
                       type="number"
                       min={0}
-                      max={10}
+                      max={k === "BN" ? 15 : 10}
                       value={slots[k]}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const cap = k === "BN" ? 15 : 10;
                         setSlots((s) => ({
                           ...s,
-                          [k]: Math.max(0, Math.min(10, parseInt(e.target.value || "0", 10))),
-                        }))
-                      }
+                          [k]: Math.max(0, Math.min(cap, parseInt(e.target.value || "0", 10))),
+                        }));
+                      }}
                       className="mt-1 h-9 text-center font-black"
                     />
                   </div>
