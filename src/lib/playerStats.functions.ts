@@ -59,10 +59,12 @@ async function fetchSeason(season: number): Promise<NbaApiPlayerTotal[]> {
 }
 
 /**
- * Aggregate multi-stint rows (TRADED players appear once per team) into a
- * single season line by summing totals, then derive per-game averages.
- * We keep the team from the row with the most games (their primary club).
+ * For traded players, the API returns a combined "2TM"/"3TM"/"4TM" row PLUS
+ * one row per team. We keep the combined row when present, otherwise the
+ * single team row. Never sum — that would double-count.
  */
+const isCombinedTeam = (t: string) => /^\d+TM$/i.test(t) || t === "TOT";
+
 function aggregateBySeasonPlayer(rows: NbaApiPlayerTotal[]) {
   const map = new Map<string, NbaApiPlayerTotal>();
   for (const r of rows) {
@@ -72,25 +74,14 @@ function aggregateBySeasonPlayer(rows: NbaApiPlayerTotal[]) {
       map.set(key, { ...r });
       continue;
     }
-    // Sum cumulative totals
-    existing.games += r.games;
-    existing.gamesStarted += r.gamesStarted;
-    existing.minutesPg += r.minutesPg;
-    existing.fieldGoals += r.fieldGoals;
-    existing.fieldAttempts += r.fieldAttempts;
-    existing.threeFg += r.threeFg;
-    existing.threeAttempts += r.threeAttempts;
-    existing.ft += r.ft;
-    existing.ftAttempts += r.ftAttempts;
-    existing.offensiveRb += r.offensiveRb;
-    existing.defensiveRb += r.defensiveRb;
-    existing.totalRb += r.totalRb;
-    existing.assists += r.assists;
-    existing.steals += r.steals;
-    existing.blocks += r.blocks;
-    existing.turnovers += r.turnovers;
-    existing.points += r.points;
-    if (r.games > existing.games / 2) existing.team = r.team;
+    // Prefer the combined multi-team row; otherwise keep the row with more games.
+    const existingCombined = isCombinedTeam(existing.team);
+    const incomingCombined = isCombinedTeam(r.team);
+    if (incomingCombined && !existingCombined) {
+      map.set(key, { ...r });
+    } else if (!incomingCombined && !existingCombined && r.games > existing.games) {
+      map.set(key, { ...r });
+    }
   }
   return [...map.values()];
 }
