@@ -66,8 +66,8 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <div className="flex items-center gap-3">
             {player && (
               <PlayerAvatar
@@ -87,8 +87,8 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
           </div>
         </DialogHeader>
 
-        <div className="mt-2">
-          <div className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="mt-2 flex min-h-0 flex-1 flex-col">
+          <div className="mb-2 shrink-0 text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Last 3 seasons · per-game averages
           </div>
 
@@ -104,10 +104,10 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
             </div>
           ) : (
             <>
-              <div className="mb-1 text-[10px] text-muted-foreground sm:hidden">
+              <div className="mb-1 shrink-0 text-[10px] text-muted-foreground sm:hidden">
                 ← swipe to see more stats →
               </div>
-              <div className="overflow-x-auto rounded-lg border border-border">
+              <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border">
                 <table className="w-full min-w-[760px] text-sm">
                 <thead className="bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   <tr>

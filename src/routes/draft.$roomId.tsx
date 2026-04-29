@@ -10,6 +10,13 @@ import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { type DraftablePlayer } from "@/lib/balldontlie";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
@@ -91,6 +98,7 @@ function DraftRoomPage() {
   const [posFilter, setPosFilter] = useState<string>("ALL");
   const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
+  const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
@@ -729,8 +737,52 @@ function DraftRoomPage() {
           </div>
         </Card>
 
-        {/* RIGHT — recent picks + teams */}
+        {/* RIGHT — your team + recent picks + teams */}
         <div className="flex flex-col gap-6">
+          {meParticipant && (
+            <Card className="border-2 border-primary/40">
+              <div className="border-b-2 border-border bg-primary/10 p-4">
+                <h3 className="text-sm font-black uppercase tracking-widest text-primary">
+                  Your Team — {meParticipant.team_name}
+                </h3>
+                <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+                  {picks.filter((p) => p.user_id === user?.id).length}/{room.rounds} picks
+                </p>
+              </div>
+              <ul className="max-h-[30vh] divide-y divide-border overflow-y-auto">
+                {picks.filter((p) => p.user_id === user?.id).length === 0 ? (
+                  <li className="px-4 py-6 text-center text-sm text-muted-foreground">
+                    No picks yet — your roster will show up here.
+                  </li>
+                ) : (
+                  picks
+                    .filter((p) => p.user_id === user?.id)
+                    .map((pk) => (
+                      <li
+                        key={pk.id}
+                        className="flex items-center justify-between px-4 py-2.5"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-muted-foreground">
+                            R{pk.round} · #{pk.pick_number}
+                            {pk.was_autopick && (
+                              <span className="ml-1 text-[10px] font-black uppercase text-primary">
+                                auto
+                              </span>
+                            )}
+                          </div>
+                          <div className="truncate text-sm font-bold">{pk.player_name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {pk.player_team ?? "—"} · {pk.player_position ?? "—"}
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                )}
+              </ul>
+            </Card>
+          )}
+
           <Card className="border-2">
             <div className="border-b-2 border-border bg-muted/40 p-4">
               <h3 className="text-sm font-black uppercase tracking-widest">Recent picks</h3>
@@ -778,36 +830,45 @@ function DraftRoomPage() {
               <h3 className="text-sm font-black uppercase tracking-widest">
                 <Users className="mr-1 inline h-4 w-4" /> Teams
               </h3>
+              <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+                Tap a team to view their picks
+              </p>
             </div>
-            <ul className="divide-y divide-border">
+            <ul className="max-h-[40vh] divide-y divide-border overflow-y-auto">
               {Array.from({ length: room.team_count }).map((_, i) => {
                 const idx = i + 1;
                 const team = slotMap.get(idx);
                 const teamPicks = picks.filter((p) => p.team_idx === idx).length;
                 const onClock = idx === currentTeamIdx && isDrafting;
                 return (
-                  <li
-                    key={i}
-                    className={`flex items-center justify-between px-4 py-2.5 ${
-                      onClock ? "bg-primary/10" : ""
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-muted text-[10px] font-black">
-                        {idx}
-                      </span>
-                      <span className="text-sm font-bold">
-                        {team?.team_name ?? <span className="italic text-muted-foreground">Auto</span>}
-                      </span>
-                      {onClock && (
-                        <span className="ml-1 text-[10px] font-black uppercase text-primary">
-                          on clock
+                  <li key={i}>
+                    <button
+                      type="button"
+                      onClick={() => setViewingTeamIdx(idx)}
+                      className={`flex w-full items-center justify-between px-4 py-2.5 text-left transition hover:bg-muted/60 ${
+                        onClock ? "bg-primary/10" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-muted text-[10px] font-black">
+                          {idx}
                         </span>
-                      )}
-                    </div>
-                    <span className="text-xs font-bold text-muted-foreground">
-                      {teamPicks}/{room.rounds}
-                    </span>
+                        <span className="text-sm font-bold">
+                          {team?.team_name ?? <span className="italic text-muted-foreground">Auto</span>}
+                        </span>
+                        {team?.user_id === user?.id && (
+                          <Badge className="ml-1 font-bold">You</Badge>
+                        )}
+                        {onClock && (
+                          <span className="ml-1 text-[10px] font-black uppercase text-primary">
+                            on clock
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold text-muted-foreground">
+                        {teamPicks}/{room.rounds}
+                      </span>
+                    </button>
                   </li>
                 );
               })}
@@ -850,6 +911,55 @@ function DraftRoomPage() {
             : null
         }
       />
+
+      <Dialog open={viewingTeamIdx !== null} onOpenChange={(o) => !o && setViewingTeamIdx(null)}>
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+          {viewingTeamIdx !== null && (() => {
+            const team = slotMap.get(viewingTeamIdx);
+            const teamPicks = picks.filter((p) => p.team_idx === viewingTeamIdx);
+            return (
+              <>
+                <DialogHeader className="shrink-0">
+                  <DialogTitle className="text-lg font-black">
+                    {team?.team_name ?? `Team ${viewingTeamIdx} (Auto)`}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Slot #{viewingTeamIdx} · {teamPicks.length}/{room.rounds} picks
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border">
+                  {teamPicks.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      No picks yet.
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-border">
+                      {teamPicks.map((pk) => (
+                        <li key={pk.id} className="flex items-center justify-between px-4 py-2.5">
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-muted-foreground">
+                              R{pk.round} · #{pk.pick_number}
+                              {pk.was_autopick && (
+                                <span className="ml-1 text-[10px] font-black uppercase text-primary">
+                                  auto
+                                </span>
+                              )}
+                            </div>
+                            <div className="truncate text-sm font-bold">{pk.player_name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {pk.player_team ?? "—"} · {pk.player_position ?? "—"}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
