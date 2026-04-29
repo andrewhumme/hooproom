@@ -64,6 +64,7 @@ type Room = {
   slots_pf: number;
   slots_c: number;
   slots_flx: number;
+  slots_bn: number;
 };
 
 type Participant = {
