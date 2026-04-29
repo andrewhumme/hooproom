@@ -31,6 +31,7 @@ type NbaApiPlayerTotal = {
   blocks: number;
   turnovers: number;
   points: number;
+  isPlayoff?: boolean;
 };
 
 type NbaApiResponse = {
