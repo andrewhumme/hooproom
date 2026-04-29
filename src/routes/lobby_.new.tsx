@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { Loader2 } from "lucide-react";
+import { DEFAULT_SLOTS, SLOT_KEYS, type SlotConfig, totalSlots } from "@/lib/rosterSlots";
 
 export const Route = createFileRoute("/lobby_/new")({
   component: NewRoomPage,
