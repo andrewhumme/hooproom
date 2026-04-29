@@ -88,7 +88,7 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
         </DialogHeader>
 
         <div className="mt-2 flex min-h-0 flex-1 flex-col">
-          <div className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="mb-2 shrink-0 text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Last 3 seasons · per-game averages
           </div>
 
