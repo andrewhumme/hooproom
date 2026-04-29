@@ -69,9 +69,19 @@ function NewRoomPage() {
       rounds,
       pick_clock_sec: pickClock,
       scoring_format: format,
+      slots_pg: slots.PG,
+      slots_sg: slots.SG,
+      slots_sf: slots.SF,
+      slots_pf: slots.PF,
+      slots_c: slots.C,
+      slots_flx: slots.FLX,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
+    if (rounds < 1) {
+      setError("Add at least one roster slot.");
       return;
     }
 
