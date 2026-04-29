@@ -773,6 +773,7 @@ function DraftRoomPage() {
                   .filter((p) => p.user_id === user?.id)
                   .sort((a, b) => a.pick_number - b.pick_number)}
                 cfg={slotCfg}
+                teamCount={room.team_count}
               />
             </Card>
           )}
