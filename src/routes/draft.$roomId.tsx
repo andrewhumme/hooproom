@@ -265,6 +265,7 @@ function DraftRoomPage() {
       PF: room.slots_pf,
       C: room.slots_c,
       FLX: room.slots_flx,
+      BN: room.slots_bn,
     };
   }, [room]);
 
