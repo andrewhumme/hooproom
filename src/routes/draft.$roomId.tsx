@@ -953,6 +953,11 @@ function Stat({ label, value }: { label: string; value: number | null | undefine
   );
 }
 
+// Pick number within its round (1..team_count). Overall pick is pk.pick_number.
+function pickInRound(pk: { pick_number: number }, teamCount: number) {
+  return ((pk.pick_number - 1) % teamCount) + 1;
+}
+
 function RosterSlotList({
   picks,
   cfg,
