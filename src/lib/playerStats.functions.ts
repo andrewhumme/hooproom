@@ -52,7 +52,8 @@ async function fetchSeason(season: number): Promise<NbaApiPlayerTotal[]> {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`nbaapi ${season} p${page}: ${res.status}`);
     const json = (await res.json()) as NbaApiResponse;
-    all.push(...json.data);
+    // Regular season only — exclude playoff totals which the API mixes in.
+    all.push(...json.data.filter((r) => r.isPlayoff !== true));
     if (page >= json.pagination.pages) break;
     page++;
   }
