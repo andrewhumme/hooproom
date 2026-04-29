@@ -166,14 +166,15 @@ function NewRoomPage() {
                     <Input
                       type="number"
                       min={0}
-                      max={10}
+                      max={k === "BN" ? 15 : 10}
                       value={slots[k]}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const cap = k === "BN" ? 15 : 10;
                         setSlots((s) => ({
                           ...s,
-                          [k]: Math.max(0, Math.min(10, parseInt(e.target.value || "0", 10))),
-                        }))
-                      }
+                          [k]: Math.max(0, Math.min(cap, parseInt(e.target.value || "0", 10))),
+                        }));
+                      }}
                       className="mt-1 h-9 text-center font-black"
                     />
                   </div>
