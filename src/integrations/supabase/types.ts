@@ -118,6 +118,7 @@ export type Database = {
           pick_deadline: string | null
           rounds: number
           scoring_format: string
+          slots_bn: number
           slots_c: number
           slots_flx: number
           slots_pf: number
@@ -141,6 +142,7 @@ export type Database = {
           pick_deadline?: string | null
           rounds: number
           scoring_format?: string
+          slots_bn?: number
           slots_c?: number
           slots_flx?: number
           slots_pf?: number
@@ -164,6 +166,7 @@ export type Database = {
           pick_deadline?: string | null
           rounds?: number
           scoring_format?: string
+          slots_bn?: number
           slots_c?: number
           slots_flx?: number
           slots_pf?: number
@@ -397,6 +400,7 @@ export type Database = {
           pick_deadline: string | null
           rounds: number
           scoring_format: string
+          slots_bn: number
           slots_c: number
           slots_flx: number
           slots_pf: number

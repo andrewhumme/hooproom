@@ -1,0 +1,1 @@
+ALTER TABLE public.draft_rooms ADD COLUMN slots_bn smallint NOT NULL DEFAULT 3;
