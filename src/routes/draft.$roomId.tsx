@@ -773,6 +773,7 @@ function DraftRoomPage() {
                   .filter((p) => p.user_id === user?.id)
                   .sort((a, b) => a.pick_number - b.pick_number)}
                 cfg={slotCfg}
+                teamCount={room.team_count}
               />
             </Card>
           )}
@@ -797,7 +798,7 @@ function DraftRoomPage() {
                       <li key={pk.id} className="flex items-center justify-between px-4 py-2.5">
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-muted-foreground">
-                            R{pk.round} · #{pk.pick_number} ·{" "}
+                            R{pk.round} · Pick {pickInRound(pk, room.team_count)} (#{pk.pick_number}) ·{" "}
                             <span className="text-foreground">
                               {team?.team_name ?? `Team ${pk.team_idx}`}
                             </span>
@@ -930,6 +931,7 @@ function DraftRoomPage() {
                     <RosterSlotList
                       picks={teamPicks.slice().sort((a, b) => a.pick_number - b.pick_number)}
                       cfg={slotCfg}
+                      teamCount={room.team_count}
                     />
                   ) : null}
                 </div>
@@ -953,12 +955,19 @@ function Stat({ label, value }: { label: string; value: number | null | undefine
   );
 }
 
+// Pick number within its round (1..team_count). Overall pick is pk.pick_number.
+function pickInRound(pk: { pick_number: number }, teamCount: number) {
+  return ((pk.pick_number - 1) % teamCount) + 1;
+}
+
 function RosterSlotList({
   picks,
   cfg,
+  teamCount,
 }: {
   picks: Pick[];
   cfg: SlotConfig;
+  teamCount: number;
 }) {
   const spots = buildSlotSpots(cfg);
   const assigned = assignPicksToSlots(picks, cfg);
@@ -986,10 +995,15 @@ function RosterSlotList({
             <div className="min-w-0 flex-1">
               {pk ? (
                 <>
-                  <div className="truncate text-sm font-bold">{pk.player_name}</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-sm font-bold">{pk.player_name}</div>
+                    <Badge variant="outline" className="shrink-0 font-bold">
+                      {pk.player_team ?? "—"}
+                    </Badge>
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    R{pk.round} · #{pk.pick_number} · {pk.player_team ?? "—"} ·{" "}
-                    {pk.player_position ?? "—"}
+                    {pk.player_position ?? "—"} · R{pk.round} · Pick{" "}
+                    {pickInRound(pk, teamCount)} (#{pk.pick_number})
                     {pk.was_autopick && (
                       <span className="ml-1 text-[10px] font-black uppercase text-primary">
                         auto
@@ -998,7 +1012,7 @@ function RosterSlotList({
                   </div>
                 </>
               ) : (
-                <div className="text-xs italic text-muted-foreground">Empty</div>
+                <div className="text-xs italic text-muted-foreground">Empty · {spot.pos}</div>
               )}
             </div>
           </li>
@@ -1010,9 +1024,15 @@ function RosterSlotList({
             BN
           </span>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-bold">{pk.player_name}</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="truncate text-sm font-bold">{pk.player_name}</div>
+              <Badge variant="outline" className="shrink-0 font-bold">
+                {pk.player_team ?? "—"}
+              </Badge>
+            </div>
             <div className="text-xs text-muted-foreground">
-              R{pk.round} · #{pk.pick_number} · overflow
+              {pk.player_position ?? "—"} · R{pk.round} · Pick{" "}
+              {pickInRound(pk, teamCount)} (#{pk.pick_number}) · overflow
             </div>
           </div>
         </li>
