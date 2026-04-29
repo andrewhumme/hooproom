@@ -76,6 +76,7 @@ function NewRoomPage() {
       slots_pf: slots.PF,
       slots_c: slots.C,
       slots_flx: slots.FLX,
+      slots_bn: slots.BN,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
