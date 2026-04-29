@@ -28,6 +28,12 @@ const SCHEMA = z.object({
   rounds: z.number().int().min(1).max(30),
   pick_clock_sec: z.number().int().min(15).max(600),
   scoring_format: z.enum(["9-CAT", "8-CAT", "POINTS", "ROTO"]),
+  slots_pg: z.number().int().min(0).max(10),
+  slots_sg: z.number().int().min(0).max(10),
+  slots_sf: z.number().int().min(0).max(10),
+  slots_pf: z.number().int().min(0).max(10),
+  slots_c: z.number().int().min(0).max(10),
+  slots_flx: z.number().int().min(0).max(10),
 });
 
 const TEAM_OPTIONS = [8, 10, 12, 14] as const;
