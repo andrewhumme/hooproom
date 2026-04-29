@@ -34,6 +34,7 @@ const SCHEMA = z.object({
   slots_pf: z.number().int().min(0).max(10),
   slots_c: z.number().int().min(0).max(10),
   slots_flx: z.number().int().min(0).max(10),
+  slots_bn: z.number().int().min(0).max(15),
 });
 
 const TEAM_OPTIONS = [8, 10, 12, 14] as const;
