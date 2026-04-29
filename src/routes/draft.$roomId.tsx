@@ -255,6 +255,18 @@ function DraftRoomPage() {
     return m;
   }, [participants]);
 
+  const slotCfg: SlotConfig | null = useMemo(() => {
+    if (!room) return null;
+    return {
+      PG: room.slots_pg,
+      SG: room.slots_sg,
+      SF: room.slots_sf,
+      PF: room.slots_pf,
+      C: room.slots_c,
+      FLX: room.slots_flx,
+    };
+  }, [room]);
+
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
 
