@@ -10,6 +10,13 @@ import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { type DraftablePlayer } from "@/lib/balldontlie";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
