@@ -22,6 +22,7 @@ import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
+import { assignPicksToSlots, buildSlotSpots, type SlotConfig } from "@/lib/rosterSlots";
 import {
   ArrowLeft,
   Check,
