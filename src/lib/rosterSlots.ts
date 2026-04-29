@@ -84,7 +84,7 @@ export function assignPicksToSlots<P extends { player_position: string | null }>
     // 1. Try a specific slot matching one of the eligible positions.
     for (const spot of spots) {
       if (taken.has(spot.key)) continue;
-      if (spot.pos === "FLX") continue;
+      if (spot.pos === "FLX" || spot.pos === "BN") continue;
       if (eligible.includes(spot.pos)) {
         chosen = spot.key;
         break;
@@ -95,6 +95,16 @@ export function assignPicksToSlots<P extends { player_position: string | null }>
       for (const spot of spots) {
         if (taken.has(spot.key)) continue;
         if (spot.pos === "FLX") {
+          chosen = spot.key;
+          break;
+        }
+      }
+    }
+    // 3. Fall back to first open BN (bench).
+    if (!chosen) {
+      for (const spot of spots) {
+        if (taken.has(spot.key)) continue;
+        if (spot.pos === "BN") {
           chosen = spot.key;
           break;
         }
