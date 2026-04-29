@@ -830,8 +830,11 @@ function DraftRoomPage() {
               <h3 className="text-sm font-black uppercase tracking-widest">
                 <Users className="mr-1 inline h-4 w-4" /> Teams
               </h3>
+              <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+                Tap a team to view their picks
+              </p>
             </div>
-            <ul className="divide-y divide-border">
+            <ul className="max-h-[40vh] divide-y divide-border overflow-y-auto">
               {Array.from({ length: room.team_count }).map((_, i) => {
                 const idx = i + 1;
                 const team = slotMap.get(idx);
