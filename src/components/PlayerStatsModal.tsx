@@ -147,8 +147,9 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </DialogContent>
