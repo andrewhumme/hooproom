@@ -961,9 +961,11 @@ function pickInRound(pk: { pick_number: number }, teamCount: number) {
 function RosterSlotList({
   picks,
   cfg,
+  teamCount,
 }: {
   picks: Pick[];
   cfg: SlotConfig;
+  teamCount: number;
 }) {
   const spots = buildSlotSpots(cfg);
   const assigned = assignPicksToSlots(picks, cfg);
@@ -991,10 +993,15 @@ function RosterSlotList({
             <div className="min-w-0 flex-1">
               {pk ? (
                 <>
-                  <div className="truncate text-sm font-bold">{pk.player_name}</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-sm font-bold">{pk.player_name}</div>
+                    <Badge variant="outline" className="shrink-0 font-bold">
+                      {pk.player_team ?? "—"}
+                    </Badge>
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    R{pk.round} · #{pk.pick_number} · {pk.player_team ?? "—"} ·{" "}
-                    {pk.player_position ?? "—"}
+                    {pk.player_position ?? "—"} · R{pk.round} · Pick{" "}
+                    {pickInRound(pk, teamCount)} (#{pk.pick_number})
                     {pk.was_autopick && (
                       <span className="ml-1 text-[10px] font-black uppercase text-primary">
                         auto
@@ -1003,7 +1010,7 @@ function RosterSlotList({
                   </div>
                 </>
               ) : (
-                <div className="text-xs italic text-muted-foreground">Empty</div>
+                <div className="text-xs italic text-muted-foreground">Empty · {spot.pos}</div>
               )}
             </div>
           </li>
@@ -1015,9 +1022,15 @@ function RosterSlotList({
             BN
           </span>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-bold">{pk.player_name}</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="truncate text-sm font-bold">{pk.player_name}</div>
+              <Badge variant="outline" className="shrink-0 font-bold">
+                {pk.player_team ?? "—"}
+              </Badge>
+            </div>
             <div className="text-xs text-muted-foreground">
-              R{pk.round} · #{pk.pick_number} · overflow
+              {pk.player_position ?? "—"} · R{pk.round} · Pick{" "}
+              {pickInRound(pk, teamCount)} (#{pk.pick_number}) · overflow
             </div>
           </div>
         </li>
