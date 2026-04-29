@@ -45,11 +45,13 @@ function NewRoomPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
-  const [rounds, setRounds] = useState<number>(13);
   const [pickClock, setPickClock] = useState<number>(60);
   const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
+  const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const rounds = totalSlots(slots);
 
   // Make sure a guest session exists as soon as the form mounts so the host
   // can submit immediately. (Testing mode — replace with real auth later.)
