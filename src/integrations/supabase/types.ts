@@ -178,6 +178,7 @@ export type Database = {
           games_played: number | null
           games_started: number | null
           id: string
+          loose_key: string | null
           minutes_per_game: number | null
           oreb: number | null
           player_key: string
@@ -208,6 +209,7 @@ export type Database = {
           games_played?: number | null
           games_started?: number | null
           id?: string
+          loose_key?: string | null
           minutes_per_game?: number | null
           oreb?: number | null
           player_key: string
@@ -238,6 +240,7 @@ export type Database = {
           games_played?: number | null
           games_started?: number | null
           id?: string
+          loose_key?: string | null
           minutes_per_game?: number | null
           oreb?: number | null
           player_key?: string
@@ -261,6 +264,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_name: string
+          loose_key: string | null
           nba_player_id: number | null
           player_key: string
           position: string | null
@@ -276,6 +280,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_name: string
+          loose_key?: string | null
           nba_player_id?: number | null
           player_key: string
           position?: string | null
@@ -291,6 +296,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_name?: string
+          loose_key?: string | null
           nba_player_id?: number | null
           player_key?: string
           position?: string | null
