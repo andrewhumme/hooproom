@@ -931,6 +931,7 @@ function DraftRoomPage() {
                     <RosterSlotList
                       picks={teamPicks.slice().sort((a, b) => a.pick_number - b.pick_number)}
                       cfg={slotCfg}
+                      teamCount={room.team_count}
                     />
                   ) : null}
                 </div>
