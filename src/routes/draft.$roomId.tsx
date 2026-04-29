@@ -952,3 +952,71 @@ function Stat({ label, value }: { label: string; value: number | null | undefine
     </div>
   );
 }
+
+function RosterSlotList({
+  picks,
+  cfg,
+}: {
+  picks: Pick[];
+  cfg: SlotConfig;
+}) {
+  const spots = buildSlotSpots(cfg);
+  const assigned = assignPicksToSlots(picks, cfg);
+  const bySpot = new Map<string, Pick>();
+  const overflow: Pick[] = [];
+  for (const a of assigned) {
+    if (a.spotKey) bySpot.set(a.spotKey, a.pick);
+    else overflow.push(a.pick);
+  }
+  return (
+    <ul className="divide-y divide-border">
+      {spots.map((spot) => {
+        const pk = bySpot.get(spot.key);
+        return (
+          <li key={spot.key} className="flex items-center gap-3 px-4 py-2.5">
+            <span
+              className={`flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-[10px] font-black ${
+                spot.pos === "FLX"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-muted text-foreground"
+              }`}
+            >
+              {spot.pos}
+            </span>
+            <div className="min-w-0 flex-1">
+              {pk ? (
+                <>
+                  <div className="truncate text-sm font-bold">{pk.player_name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    R{pk.round} · #{pk.pick_number} · {pk.player_team ?? "—"} ·{" "}
+                    {pk.player_position ?? "—"}
+                    {pk.was_autopick && (
+                      <span className="ml-1 text-[10px] font-black uppercase text-primary">
+                        auto
+                      </span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-xs italic text-muted-foreground">Empty</div>
+              )}
+            </div>
+          </li>
+        );
+      })}
+      {overflow.map((pk) => (
+        <li key={pk.id} className="flex items-center gap-3 bg-destructive/5 px-4 py-2.5">
+          <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded-md bg-destructive/20 text-[10px] font-black text-destructive">
+            BN
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-bold">{pk.player_name}</div>
+            <div className="text-xs text-muted-foreground">
+              R{pk.round} · #{pk.pick_number} · overflow
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
