@@ -841,28 +841,34 @@ function DraftRoomPage() {
                 const teamPicks = picks.filter((p) => p.team_idx === idx).length;
                 const onClock = idx === currentTeamIdx && isDrafting;
                 return (
-                  <li
-                    key={i}
-                    className={`flex items-center justify-between px-4 py-2.5 ${
-                      onClock ? "bg-primary/10" : ""
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-muted text-[10px] font-black">
-                        {idx}
-                      </span>
-                      <span className="text-sm font-bold">
-                        {team?.team_name ?? <span className="italic text-muted-foreground">Auto</span>}
-                      </span>
-                      {onClock && (
-                        <span className="ml-1 text-[10px] font-black uppercase text-primary">
-                          on clock
+                  <li key={i}>
+                    <button
+                      type="button"
+                      onClick={() => setViewingTeamIdx(idx)}
+                      className={`flex w-full items-center justify-between px-4 py-2.5 text-left transition hover:bg-muted/60 ${
+                        onClock ? "bg-primary/10" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-muted text-[10px] font-black">
+                          {idx}
                         </span>
-                      )}
-                    </div>
-                    <span className="text-xs font-bold text-muted-foreground">
-                      {teamPicks}/{room.rounds}
-                    </span>
+                        <span className="text-sm font-bold">
+                          {team?.team_name ?? <span className="italic text-muted-foreground">Auto</span>}
+                        </span>
+                        {team?.user_id === user?.id && (
+                          <Badge className="ml-1 font-bold">You</Badge>
+                        )}
+                        {onClock && (
+                          <span className="ml-1 text-[10px] font-black uppercase text-primary">
+                            on clock
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold text-muted-foreground">
+                        {teamPicks}/{room.rounds}
+                      </span>
+                    </button>
                   </li>
                 );
               })}
