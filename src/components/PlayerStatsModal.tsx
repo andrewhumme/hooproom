@@ -66,7 +66,7 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
             {player && (
@@ -103,8 +103,12 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
               No historical stats available for this player.
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
+            <>
+              <div className="mb-1 text-[10px] text-muted-foreground sm:hidden">
+                ← swipe to see more stats →
+              </div>
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full min-w-[760px] text-sm">
                 <thead className="bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   <tr>
                     <Th>Season</Th>
@@ -143,8 +147,9 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </DialogContent>
