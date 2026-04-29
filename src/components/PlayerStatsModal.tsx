@@ -103,7 +103,10 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
               No historical stats available for this player.
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-border">
+            <div className="overflow-x-auto rounded-lg border border-border -mx-1">
+              <div className="text-[10px] text-muted-foreground px-3 pt-2 sm:hidden">
+                ← swipe to see more →
+              </div>
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   <tr>
