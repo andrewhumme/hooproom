@@ -132,16 +132,37 @@ export const seedPlayerStatsServer = createServerFn({ method: "POST" }).handler(
   async () => {
     const summary: Record<number, { fetched: number; upserted: number }> = {};
 
+    // Wipe existing rows so stale duplicate-key spellings (e.g. "karl-anthony-towns"
+    // vs "karlanthony-towns") and old playoff-inclusive totals don't linger.
+    const { error: delErr } = await supabaseAdmin
+      .from("player_season_stats")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+    if (delErr) throw new Error(`wipe: ${delErr.message}`);
+
     for (const season of SEASONS) {
       const raw = await fetchSeason(season);
       const aggregated = aggregateBySeasonPlayer(raw);
       const rows = aggregated.map(toRow).filter((r): r is NonNullable<typeof r> => r !== null);
 
+      // Dedupe by (loose_key, season) — the API can yield two name spellings
+      // for the same player; keep the row with the most games.
+      const dedup = new Map<string, (typeof rows)[number]>();
+      for (const r of rows) {
+        const lk = r.player_key.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const key = `${lk}|${r.season}`;
+        const existing = dedup.get(key);
+        if (!existing || (r.games_played ?? 0) > (existing.games_played ?? 0)) {
+          dedup.set(key, r);
+        }
+      }
+      const deduped = [...dedup.values()];
+
       // Chunked upsert
       const chunkSize = 500;
       let upserted = 0;
-      for (let i = 0; i < rows.length; i += chunkSize) {
-        const chunk = rows.slice(i, i + chunkSize);
+      for (let i = 0; i < deduped.length; i += chunkSize) {
+        const chunk = deduped.slice(i, i + chunkSize);
         const { error } = await supabaseAdmin
           .from("player_season_stats")
           .upsert(chunk, { onConflict: "player_key,season" });
