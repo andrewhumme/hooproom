@@ -22,6 +22,7 @@ import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
+import { assignPicksToSlots, buildSlotSpots, type SlotConfig } from "@/lib/rosterSlots";
 import {
   ArrowLeft,
   Check,
@@ -57,6 +58,12 @@ type Room = {
   status: "waiting" | "drafting" | "complete";
   current_pick_number: number;
   pick_deadline: string | null;
+  slots_pg: number;
+  slots_sg: number;
+  slots_sf: number;
+  slots_pf: number;
+  slots_c: number;
+  slots_flx: number;
 };
 
 type Participant = {
@@ -247,6 +254,18 @@ function DraftRoomPage() {
     }
     return m;
   }, [participants]);
+
+  const slotCfg: SlotConfig | null = useMemo(() => {
+    if (!room) return null;
+    return {
+      PG: room.slots_pg,
+      SG: room.slots_sg,
+      SF: room.slots_sf,
+      PF: room.slots_pf,
+      C: room.slots_c,
+      FLX: room.slots_flx,
+    };
+  }, [room]);
 
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
@@ -739,47 +758,22 @@ function DraftRoomPage() {
 
         {/* RIGHT — your team + recent picks + teams */}
         <div className="flex flex-col gap-6">
-          {meParticipant && (
+          {meParticipant && slotCfg && (
             <Card className="border-2 border-primary/40">
               <div className="border-b-2 border-border bg-primary/10 p-4">
                 <h3 className="text-sm font-black uppercase tracking-widest text-primary">
                   Your Team — {meParticipant.team_name}
                 </h3>
                 <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-                  {picks.filter((p) => p.user_id === user?.id).length}/{room.rounds} picks
+                  {picks.filter((p) => p.user_id === user?.id).length}/{room.rounds} slots filled
                 </p>
               </div>
-              <ul className="max-h-[30vh] divide-y divide-border overflow-y-auto">
-                {picks.filter((p) => p.user_id === user?.id).length === 0 ? (
-                  <li className="px-4 py-6 text-center text-sm text-muted-foreground">
-                    No picks yet — your roster will show up here.
-                  </li>
-                ) : (
-                  picks
-                    .filter((p) => p.user_id === user?.id)
-                    .map((pk) => (
-                      <li
-                        key={pk.id}
-                        className="flex items-center justify-between px-4 py-2.5"
-                      >
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-muted-foreground">
-                            R{pk.round} · #{pk.pick_number}
-                            {pk.was_autopick && (
-                              <span className="ml-1 text-[10px] font-black uppercase text-primary">
-                                auto
-                              </span>
-                            )}
-                          </div>
-                          <div className="truncate text-sm font-bold">{pk.player_name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {pk.player_team ?? "—"} · {pk.player_position ?? "—"}
-                          </div>
-                        </div>
-                      </li>
-                    ))
-                )}
-              </ul>
+              <RosterSlotList
+                picks={picks
+                  .filter((p) => p.user_id === user?.id)
+                  .sort((a, b) => a.pick_number - b.pick_number)}
+                cfg={slotCfg}
+              />
             </Card>
           )}
 
@@ -932,28 +926,12 @@ function DraftRoomPage() {
                     <div className="p-6 text-center text-sm text-muted-foreground">
                       No picks yet.
                     </div>
-                  ) : (
-                    <ul className="divide-y divide-border">
-                      {teamPicks.map((pk) => (
-                        <li key={pk.id} className="flex items-center justify-between px-4 py-2.5">
-                          <div className="min-w-0">
-                            <div className="text-xs font-bold text-muted-foreground">
-                              R{pk.round} · #{pk.pick_number}
-                              {pk.was_autopick && (
-                                <span className="ml-1 text-[10px] font-black uppercase text-primary">
-                                  auto
-                                </span>
-                              )}
-                            </div>
-                            <div className="truncate text-sm font-bold">{pk.player_name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {pk.player_team ?? "—"} · {pk.player_position ?? "—"}
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  ) : slotCfg ? (
+                    <RosterSlotList
+                      picks={teamPicks.slice().sort((a, b) => a.pick_number - b.pick_number)}
+                      cfg={slotCfg}
+                    />
+                  ) : null}
                 </div>
               </>
             );
@@ -972,5 +950,73 @@ function Stat({ label, value }: { label: string; value: number | null | undefine
         {label}
       </span>
     </div>
+  );
+}
+
+function RosterSlotList({
+  picks,
+  cfg,
+}: {
+  picks: Pick[];
+  cfg: SlotConfig;
+}) {
+  const spots = buildSlotSpots(cfg);
+  const assigned = assignPicksToSlots(picks, cfg);
+  const bySpot = new Map<string, Pick>();
+  const overflow: Pick[] = [];
+  for (const a of assigned) {
+    if (a.spotKey) bySpot.set(a.spotKey, a.pick);
+    else overflow.push(a.pick);
+  }
+  return (
+    <ul className="divide-y divide-border">
+      {spots.map((spot) => {
+        const pk = bySpot.get(spot.key);
+        return (
+          <li key={spot.key} className="flex items-center gap-3 px-4 py-2.5">
+            <span
+              className={`flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-[10px] font-black ${
+                spot.pos === "FLX"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-muted text-foreground"
+              }`}
+            >
+              {spot.pos}
+            </span>
+            <div className="min-w-0 flex-1">
+              {pk ? (
+                <>
+                  <div className="truncate text-sm font-bold">{pk.player_name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    R{pk.round} · #{pk.pick_number} · {pk.player_team ?? "—"} ·{" "}
+                    {pk.player_position ?? "—"}
+                    {pk.was_autopick && (
+                      <span className="ml-1 text-[10px] font-black uppercase text-primary">
+                        auto
+                      </span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-xs italic text-muted-foreground">Empty</div>
+              )}
+            </div>
+          </li>
+        );
+      })}
+      {overflow.map((pk) => (
+        <li key={pk.id} className="flex items-center gap-3 bg-destructive/5 px-4 py-2.5">
+          <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded-md bg-destructive/20 text-[10px] font-black text-destructive">
+            BN
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-bold">{pk.player_name}</div>
+            <div className="text-xs text-muted-foreground">
+              R{pk.round} · #{pk.pick_number} · overflow
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -118,6 +118,12 @@ export type Database = {
           pick_deadline: string | null
           rounds: number
           scoring_format: string
+          slots_c: number
+          slots_flx: number
+          slots_pf: number
+          slots_pg: number
+          slots_sf: number
+          slots_sg: number
           started_at: string | null
           status: string
           team_count: number
@@ -135,6 +141,12 @@ export type Database = {
           pick_deadline?: string | null
           rounds: number
           scoring_format?: string
+          slots_c?: number
+          slots_flx?: number
+          slots_pf?: number
+          slots_pg?: number
+          slots_sf?: number
+          slots_sg?: number
           started_at?: string | null
           status?: string
           team_count: number
@@ -152,6 +164,12 @@ export type Database = {
           pick_deadline?: string | null
           rounds?: number
           scoring_format?: string
+          slots_c?: number
+          slots_flx?: number
+          slots_pf?: number
+          slots_pg?: number
+          slots_sf?: number
+          slots_sg?: number
           started_at?: string | null
           status?: string
           team_count?: number
@@ -379,6 +397,12 @@ export type Database = {
           pick_deadline: string | null
           rounds: number
           scoring_format: string
+          slots_c: number
+          slots_flx: number
+          slots_pf: number
+          slots_pg: number
+          slots_sf: number
+          slots_sg: number
           started_at: string | null
           status: string
           team_count: number

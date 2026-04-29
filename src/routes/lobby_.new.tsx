@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { Loader2 } from "lucide-react";
+import { DEFAULT_SLOTS, SLOT_KEYS, type SlotConfig, totalSlots } from "@/lib/rosterSlots";
 
 export const Route = createFileRoute("/lobby_/new")({
   component: NewRoomPage,
@@ -27,6 +28,12 @@ const SCHEMA = z.object({
   rounds: z.number().int().min(1).max(30),
   pick_clock_sec: z.number().int().min(15).max(600),
   scoring_format: z.enum(["9-CAT", "8-CAT", "POINTS", "ROTO"]),
+  slots_pg: z.number().int().min(0).max(10),
+  slots_sg: z.number().int().min(0).max(10),
+  slots_sf: z.number().int().min(0).max(10),
+  slots_pf: z.number().int().min(0).max(10),
+  slots_c: z.number().int().min(0).max(10),
+  slots_flx: z.number().int().min(0).max(10),
 });
 
 const TEAM_OPTIONS = [8, 10, 12, 14] as const;
@@ -38,11 +45,13 @@ function NewRoomPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
-  const [rounds, setRounds] = useState<number>(13);
   const [pickClock, setPickClock] = useState<number>(60);
   const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
+  const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const rounds = totalSlots(slots);
 
   // Make sure a guest session exists as soon as the form mounts so the host
   // can submit immediately. (Testing mode — replace with real auth later.)
@@ -60,9 +69,19 @@ function NewRoomPage() {
       rounds,
       pick_clock_sec: pickClock,
       scoring_format: format,
+      slots_pg: slots.PG,
+      slots_sg: slots.SG,
+      slots_sf: slots.SF,
+      slots_pf: slots.PF,
+      slots_c: slots.C,
+      slots_flx: slots.FLX,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
+    if (rounds < 1) {
+      setError("Add at least one roster slot.");
       return;
     }
 
@@ -132,18 +151,34 @@ function NewRoomPage() {
             />
 
             <div>
-              <Label htmlFor="rounds">Rounds (roster size)</Label>
-              <Input
-                id="rounds"
-                type="number"
-                min={1}
-                max={30}
-                value={rounds}
-                onChange={(e) => setRounds(parseInt(e.target.value || "0", 10))}
-                className="mt-1.5"
-              />
+              <Label>Roster slots</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Total picks: {teamCount * rounds}
+                Players auto-fill the first matching slot. FLX accepts any position.
+              </p>
+              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                {SLOT_KEYS.map((k) => (
+                  <div key={k} className="rounded-md border-2 border-border bg-card p-2">
+                    <div className="text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      {k}
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={10}
+                      value={slots[k]}
+                      onChange={(e) =>
+                        setSlots((s) => ({
+                          ...s,
+                          [k]: Math.max(0, Math.min(10, parseInt(e.target.value || "0", 10))),
+                        }))
+                      }
+                      className="mt-1 h-9 text-center font-black"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-xs font-semibold text-muted-foreground">
+                {rounds} rounds · {teamCount * rounds} total picks
               </p>
             </div>
 
