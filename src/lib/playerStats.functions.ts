@@ -180,6 +180,8 @@ export type PlayerSeasonStats = {
   ef_fg_pct: number | null;
 };
 
+const looseKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
+
 export const fetchPlayerStatsServer = createServerFn({ method: "GET" })
   .inputValidator((data: { playerKey: string }) => data)
   .handler(async ({ data }): Promise<PlayerSeasonStats[]> => {
@@ -188,7 +190,7 @@ export const fetchPlayerStatsServer = createServerFn({ method: "GET" })
       .select(
         "season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
       )
-      .eq("player_key", data.playerKey)
+      .eq("loose_key", looseKey(data.playerKey))
       .order("season", { ascending: false });
 
     if (error) throw new Error(error.message);
@@ -201,19 +203,22 @@ export const fetchLatestStatsForPlayersServer = createServerFn({ method: "POST" 
     async ({ data }): Promise<Record<string, PlayerSeasonStats>> => {
       if (data.playerKeys.length === 0) return {};
       const latest = Math.max(...SEASONS);
+      const looseToOriginal = new Map<string, string>();
+      for (const k of data.playerKeys) looseToOriginal.set(looseKey(k), k);
       const { data: rows, error } = await supabaseAdmin
         .from("player_season_stats")
         .select(
-          "player_key, season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
+          "loose_key, season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
         )
         .eq("season", latest)
-        .in("player_key", data.playerKeys);
+        .in("loose_key", [...looseToOriginal.keys()]);
 
       if (error) throw new Error(error.message);
       const out: Record<string, PlayerSeasonStats> = {};
       for (const r of rows ?? []) {
-        const { player_key, ...rest } = r as { player_key: string } & PlayerSeasonStats;
-        out[player_key] = rest;
+        const { loose_key, ...rest } = r as { loose_key: string } & PlayerSeasonStats;
+        const original = looseToOriginal.get(loose_key);
+        if (original) out[original] = rest;
       }
       return out;
     },
