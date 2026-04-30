@@ -807,7 +807,7 @@ function DraftRoomPage() {
             </Card>
           )}
 
-          <Card className="border-2">
+          <Card className="border-2 lg:block">
             <div className="border-b-2 border-border bg-muted/40 p-4">
               <h3 className="text-sm font-black uppercase tracking-widest">Recent picks</h3>
             </div>
