@@ -873,10 +873,31 @@ function DraftRoomPage() {
                 ))}
               </div>
             </div>
-            <div className="mt-2 text-xs font-semibold text-muted-foreground">
-              {playersLoading
-                ? "Loading player pool…"
-                : `${availablePlayers.length} available · sorted by ranking`}
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="text-xs font-semibold text-muted-foreground">
+                {playersLoading
+                  ? "Loading player pool…"
+                  : `${availablePlayers.length} available · sorted by ranking`}
+              </div>
+              <div className="flex items-center gap-1 rounded-md border-2 border-border bg-card p-1">
+                <span className="hidden px-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground sm:inline">
+                  Stats
+                </span>
+                {(["zebra", "heatmap"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setStatsShade(m)}
+                    className={`rounded-sm px-2 py-1 text-[10px] font-black uppercase tracking-wider ${
+                      statsShade === m
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
