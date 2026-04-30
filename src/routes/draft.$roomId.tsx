@@ -18,6 +18,17 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { type DraftablePlayer } from "@/lib/balldontlie";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
@@ -35,6 +46,7 @@ import {
   Search,
   Trophy,
   Users,
+  XCircle,
   Zap,
 } from "lucide-react";
 
@@ -393,6 +405,22 @@ function DraftRoomPage() {
     if (error) setError(error.message);
   };
 
+  const handleEndDraft = async () => {
+    if (!room) return;
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase
+      .from("draft_rooms")
+      .update({ status: "complete", completed_at: new Date().toISOString(), pick_deadline: null })
+      .eq("id", room.id);
+    setActionBusy(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    navigate({ to: "/lobby" });
+  };
+
   const handlePick = useCallback(
     async (player: DraftablePlayer) => {
       if (!isMyTurn || !room) return;
@@ -659,6 +687,37 @@ function DraftRoomPage() {
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export CSV
               </Button>
+            )}
+            {isHost && !isComplete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="font-bold border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    disabled={actionBusy}
+                  >
+                    <XCircle /> End draft
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>End this draft?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This marks the room as complete and removes it from the active lobby. Picks made so far stay in the record and remain exportable. This can't be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleEndDraft}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      End draft
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
