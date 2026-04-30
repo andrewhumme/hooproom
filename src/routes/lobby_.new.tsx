@@ -22,12 +22,15 @@ export const Route = createFileRoute("/lobby_/new")({
   }),
 });
 
+const MAX_CLOCK_SEC = 72 * 60 * 60; // 72 hours
+
 const SCHEMA = z.object({
   name: z.string().min(2).max(80),
   team_count: z.number().int().min(4).max(20),
   rounds: z.number().int().min(1).max(30),
-  pick_clock_sec: z.number().int().min(15).max(600),
+  pick_clock_sec: z.number().int().min(15).max(MAX_CLOCK_SEC),
   scoring_format: z.enum(["9-CAT", "8-CAT", "POINTS", "ROTO"]),
+  draft_format: z.enum(["snake", "auction"]),
   slots_pg: z.number().int().min(0).max(10),
   slots_sg: z.number().int().min(0).max(10),
   slots_sf: z.number().int().min(0).max(10),
@@ -39,8 +42,29 @@ const SCHEMA = z.object({
 });
 
 const TEAM_OPTIONS = [8, 10, 12, 14] as const;
-const CLOCK_OPTIONS = [30, 60, 90] as const;
+// Live presets (seconds) + slow presets (hours, stored as seconds)
+const FAST_CLOCK_OPTIONS = [
+  { label: "30s", value: 30 },
+  { label: "60s", value: 60 },
+  { label: "90s", value: 90 },
+] as const;
+const SLOW_CLOCK_OPTIONS = [
+  { label: "4h", value: 4 * 3600 },
+  { label: "8h", value: 8 * 3600 },
+  { label: "12h", value: 12 * 3600 },
+  { label: "24h", value: 24 * 3600 },
+] as const;
 const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
+const DRAFT_FORMATS = [
+  { value: "snake", label: "Snake", available: true, hint: "Live, real-time picks" },
+  { value: "auction", label: "Auction", available: false, hint: "Coming soon — bidding & budgets" },
+] as const;
+
+function formatClock(sec: number): string {
+  if (sec < 3600) return `${sec}s`;
+  const hrs = sec / 3600;
+  return Number.isInteger(hrs) ? `${hrs}h` : `${hrs.toFixed(1)}h`;
+}
 
 function NewRoomPage() {
   const { user } = useAuth();
