@@ -199,6 +199,43 @@ function NewRoomPage() {
               </p>
             </div>
 
+            <div>
+              <Label>Reversal rounds</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Selected rounds become double-pick reversals — the team picking last keeps the next round's first pick, then the snake continues. Pick from rounds 2–{Math.max(2, rounds - 1)}.
+              </p>
+              {rounds < 3 ? (
+                <p className="mt-2 text-xs italic text-muted-foreground">
+                  Add at least 3 roster slots to enable reversals.
+                </p>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {Array.from({ length: rounds - 2 }, (_, i) => i + 2).map((r) => {
+                    const active = reversalRounds.includes(r);
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => toggleReversal(r)}
+                        className={`rounded-md border-2 px-3 py-1.5 text-sm font-bold transition ${
+                          active
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        }`}
+                      >
+                        R{r}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {reversalRounds.length > 0 && (
+                <p className="mt-2 text-xs font-semibold text-muted-foreground">
+                  {reversalRounds.length} reversal{reversalRounds.length === 1 ? "" : "s"}: {reversalRounds.map((r) => `R${r}`).join(", ")}
+                </p>
+              )}
+            </div>
+
             <ChipGroup
               label="Pick clock"
               options={CLOCK_OPTIONS}
