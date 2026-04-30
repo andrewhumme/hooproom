@@ -78,6 +78,7 @@ type Room = {
   slots_c: number;
   slots_flx: number;
   slots_bn: number;
+  reversal_rounds: number[] | null;
 };
 
 type Participant = {
@@ -254,12 +255,20 @@ function DraftRoomPage() {
   const isComplete = room?.status === "complete";
   const isDrafting = room?.status === "drafting";
 
-  const { currentRound, currentTeamIdx } = useMemo(() => {
-    if (!room || !isDrafting) return { currentRound: 0, currentTeamIdx: 0 };
+  const { currentRound, currentTeamIdx, currentReverse } = useMemo(() => {
+    if (!room || !isDrafting) return { currentRound: 0, currentTeamIdx: 0, currentReverse: false };
     const r = Math.floor((currentPickNumber - 1) / room.team_count) + 1;
     const idxInRound = (currentPickNumber - 1) % room.team_count;
-    const t = r % 2 === 1 ? idxInRound + 1 : room.team_count - idxInRound;
-    return { currentRound: r, currentTeamIdx: t };
+    const reversals = new Set<number>(room.reversal_rounds ?? []);
+    // Walk rounds 1..r-1 to determine direction at round r
+    let reverse = false;
+    for (let i = 1; i < r; i++) {
+      // If round i is a reversal, next round keeps SAME direction (double pick).
+      // Otherwise normal snake flip.
+      if (!reversals.has(i)) reverse = !reverse;
+    }
+    const t = reverse ? room.team_count - idxInRound : idxInRound + 1;
+    return { currentRound: r, currentTeamIdx: t, currentReverse: reverse };
   }, [room, currentPickNumber, isDrafting]);
 
   const slotMap = useMemo(() => {
@@ -732,7 +741,12 @@ function DraftRoomPage() {
             </h3>
             {isDrafting && (
               <span className="text-[11px] font-bold text-muted-foreground">
-                Round {currentRound} {currentRound % 2 === 0 ? "← reverse" : "→ forward"}
+                Round {currentRound} {currentReverse ? "← reverse" : "→ forward"}
+                {(room.reversal_rounds ?? []).includes(currentRound) && (
+                  <span className="ml-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-primary">
+                    Reversal
+                  </span>
+                )}
               </span>
             )}
           </div>

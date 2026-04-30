@@ -35,6 +35,7 @@ const SCHEMA = z.object({
   slots_c: z.number().int().min(0).max(10),
   slots_flx: z.number().int().min(0).max(10),
   slots_bn: z.number().int().min(0).max(15),
+  reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
 });
 
 const TEAM_OPTIONS = [8, 10, 12, 14] as const;
@@ -49,10 +50,22 @@ function NewRoomPage() {
   const [pickClock, setPickClock] = useState<number>(60);
   const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
+  const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const rounds = totalSlots(slots);
+
+  // Drop any reversal rounds outside the valid range when slots change
+  useEffect(() => {
+    setReversalRounds((prev) => prev.filter((r) => r >= 2 && r <= rounds - 1));
+  }, [rounds]);
+
+  const toggleReversal = (r: number) => {
+    setReversalRounds((prev) =>
+      prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r].sort((a, b) => a - b),
+    );
+  };
 
   // Make sure a guest session exists as soon as the form mounts so the host
   // can submit immediately. (Testing mode — replace with real auth later.)
@@ -77,6 +90,7 @@ function NewRoomPage() {
       slots_c: slots.C,
       slots_flx: slots.FLX,
       slots_bn: slots.BN,
+      reversal_rounds: reversalRounds,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
@@ -183,6 +197,43 @@ function NewRoomPage() {
               <p className="mt-2 text-xs font-semibold text-muted-foreground">
                 {rounds} rounds · {teamCount * rounds} total picks
               </p>
+            </div>
+
+            <div>
+              <Label>Reversal rounds</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Selected rounds become double-pick reversals — the team picking last keeps the next round's first pick, then the snake continues. Pick from rounds 2–{Math.max(2, rounds - 1)}.
+              </p>
+              {rounds < 3 ? (
+                <p className="mt-2 text-xs italic text-muted-foreground">
+                  Add at least 3 roster slots to enable reversals.
+                </p>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {Array.from({ length: rounds - 2 }, (_, i) => i + 2).map((r) => {
+                    const active = reversalRounds.includes(r);
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => toggleReversal(r)}
+                        className={`rounded-md border-2 px-3 py-1.5 text-sm font-bold transition ${
+                          active
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        }`}
+                      >
+                        R{r}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {reversalRounds.length > 0 && (
+                <p className="mt-2 text-xs font-semibold text-muted-foreground">
+                  {reversalRounds.length} reversal{reversalRounds.length === 1 ? "" : "s"}: {reversalRounds.map((r) => `R${r}`).join(", ")}
+                </p>
+              )}
             </div>
 
             <ChipGroup
