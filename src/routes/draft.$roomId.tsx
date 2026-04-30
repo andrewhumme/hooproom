@@ -46,6 +46,7 @@ import {
   Search,
   Trophy,
   Users,
+  XCircle,
   Zap,
 } from "lucide-react";
 
