@@ -405,6 +405,22 @@ function DraftRoomPage() {
     if (error) setError(error.message);
   };
 
+  const handleEndDraft = async () => {
+    if (!room) return;
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase
+      .from("draft_rooms")
+      .update({ status: "complete", completed_at: new Date().toISOString(), pick_deadline: null })
+      .eq("id", room.id);
+    setActionBusy(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    navigate({ to: "/lobby" });
+  };
+
   const handlePick = useCallback(
     async (player: DraftablePlayer) => {
       if (!isMyTurn || !room) return;
