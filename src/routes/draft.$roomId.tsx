@@ -887,12 +887,13 @@ function DraftRoomPage() {
               </div>
             ) : (
               <ul className="divide-y divide-border">
-                {availablePlayers.map((p) => {
+                {availablePlayers.map((p, idx) => {
                   const s = latestStats[p.id];
+                  const zebra = statsShade === "zebra" && idx % 2 === 1 ? "bg-muted/40" : "";
                   return (
                     <li
                       key={p.id}
-                      className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/50"
+                      className={`flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/60 ${zebra}`}
                     >
                       <button
                         type="button"
@@ -911,8 +912,7 @@ function DraftRoomPage() {
                         </div>
                       </button>
 
-                      <div className="hidden shrink-0 items-center gap-3 text-[11px] font-bold tabular-nums sm:flex">
-              <ul className="divide-y divide-border">
+                      <div className="hidden shrink-0 items-center gap-1.5 text-[11px] font-bold tabular-nums sm:flex">
                 {availablePlayers.map((p, idx) => {
                   const s = latestStats[p.id];
                   const zebra = statsShade === "zebra" && idx % 2 === 1 ? "bg-muted/40" : "";
