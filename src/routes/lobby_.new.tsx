@@ -438,3 +438,27 @@ function ChipGroup<T extends string | number>({
     </div>
   );
 }
+
+function ClockChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-md border-2 px-3 py-1.5 text-sm font-bold transition ${
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
