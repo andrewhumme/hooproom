@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
@@ -107,6 +108,7 @@ function DraftRoomPage() {
   const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
+  const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
@@ -663,8 +665,25 @@ function DraftRoomPage() {
       </div>
 
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[1fr_360px]">
+        {/* Mobile-only tab switcher */}
+        <Tabs
+          value={mobileTab}
+          onValueChange={(v) => setMobileTab(v as typeof mobileTab)}
+          className="lg:hidden lg:col-span-full"
+        >
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="players">Players</TabsTrigger>
+            <TabsTrigger value="myteam">My Team</TabsTrigger>
+            <TabsTrigger value="teams">Teams</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         {/* LEFT — player pool */}
-        <Card className="flex flex-col overflow-hidden border-2">
+        <Card
+          className={`flex-col overflow-hidden border-2 lg:flex ${
+            mobileTab === "players" ? "flex" : "hidden"
+          }`}
+        >
           <div className="border-b-2 border-border bg-muted/40 p-4">
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
@@ -759,9 +778,17 @@ function DraftRoomPage() {
         </Card>
 
         {/* RIGHT — your team + recent picks + teams */}
-        <div className="flex flex-col gap-6">
+        <div
+          className={`flex-col gap-6 lg:flex ${
+            mobileTab === "players" ? "hidden" : "flex"
+          }`}
+        >
           {meParticipant && slotCfg && (
-            <Card className="border-2 border-primary/40">
+            <Card
+              className={`border-2 border-primary/40 lg:block ${
+                mobileTab === "myteam" ? "block" : "hidden"
+              }`}
+            >
               <div className="border-b-2 border-border bg-primary/10 p-4">
                 <h3 className="text-sm font-black uppercase tracking-widest text-primary">
                   Your Team — {meParticipant.team_name}
@@ -780,7 +807,7 @@ function DraftRoomPage() {
             </Card>
           )}
 
-          <Card className="border-2">
+          <Card className="border-2 lg:block">
             <div className="border-b-2 border-border bg-muted/40 p-4">
               <h3 className="text-sm font-black uppercase tracking-widest">Recent picks</h3>
             </div>
@@ -822,7 +849,11 @@ function DraftRoomPage() {
             </ul>
           </Card>
 
-          <Card className="border-2">
+          <Card
+            className={`border-2 lg:block ${
+              mobileTab === "teams" ? "block" : "hidden"
+            }`}
+          >
             <div className="border-b-2 border-border bg-muted/40 p-4">
               <h3 className="text-sm font-black uppercase tracking-widest">
                 <Users className="mr-1 inline h-4 w-4" /> Teams
