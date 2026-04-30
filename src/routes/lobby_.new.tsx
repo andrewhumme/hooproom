@@ -263,13 +263,111 @@ function NewRoomPage() {
               )}
             </div>
 
-            <ChipGroup
-              label="Pick clock"
-              options={CLOCK_OPTIONS}
-              value={pickClock}
-              onChange={setPickClock}
-              renderLabel={(v) => `${v}s`}
-            />
+            <div>
+              <Label>Draft format</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Snake is live and real-time. Auction is on the way.
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {DRAFT_FORMATS.map((f) => {
+                  const active = draftFormat === f.value;
+                  const disabled = !f.available;
+                  return (
+                    <button
+                      key={f.value}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => !disabled && setDraftFormat(f.value)}
+                      className={`relative rounded-md border-2 p-3 text-left transition ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/40"
+                      } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-black">{f.label}</div>
+                        {!f.available && (
+                          <span className="rounded-sm bg-muted px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                            Soon
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 text-[11px] font-medium text-muted-foreground">
+                        {f.hint}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <Label>Pick clock</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Short clocks for live drafts, long clocks for slow drafts (up to 72h).
+              </p>
+              <div className="mt-2 space-y-2">
+                <div>
+                  <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Live
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {FAST_CLOCK_OPTIONS.map((opt) => (
+                      <ClockChip
+                        key={opt.value}
+                        label={opt.label}
+                        active={pickClock === opt.value}
+                        onClick={() => {
+                          setPickClock(opt.value);
+                          setCustomHours("");
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Slow
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {SLOW_CLOCK_OPTIONS.map((opt) => (
+                      <ClockChip
+                        key={opt.value}
+                        label={opt.label}
+                        active={pickClock === opt.value && customHours === ""}
+                        onClick={() => {
+                          setPickClock(opt.value);
+                          setCustomHours("");
+                        }}
+                      />
+                    ))}
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={72}
+                        step={1}
+                        placeholder="Custom"
+                        value={customHours}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setCustomHours(v);
+                          const n = parseFloat(v);
+                          if (!isNaN(n) && n >= 1 && n <= 72) {
+                            setPickClock(Math.round(n * 3600));
+                          }
+                        }}
+                        className="h-9 w-24 font-bold"
+                      />
+                      <span className="text-xs font-bold text-muted-foreground">hrs</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Selected: {formatClock(pickClock)} per pick
+                </p>
+              </div>
+            </div>
 
             <ChipGroup
               label="Scoring format"
