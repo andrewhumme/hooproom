@@ -310,6 +310,22 @@ function DraftRoomPage() {
       .slice(0, 200);
   }, [players, takenIds, search, posFilter]);
 
+  // Per-stat max across visible players (for heatmap shading).
+  const statMax = useMemo(() => {
+    const keys = ["pts", "reb", "ast", "stl", "blk"] as const;
+    const max: Record<string, number> = {};
+    for (const k of keys) max[k] = 0;
+    for (const p of availablePlayers) {
+      const s = latestStats[p.id];
+      if (!s) continue;
+      for (const k of keys) {
+        const v = s[k as keyof typeof s] as number | null | undefined;
+        if (v != null && v > max[k]) max[k] = v;
+      }
+    }
+    return max;
+  }, [availablePlayers, latestStats]);
+
   // ------- Pick clock countdown + autopick trigger -------
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
   useEffect(() => {
