@@ -741,7 +741,12 @@ function DraftRoomPage() {
             </h3>
             {isDrafting && (
               <span className="text-[11px] font-bold text-muted-foreground">
-                Round {currentRound} {currentRound % 2 === 0 ? "← reverse" : "→ forward"}
+                Round {currentRound} {currentReverse ? "← reverse" : "→ forward"}
+                {(room.reversal_rounds ?? []).includes(currentRound) && (
+                  <span className="ml-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-primary">
+                    Reversal
+                  </span>
+                )}
               </span>
             )}
           </div>
