@@ -778,9 +778,17 @@ function DraftRoomPage() {
         </Card>
 
         {/* RIGHT — your team + recent picks + teams */}
-        <div className="flex flex-col gap-6">
+        <div
+          className={`flex-col gap-6 lg:flex ${
+            mobileTab === "players" ? "hidden" : "flex"
+          }`}
+        >
           {meParticipant && slotCfg && (
-            <Card className="border-2 border-primary/40">
+            <Card
+              className={`border-2 border-primary/40 lg:block ${
+                mobileTab === "myteam" ? "block" : "hidden"
+              }`}
+            >
               <div className="border-b-2 border-border bg-primary/10 p-4">
                 <h3 className="text-sm font-black uppercase tracking-widest text-primary">
                   Your Team — {meParticipant.team_name}
