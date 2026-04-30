@@ -116,6 +116,7 @@ export type Database = {
           name: string
           pick_clock_sec: number
           pick_deadline: string | null
+          reversal_rounds: number[]
           rounds: number
           scoring_format: string
           slots_bn: number
@@ -140,6 +141,7 @@ export type Database = {
           name: string
           pick_clock_sec: number
           pick_deadline?: string | null
+          reversal_rounds?: number[]
           rounds: number
           scoring_format?: string
           slots_bn?: number
@@ -164,6 +166,7 @@ export type Database = {
           name?: string
           pick_clock_sec?: number
           pick_deadline?: string | null
+          reversal_rounds?: number[]
           rounds?: number
           scoring_format?: string
           slots_bn?: number
@@ -398,6 +401,7 @@ export type Database = {
           name: string
           pick_clock_sec: number
           pick_deadline: string | null
+          reversal_rounds: number[]
           rounds: number
           scoring_format: string
           slots_bn: number
