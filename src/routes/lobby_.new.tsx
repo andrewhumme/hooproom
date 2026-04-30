@@ -109,6 +109,7 @@ function NewRoomPage() {
       rounds,
       pick_clock_sec: pickClock,
       scoring_format: format,
+      draft_format: draftFormat,
       slots_pg: slots.PG,
       slots_sg: slots.SG,
       slots_sf: slots.SF,
