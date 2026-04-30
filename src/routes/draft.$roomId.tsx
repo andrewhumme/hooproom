@@ -108,6 +108,7 @@ function DraftRoomPage() {
   const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
+  const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
