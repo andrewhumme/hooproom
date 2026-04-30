@@ -50,10 +50,22 @@ function NewRoomPage() {
   const [pickClock, setPickClock] = useState<number>(60);
   const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
+  const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const rounds = totalSlots(slots);
+
+  // Drop any reversal rounds outside the valid range when slots change
+  useEffect(() => {
+    setReversalRounds((prev) => prev.filter((r) => r >= 2 && r <= rounds - 1));
+  }, [rounds]);
+
+  const toggleReversal = (r: number) => {
+    setReversalRounds((prev) =>
+      prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r].sort((a, b) => a - b),
+    );
+  };
 
   // Make sure a guest session exists as soon as the form mounts so the host
   // can submit immediately. (Testing mode — replace with real auth later.)
