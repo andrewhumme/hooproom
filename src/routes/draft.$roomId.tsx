@@ -122,6 +122,7 @@ function DraftRoomPage() {
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
+  const [statsShade, setStatsShade] = useState<"zebra" | "heatmap">("zebra");
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
@@ -308,6 +309,22 @@ function DraftRoomPage() {
       .sort(compareByRank)
       .slice(0, 200);
   }, [players, takenIds, search, posFilter]);
+
+  // Per-stat max across visible players (for heatmap shading).
+  const statMax = useMemo(() => {
+    const keys = ["pts", "reb", "ast", "stl", "blk"] as const;
+    const max: Record<string, number> = {};
+    for (const k of keys) max[k] = 0;
+    for (const p of availablePlayers) {
+      const s = latestStats[p.id];
+      if (!s) continue;
+      for (const k of keys) {
+        const v = s[k as keyof typeof s] as number | null | undefined;
+        if (v != null && v > max[k]) max[k] = v;
+      }
+    }
+    return max;
+  }, [availablePlayers, latestStats]);
 
   // ------- Pick clock countdown + autopick trigger -------
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
@@ -856,10 +873,31 @@ function DraftRoomPage() {
                 ))}
               </div>
             </div>
-            <div className="mt-2 text-xs font-semibold text-muted-foreground">
-              {playersLoading
-                ? "Loading player pool…"
-                : `${availablePlayers.length} available · sorted by ranking`}
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="text-xs font-semibold text-muted-foreground">
+                {playersLoading
+                  ? "Loading player pool…"
+                  : `${availablePlayers.length} available · sorted by ranking`}
+              </div>
+              <div className="flex items-center gap-1 rounded-md border-2 border-border bg-card p-1">
+                <span className="hidden px-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground sm:inline">
+                  Stats
+                </span>
+                {(["zebra", "heatmap"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setStatsShade(m)}
+                    className={`rounded-sm px-2 py-1 text-[10px] font-black uppercase tracking-wider ${
+                      statsShade === m
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -870,12 +908,13 @@ function DraftRoomPage() {
               </div>
             ) : (
               <ul className="divide-y divide-border">
-                {availablePlayers.map((p) => {
+                {availablePlayers.map((p, idx) => {
                   const s = latestStats[p.id];
+                  const zebra = statsShade === "zebra" && idx % 2 === 1 ? "bg-muted/40" : "";
                   return (
                     <li
                       key={p.id}
-                      className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/50"
+                      className={`flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/60 ${zebra}`}
                     >
                       <button
                         type="button"
@@ -894,12 +933,12 @@ function DraftRoomPage() {
                         </div>
                       </button>
 
-                      <div className="hidden shrink-0 items-center gap-3 text-[11px] font-bold tabular-nums sm:flex">
-                        <Stat label="PTS" value={s?.pts} />
-                        <Stat label="REB" value={s?.reb} />
-                        <Stat label="AST" value={s?.ast} />
-                        <Stat label="STL" value={s?.stl} />
-                        <Stat label="BLK" value={s?.blk} />
+                      <div className="hidden shrink-0 items-center gap-1.5 text-[11px] font-bold tabular-nums sm:flex">
+                        <Stat label="PTS" value={s?.pts} max={statMax.pts} mode={statsShade} />
+                        <Stat label="REB" value={s?.reb} max={statMax.reb} mode={statsShade} />
+                        <Stat label="AST" value={s?.ast} max={statMax.ast} mode={statsShade} />
+                        <Stat label="STL" value={s?.stl} max={statMax.stl} mode={statsShade} />
+                        <Stat label="BLK" value={s?.blk} max={statMax.blk} mode={statsShade} />
                       </div>
 
                       <Button
@@ -1124,9 +1163,30 @@ function DraftRoomPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | null | undefined }) {
+function Stat({
+  label,
+  value,
+  max,
+  mode,
+}: {
+  label: string;
+  value: number | null | undefined;
+  max?: number;
+  mode?: "zebra" | "heatmap";
+}) {
+  // Heatmap: shade cell background based on value/max ratio.
+  let style: React.CSSProperties | undefined;
+  if (mode === "heatmap" && value != null && max && max > 0) {
+    const ratio = Math.min(1, Math.max(0, Number(value) / max));
+    // Use primary color with varying alpha (0.08 → 0.55).
+    const alpha = 0.08 + ratio * 0.47;
+    style = { backgroundColor: `color-mix(in oklab, hsl(var(--primary)) ${(alpha * 100).toFixed(0)}%, transparent)` };
+  }
   return (
-    <div className="flex w-10 flex-col items-center leading-tight">
+    <div
+      className="flex w-11 flex-col items-center rounded-md px-1 py-0.5 leading-tight"
+      style={style}
+    >
       <span className="text-foreground">{value == null ? "—" : Number(value).toFixed(1)}</span>
       <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
         {label}
