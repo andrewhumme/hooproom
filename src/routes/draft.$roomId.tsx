@@ -736,7 +736,12 @@ function DraftRoomPage() {
               </span>
             )}
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div
+            className="grid gap-1.5 pb-1"
+            style={{
+              gridTemplateColumns: `repeat(${room.team_count}, minmax(0, 1fr))`,
+            }}
+          >
             {Array.from({ length: room.team_count }).map((_, i) => {
               const idx = i + 1;
               const team = slotMap.get(idx);
@@ -748,7 +753,7 @@ function DraftRoomPage() {
                   key={idx}
                   type="button"
                   onClick={() => setViewingTeamIdx(idx)}
-                  className={`flex min-w-[120px] shrink-0 flex-col items-start gap-1 rounded-md border-2 px-3 py-2 text-left transition hover:-translate-y-0.5 ${
+                  className={`flex min-w-0 flex-col items-start gap-0.5 rounded-md border-2 px-1.5 py-1.5 text-left transition hover:-translate-y-0.5 ${
                     onClock
                       ? "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-glow)]"
                       : isMe
@@ -756,34 +761,34 @@ function DraftRoomPage() {
                       : "border-border bg-background hover:border-primary/40"
                   }`}
                 >
-                  <div className="flex w-full items-center justify-between gap-2">
+                  <div className="flex w-full items-center justify-between gap-1">
                     <span
-                      className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-black ${
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded text-[9px] font-black ${
                         onClock ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-foreground"
                       }`}
                     >
                       {idx}
                     </span>
                     {onClock && (
-                      <span className="text-[9px] font-black uppercase tracking-widest">
+                      <span className="truncate text-[8px] font-black uppercase tracking-wider">
                         On clock
                       </span>
                     )}
                     {!onClock && isMe && (
-                      <span className="text-[9px] font-black uppercase tracking-widest text-primary">
+                      <span className="text-[8px] font-black uppercase tracking-wider text-primary">
                         You
                       </span>
                     )}
                   </div>
-                  <div className="w-full truncate text-xs font-black">
+                  <div className="w-full truncate text-[11px] font-black leading-tight">
                     {team?.team_name ?? <span className="italic opacity-70">Auto</span>}
                   </div>
                   <div
-                    className={`text-[10px] font-bold ${
+                    className={`text-[9px] font-bold ${
                       onClock ? "text-primary-foreground/80" : "text-muted-foreground"
                     }`}
                   >
-                    {teamPicks}/{room.rounds} picks
+                    {teamPicks}/{room.rounds}
                   </div>
                 </button>
               );
