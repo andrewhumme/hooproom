@@ -1142,9 +1142,30 @@ function DraftRoomPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | null | undefined }) {
+function Stat({
+  label,
+  value,
+  max,
+  mode,
+}: {
+  label: string;
+  value: number | null | undefined;
+  max?: number;
+  mode?: "zebra" | "heatmap";
+}) {
+  // Heatmap: shade cell background based on value/max ratio.
+  let style: React.CSSProperties | undefined;
+  if (mode === "heatmap" && value != null && max && max > 0) {
+    const ratio = Math.min(1, Math.max(0, Number(value) / max));
+    // Use primary color with varying alpha (0.08 → 0.55).
+    const alpha = 0.08 + ratio * 0.47;
+    style = { backgroundColor: `color-mix(in oklab, hsl(var(--primary)) ${(alpha * 100).toFixed(0)}%, transparent)` };
+  }
   return (
-    <div className="flex w-10 flex-col items-center leading-tight">
+    <div
+      className="flex w-11 flex-col items-center rounded-md px-1 py-0.5 leading-tight"
+      style={style}
+    >
       <span className="text-foreground">{value == null ? "—" : Number(value).toFixed(1)}</span>
       <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
         {label}
