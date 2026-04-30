@@ -90,6 +90,7 @@ function NewRoomPage() {
       slots_c: slots.C,
       slots_flx: slots.FLX,
       slots_bn: slots.BN,
+      reversal_rounds: reversalRounds,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
