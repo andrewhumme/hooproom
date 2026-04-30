@@ -665,8 +665,25 @@ function DraftRoomPage() {
       </div>
 
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[1fr_360px]">
+        {/* Mobile-only tab switcher */}
+        <Tabs
+          value={mobileTab}
+          onValueChange={(v) => setMobileTab(v as typeof mobileTab)}
+          className="lg:hidden lg:col-span-full"
+        >
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="players">Players</TabsTrigger>
+            <TabsTrigger value="myteam">My Team</TabsTrigger>
+            <TabsTrigger value="teams">Teams</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         {/* LEFT — player pool */}
-        <Card className="flex flex-col overflow-hidden border-2">
+        <Card
+          className={`flex-col overflow-hidden border-2 lg:flex ${
+            mobileTab === "players" ? "flex" : "hidden"
+          }`}
+        >
           <div className="border-b-2 border-border bg-muted/40 p-4">
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
