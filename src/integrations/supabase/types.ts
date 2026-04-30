@@ -110,6 +110,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           current_pick_number: number
+          draft_format: string
           host_user_id: string
           id: string
           league_id: string | null
@@ -135,6 +136,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
+          draft_format?: string
           host_user_id: string
           id?: string
           league_id?: string | null
@@ -160,6 +162,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
+          draft_format?: string
           host_user_id?: string
           id?: string
           league_id?: string | null
@@ -395,6 +398,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           current_pick_number: number
+          draft_format: string
           host_user_id: string
           id: string
           league_id: string | null
