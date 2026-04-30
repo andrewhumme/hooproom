@@ -78,6 +78,7 @@ type Room = {
   slots_c: number;
   slots_flx: number;
   slots_bn: number;
+  reversal_rounds: number[] | null;
 };
 
 type Participant = {
