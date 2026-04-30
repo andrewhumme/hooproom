@@ -72,6 +72,8 @@ function NewRoomPage() {
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
+  const [customHours, setCustomHours] = useState<string>("");
+  const [draftFormat, setDraftFormat] = useState<"snake" | "auction">("snake");
   const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
