@@ -426,8 +426,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                 <div className="flex items-center gap-4">
                   <PlayerAvatar
                     name={activeNom.player_name}
-                    nbaPlayerId={undefined}
-                    bdlPlayerId={undefined}
+                    team={activeNom.player_team ?? ""}
                     size={80}
                   />
                   <div>
