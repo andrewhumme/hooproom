@@ -71,6 +71,11 @@ type Room = {
   status: "waiting" | "drafting" | "complete";
   current_pick_number: number;
   pick_deadline: string | null;
+  draft_format: string;
+  auction_budget: number;
+  auction_min_bid: number;
+  auction_bid_clock_sec: number;
+  auction_antisnipe_threshold_sec: number | null;
   slots_pg: number;
   slots_sg: number;
   slots_sf: number;
