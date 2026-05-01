@@ -292,9 +292,9 @@ function NewRoomPage() {
             <div>
               <Label>Draft format</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Snake is live and real-time. Auction is on the way.
+                Snake = real-time picks. Auction = live bidding. Slow Auction = async bidding with anti-snipe.
               </p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {DRAFT_FORMATS.map((f) => {
                   const active = draftFormat === f.value;
                   const disabled = !f.available;
@@ -303,7 +303,16 @@ function NewRoomPage() {
                       key={f.value}
                       type="button"
                       disabled={disabled}
-                      onClick={() => !disabled && setDraftFormat(f.value)}
+                      onClick={() => {
+                        if (disabled) return;
+                        setDraftFormat(f.value);
+                        // Sensible defaults when switching modes
+                        if (f.value === "auction") setAuctionBidClock(30);
+                        if (f.value === "auction_slow") {
+                          setAuctionBidClock(8 * 3600);
+                          setAuctionAntisnipe(3600);
+                        }
+                      }}
                       className={`relative rounded-md border-2 p-3 text-left transition ${
                         active
                           ? "border-primary bg-primary/10"
@@ -326,6 +335,125 @@ function NewRoomPage() {
                 })}
               </div>
             </div>
+
+            {(draftFormat === "auction" || draftFormat === "auction_slow") && (
+              <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-widest text-primary">
+                    Auction settings
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Nominations follow snake order, skipping teams with full rosters. Each team must end with $1+ per remaining slot.
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Starting budget</Label>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    {AUCTION_BUDGET_PRESETS.map((b) => (
+                      <ClockChip
+                        key={b}
+                        label={`$${b}`}
+                        active={auctionBudget === b}
+                        onClick={() => setAuctionBudget(b)}
+                      />
+                    ))}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        min={10}
+                        max={100000}
+                        step={1}
+                        value={auctionBudget}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value || "0", 10);
+                          if (!isNaN(n)) setAuctionBudget(Math.max(10, Math.min(100000, n)));
+                        }}
+                        className="h-9 w-24 font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Min bid increment</Label>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    {AUCTION_MIN_BID_PRESETS.map((b) => (
+                      <ClockChip
+                        key={b}
+                        label={`$${b}`}
+                        active={auctionMinBid === b}
+                        onClick={() => setAuctionMinBid(b)}
+                      />
+                    ))}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={auctionBudget}
+                        step={1}
+                        value={auctionMinBid}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value || "0", 10);
+                          if (!isNaN(n)) setAuctionMinBid(Math.max(1, Math.min(auctionBudget, n)));
+                        }}
+                        className="h-9 w-24 font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Bid clock</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {draftFormat === "auction"
+                      ? "How long bidding stays open after each new bid."
+                      : "How long bidding stays open after each new bid (slow drafts can run for hours per nomination)."}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap gap-2">
+                    {(draftFormat === "auction" ? AUCTION_FAST_BID_CLOCK : AUCTION_SLOW_BID_CLOCK).map((opt) => (
+                      <ClockChip
+                        key={opt.value}
+                        label={opt.label}
+                        active={auctionBidClock === opt.value}
+                        onClick={() => {
+                          setAuctionBidClock(opt.value);
+                          if (draftFormat === "auction_slow" && auctionAntisnipe && auctionAntisnipe > opt.value) {
+                            setAuctionAntisnipe(opt.value);
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {draftFormat === "auction_slow" && (
+                  <div>
+                    <Label>Anti-snipe</Label>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      <strong>Off</strong> = every new bid resets the clock to the full {formatClock(auctionBidClock)}. <strong>Threshold</strong> = clock only bumps when less than X is left.
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <ClockChip
+                        label="Off (full reset)"
+                        active={auctionAntisnipe === null}
+                        onClick={() => setAuctionAntisnipe(null)}
+                      />
+                      {[300, 900, 3600].filter((v) => v <= auctionBidClock).map((v) => (
+                        <ClockChip
+                          key={v}
+                          label={`<${formatClock(v)} left`}
+                          active={auctionAntisnipe === v}
+                          onClick={() => setAuctionAntisnipe(v)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <Label>Pick clock</Label>
