@@ -61,7 +61,21 @@ const SLOW_CLOCK_OPTIONS = [
 const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
 const DRAFT_FORMATS = [
   { value: "snake", label: "Snake", available: true, hint: "Live, real-time picks" },
-  { value: "auction", label: "Auction", available: false, hint: "Coming soon — bidding & budgets" },
+  { value: "auction", label: "Auction", available: true, hint: "Live nominations + bidding" },
+  { value: "auction_slow", label: "Slow Auction", available: true, hint: "Async bidding w/ anti-snipe" },
+] as const;
+const AUCTION_BUDGET_PRESETS = [100, 200, 300] as const;
+const AUCTION_MIN_BID_PRESETS = [1, 2, 5] as const;
+const AUCTION_FAST_BID_CLOCK = [
+  { label: "20s", value: 20 },
+  { label: "30s", value: 30 },
+  { label: "60s", value: 60 },
+] as const;
+const AUCTION_SLOW_BID_CLOCK = [
+  { label: "1h", value: 3600 },
+  { label: "4h", value: 4 * 3600 },
+  { label: "8h", value: 8 * 3600 },
+  { label: "24h", value: 24 * 3600 },
 ] as const;
 
 function formatClock(sec: number): string {
