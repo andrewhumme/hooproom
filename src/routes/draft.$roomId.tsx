@@ -106,6 +106,7 @@ type Pick = {
   player_team: string | null;
   was_autopick: boolean;
   picked_at: string;
+  auction_price: number | null;
 };
 
 function DraftRoomPage() {
