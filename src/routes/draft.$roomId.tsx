@@ -426,7 +426,10 @@ function DraftRoomPage() {
   const handleStart = async () => {
     setActionBusy(true);
     setError(null);
-    const { error } = await supabase.rpc("start_draft", { _room_id: roomId });
+    const isAuction =
+      room?.draft_format === "auction" || room?.draft_format === "auction_slow";
+    const rpcName = isAuction ? "auction_start" : "start_draft";
+    const { error } = await supabase.rpc(rpcName, { _room_id: roomId });
     setActionBusy(false);
     if (error) setError(error.message);
   };
