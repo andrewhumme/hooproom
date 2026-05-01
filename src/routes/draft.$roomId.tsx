@@ -532,7 +532,21 @@ function DraftRoomPage() {
 
   if (!room) return null;
 
-  // ------- Render: WAITING ROOM -------
+  // Auction formats use a dedicated room UI for drafting/complete states.
+  // The waiting room (lobby) is shared with the snake-draft UI below.
+  const isAuctionFormat =
+    room.draft_format === "auction" || room.draft_format === "auction_slow";
+  if (isAuctionFormat && room.status !== "waiting") {
+    return (
+      <AuctionRoom
+        room={room}
+        userId={user?.id}
+        participants={participants}
+        picks={picks}
+      />
+    );
+  }
+
   if (room.status === "waiting") {
     return (
       <div className="min-h-screen bg-background">
