@@ -11,6 +11,7 @@ import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
+import { AuctionRoom } from "@/components/AuctionRoom";
 import {
   Dialog,
   DialogContent,
