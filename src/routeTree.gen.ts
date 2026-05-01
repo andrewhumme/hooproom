@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
 import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
+import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
 
 const LobbyRoute = LobbyRouteImport.update({
   id: '/lobby',
@@ -46,6 +47,11 @@ const ApiPublicSeedStatsRoute = ApiPublicSeedStatsRouteImport.update({
   path: '/api/public/seed-stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAuctionTickRoute = ApiPublicAuctionTickRouteImport.update({
+  id: '/api/public/auction-tick',
+  path: '/api/public/auction-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/lobby': typeof LobbyRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
+  '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/lobby': typeof LobbyRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
+  '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/lobby': typeof LobbyRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby_/new': typeof LobbyNewRoute
+  '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/lobby'
     | '/draft/$roomId'
     | '/lobby/new'
+    | '/api/public/auction-tick'
     | '/api/public/seed-stats'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/lobby'
     | '/draft/$roomId'
     | '/lobby/new'
+    | '/api/public/auction-tick'
     | '/api/public/seed-stats'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/lobby'
     | '/draft/$roomId'
     | '/lobby_/new'
+    | '/api/public/auction-tick'
     | '/api/public/seed-stats'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   LobbyRoute: typeof LobbyRoute
   DraftRoomIdRoute: typeof DraftRoomIdRoute
   LobbyNewRoute: typeof LobbyNewRoute
+  ApiPublicAuctionTickRoute: typeof ApiPublicAuctionTickRoute
   ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
 }
 
@@ -152,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSeedStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/auction-tick': {
+      id: '/api/public/auction-tick'
+      path: '/api/public/auction-tick'
+      fullPath: '/api/public/auction-tick'
+      preLoaderRoute: typeof ApiPublicAuctionTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   LobbyRoute: LobbyRoute,
   DraftRoomIdRoute: DraftRoomIdRoute,
   LobbyNewRoute: LobbyNewRoute,
+  ApiPublicAuctionTickRoute: ApiPublicAuctionTickRoute,
   ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,
 }
 export const routeTree = rootRouteImport
