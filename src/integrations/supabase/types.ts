@@ -107,6 +107,10 @@ export type Database = {
       }
       draft_rooms: {
         Row: {
+          auction_antisnipe_threshold_sec: number | null
+          auction_bid_clock_sec: number
+          auction_budget: number
+          auction_min_bid: number
           completed_at: string | null
           created_at: string
           current_pick_number: number
@@ -133,6 +137,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auction_antisnipe_threshold_sec?: number | null
+          auction_bid_clock_sec?: number
+          auction_budget?: number
+          auction_min_bid?: number
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
@@ -159,6 +167,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auction_antisnipe_threshold_sec?: number | null
+          auction_bid_clock_sec?: number
+          auction_budget?: number
+          auction_min_bid?: number
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
@@ -395,6 +407,10 @@ export type Database = {
       start_draft: {
         Args: { _room_id: string }
         Returns: {
+          auction_antisnipe_threshold_sec: number | null
+          auction_bid_clock_sec: number
+          auction_budget: number
+          auction_min_bid: number
           completed_at: string | null
           created_at: string
           current_pick_number: number

@@ -30,7 +30,11 @@ const SCHEMA = z.object({
   rounds: z.number().int().min(1).max(30),
   pick_clock_sec: z.number().int().min(15).max(MAX_CLOCK_SEC),
   scoring_format: z.enum(["9-CAT", "8-CAT", "POINTS", "ROTO"]),
-  draft_format: z.enum(["snake", "auction"]),
+  draft_format: z.enum(["snake", "auction", "auction_slow"]),
+  auction_budget: z.number().int().min(10).max(100000),
+  auction_min_bid: z.number().int().min(1).max(100000),
+  auction_bid_clock_sec: z.number().int().min(10).max(72 * 60 * 60),
+  auction_antisnipe_threshold_sec: z.number().int().min(10).max(72 * 60 * 60).nullable(),
   slots_pg: z.number().int().min(0).max(10),
   slots_sg: z.number().int().min(0).max(10),
   slots_sf: z.number().int().min(0).max(10),
@@ -57,7 +61,21 @@ const SLOW_CLOCK_OPTIONS = [
 const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
 const DRAFT_FORMATS = [
   { value: "snake", label: "Snake", available: true, hint: "Live, real-time picks" },
-  { value: "auction", label: "Auction", available: false, hint: "Coming soon — bidding & budgets" },
+  { value: "auction", label: "Auction", available: true, hint: "Live nominations + bidding" },
+  { value: "auction_slow", label: "Slow Auction", available: true, hint: "Async bidding w/ anti-snipe" },
+] as const;
+const AUCTION_BUDGET_PRESETS = [100, 200, 300] as const;
+const AUCTION_MIN_BID_PRESETS = [1, 2, 5] as const;
+const AUCTION_FAST_BID_CLOCK = [
+  { label: "20s", value: 20 },
+  { label: "30s", value: 30 },
+  { label: "60s", value: 60 },
+] as const;
+const AUCTION_SLOW_BID_CLOCK = [
+  { label: "1h", value: 3600 },
+  { label: "4h", value: 4 * 3600 },
+  { label: "8h", value: 8 * 3600 },
+  { label: "24h", value: 24 * 3600 },
 ] as const;
 
 function formatClock(sec: number): string {
@@ -73,7 +91,11 @@ function NewRoomPage() {
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
   const [customHours, setCustomHours] = useState<string>("");
-  const [draftFormat, setDraftFormat] = useState<"snake" | "auction">("snake");
+  const [draftFormat, setDraftFormat] = useState<"snake" | "auction" | "auction_slow">("snake");
+  const [auctionBudget, setAuctionBudget] = useState<number>(200);
+  const [auctionMinBid, setAuctionMinBid] = useState<number>(1);
+  const [auctionBidClock, setAuctionBidClock] = useState<number>(30);
+  const [auctionAntisnipe, setAuctionAntisnipe] = useState<number | null>(null);
   const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
@@ -110,6 +132,10 @@ function NewRoomPage() {
       pick_clock_sec: pickClock,
       scoring_format: format,
       draft_format: draftFormat,
+      auction_budget: auctionBudget,
+      auction_min_bid: auctionMinBid,
+      auction_bid_clock_sec: auctionBidClock,
+      auction_antisnipe_threshold_sec: draftFormat === "auction_slow" ? auctionAntisnipe : null,
       slots_pg: slots.PG,
       slots_sg: slots.SG,
       slots_sf: slots.SF,
@@ -266,9 +292,9 @@ function NewRoomPage() {
             <div>
               <Label>Draft format</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Snake is live and real-time. Auction is on the way.
+                Snake = real-time picks. Auction = live bidding. Slow Auction = async bidding with anti-snipe.
               </p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {DRAFT_FORMATS.map((f) => {
                   const active = draftFormat === f.value;
                   const disabled = !f.available;
@@ -277,7 +303,16 @@ function NewRoomPage() {
                       key={f.value}
                       type="button"
                       disabled={disabled}
-                      onClick={() => !disabled && setDraftFormat(f.value)}
+                      onClick={() => {
+                        if (disabled) return;
+                        setDraftFormat(f.value);
+                        // Sensible defaults when switching modes
+                        if (f.value === "auction") setAuctionBidClock(30);
+                        if (f.value === "auction_slow") {
+                          setAuctionBidClock(8 * 3600);
+                          setAuctionAntisnipe(3600);
+                        }
+                      }}
                       className={`relative rounded-md border-2 p-3 text-left transition ${
                         active
                           ? "border-primary bg-primary/10"
@@ -300,6 +335,125 @@ function NewRoomPage() {
                 })}
               </div>
             </div>
+
+            {(draftFormat === "auction" || draftFormat === "auction_slow") && (
+              <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-widest text-primary">
+                    Auction settings
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Nominations follow snake order, skipping teams with full rosters. Each team must end with $1+ per remaining slot.
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Starting budget</Label>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    {AUCTION_BUDGET_PRESETS.map((b) => (
+                      <ClockChip
+                        key={b}
+                        label={`$${b}`}
+                        active={auctionBudget === b}
+                        onClick={() => setAuctionBudget(b)}
+                      />
+                    ))}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        min={10}
+                        max={100000}
+                        step={1}
+                        value={auctionBudget}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value || "0", 10);
+                          if (!isNaN(n)) setAuctionBudget(Math.max(10, Math.min(100000, n)));
+                        }}
+                        className="h-9 w-24 font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Min bid increment</Label>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    {AUCTION_MIN_BID_PRESETS.map((b) => (
+                      <ClockChip
+                        key={b}
+                        label={`$${b}`}
+                        active={auctionMinBid === b}
+                        onClick={() => setAuctionMinBid(b)}
+                      />
+                    ))}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={auctionBudget}
+                        step={1}
+                        value={auctionMinBid}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value || "0", 10);
+                          if (!isNaN(n)) setAuctionMinBid(Math.max(1, Math.min(auctionBudget, n)));
+                        }}
+                        className="h-9 w-24 font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Bid clock</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {draftFormat === "auction"
+                      ? "How long bidding stays open after each new bid."
+                      : "How long bidding stays open after each new bid (slow drafts can run for hours per nomination)."}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap gap-2">
+                    {(draftFormat === "auction" ? AUCTION_FAST_BID_CLOCK : AUCTION_SLOW_BID_CLOCK).map((opt) => (
+                      <ClockChip
+                        key={opt.value}
+                        label={opt.label}
+                        active={auctionBidClock === opt.value}
+                        onClick={() => {
+                          setAuctionBidClock(opt.value);
+                          if (draftFormat === "auction_slow" && auctionAntisnipe && auctionAntisnipe > opt.value) {
+                            setAuctionAntisnipe(opt.value);
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {draftFormat === "auction_slow" && (
+                  <div>
+                    <Label>Anti-snipe</Label>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      <strong>Off</strong> = every new bid resets the clock to the full {formatClock(auctionBidClock)}. <strong>Threshold</strong> = clock only bumps when less than X is left.
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <ClockChip
+                        label="Off (full reset)"
+                        active={auctionAntisnipe === null}
+                        onClick={() => setAuctionAntisnipe(null)}
+                      />
+                      {[300, 900, 3600].filter((v) => v <= auctionBidClock).map((v) => (
+                        <ClockChip
+                          key={v}
+                          label={`<${formatClock(v)} left`}
+                          active={auctionAntisnipe === v}
+                          onClick={() => setAuctionAntisnipe(v)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <Label>Pick clock</Label>
