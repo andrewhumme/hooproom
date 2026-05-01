@@ -14,6 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
+      auction_bids: {
+        Row: {
+          amount: number
+          bid_at: string
+          id: string
+          is_opening: boolean
+          nomination_id: string
+          room_id: string
+          team_idx: number
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          bid_at?: string
+          id?: string
+          is_opening?: boolean
+          nomination_id: string
+          room_id: string
+          team_idx: number
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          bid_at?: string
+          id?: string
+          is_opening?: boolean
+          nomination_id?: string
+          room_id?: string
+          team_idx?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_nomination_id_fkey"
+            columns: ["nomination_id"]
+            isOneToOne: false
+            referencedRelation: "auction_nominations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_bids_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "draft_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_nominations: {
+        Row: {
+          awarded_at: string | null
+          created_at: string
+          current_bid: number
+          current_bidder_team_idx: number
+          current_bidder_user_id: string | null
+          deadline: string
+          id: string
+          nomination_number: number
+          nominator_team_idx: number
+          opening_bid: number
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          room_id: string
+          status: string
+        }
+        Insert: {
+          awarded_at?: string | null
+          created_at?: string
+          current_bid: number
+          current_bidder_team_idx: number
+          current_bidder_user_id?: string | null
+          deadline: string
+          id?: string
+          nomination_number: number
+          nominator_team_idx: number
+          opening_bid: number
+          player_id: string
+          player_name: string
+          player_position?: string | null
+          player_team?: string | null
+          room_id: string
+          status?: string
+        }
+        Update: {
+          awarded_at?: string | null
+          created_at?: string
+          current_bid?: number
+          current_bidder_team_idx?: number
+          current_bidder_user_id?: string | null
+          deadline?: string
+          id?: string
+          nomination_number?: number
+          nominator_team_idx?: number
+          opening_bid?: number
+          player_id?: string
+          player_name?: string
+          player_position?: string | null
+          player_team?: string | null
+          room_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_nominations_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "draft_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       draft_participants: {
         Row: {
           draft_position: number | null
@@ -54,6 +167,7 @@ export type Database = {
       }
       draft_picks: {
         Row: {
+          auction_price: number | null
           id: string
           pick_number: number
           picked_at: string
@@ -68,6 +182,7 @@ export type Database = {
           was_autopick: boolean
         }
         Insert: {
+          auction_price?: number | null
           id?: string
           pick_number: number
           picked_at?: string
@@ -82,6 +197,7 @@ export type Database = {
           was_autopick?: boolean
         }
         Update: {
+          auction_price?: number | null
           id?: string
           pick_number?: number
           picked_at?: string
@@ -374,6 +490,112 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auction_award_due: { Args: { _room_id?: string }; Returns: number }
+      auction_bid: {
+        Args: { _amount: number; _nomination_id: string }
+        Returns: {
+          awarded_at: string | null
+          created_at: string
+          current_bid: number
+          current_bidder_team_idx: number
+          current_bidder_user_id: string | null
+          deadline: string
+          id: string
+          nomination_number: number
+          nominator_team_idx: number
+          opening_bid: number
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          room_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "auction_nominations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      auction_next_nominator: { Args: { _room_id: string }; Returns: number }
+      auction_nominate: {
+        Args: {
+          _opening_bid: number
+          _player_id: string
+          _player_name: string
+          _player_position: string
+          _player_team: string
+          _room_id: string
+        }
+        Returns: {
+          awarded_at: string | null
+          created_at: string
+          current_bid: number
+          current_bidder_team_idx: number
+          current_bidder_user_id: string | null
+          deadline: string
+          id: string
+          nomination_number: number
+          nominator_team_idx: number
+          opening_bid: number
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          room_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "auction_nominations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      auction_start: {
+        Args: { _room_id: string }
+        Returns: {
+          auction_antisnipe_threshold_sec: number | null
+          auction_bid_clock_sec: number
+          auction_budget: number
+          auction_min_bid: number
+          completed_at: string | null
+          created_at: string
+          current_pick_number: number
+          draft_format: string
+          host_user_id: string
+          id: string
+          league_id: string | null
+          name: string
+          pick_clock_sec: number
+          pick_deadline: string | null
+          reversal_rounds: number[]
+          rounds: number
+          scoring_format: string
+          slots_bn: number
+          slots_c: number
+          slots_flx: number
+          slots_pf: number
+          slots_pg: number
+          slots_sf: number
+          slots_sg: number
+          started_at: string | null
+          status: string
+          team_count: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_rooms"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      auction_total_slots: {
+        Args: { _room: Database["public"]["Tables"]["draft_rooms"]["Row"] }
+        Returns: number
+      }
       make_pick: {
         Args: {
           _autopick?: boolean
@@ -384,6 +606,7 @@ export type Database = {
           _room_id: string
         }
         Returns: {
+          auction_price: number | null
           id: string
           pick_number: number
           picked_at: string

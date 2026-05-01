@@ -11,6 +11,7 @@ import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
+import { AuctionRoom } from "@/components/AuctionRoom";
 import {
   Dialog,
   DialogContent,
@@ -71,6 +72,11 @@ type Room = {
   status: "waiting" | "drafting" | "complete";
   current_pick_number: number;
   pick_deadline: string | null;
+  draft_format: string;
+  auction_budget: number;
+  auction_min_bid: number;
+  auction_bid_clock_sec: number;
+  auction_antisnipe_threshold_sec: number | null;
   slots_pg: number;
   slots_sg: number;
   slots_sf: number;
@@ -101,6 +107,7 @@ type Pick = {
   player_team: string | null;
   was_autopick: boolean;
   picked_at: string;
+  auction_price: number | null;
 };
 
 function DraftRoomPage() {
@@ -426,7 +433,10 @@ function DraftRoomPage() {
   const handleStart = async () => {
     setActionBusy(true);
     setError(null);
-    const { error } = await supabase.rpc("start_draft", { _room_id: roomId });
+    const isAuction =
+      room?.draft_format === "auction" || room?.draft_format === "auction_slow";
+    const rpcName = isAuction ? "auction_start" : "start_draft";
+    const { error } = await supabase.rpc(rpcName, { _room_id: roomId });
     setActionBusy(false);
     if (error) setError(error.message);
   };
@@ -523,7 +533,21 @@ function DraftRoomPage() {
 
   if (!room) return null;
 
-  // ------- Render: WAITING ROOM -------
+  // Auction formats use a dedicated room UI for drafting/complete states.
+  // The waiting room (lobby) is shared with the snake-draft UI below.
+  const isAuctionFormat =
+    room.draft_format === "auction" || room.draft_format === "auction_slow";
+  if (isAuctionFormat && room.status !== "waiting") {
+    return (
+      <AuctionRoom
+        room={room}
+        userId={user?.id}
+        participants={participants}
+        picks={picks}
+      />
+    );
+  }
+
   if (room.status === "waiting") {
     return (
       <div className="min-h-screen bg-background">
