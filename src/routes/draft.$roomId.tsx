@@ -130,6 +130,8 @@ function DraftRoomPage() {
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
   const [statsShade, setStatsShade] = useState<"stats" | "zebra" | "heatmap">("zebra");
+  const [sortKey, setSortKey] = useState<SortKey>("rank");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
