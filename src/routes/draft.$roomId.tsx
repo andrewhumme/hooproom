@@ -987,12 +987,18 @@ function DraftRoomPage() {
                         </div>
                       </button>
 
-                      <div className="hidden shrink-0 items-center gap-1.5 text-[11px] font-bold tabular-nums sm:flex">
-                        <Stat label="PTS" value={s?.pts} max={statMax.pts} mode={statsShade} />
-                        <Stat label="REB" value={s?.reb} max={statMax.reb} mode={statsShade} />
-                        <Stat label="AST" value={s?.ast} max={statMax.ast} mode={statsShade} />
-                        <Stat label="STL" value={s?.stl} max={statMax.stl} mode={statsShade} />
-                        <Stat label="BLK" value={s?.blk} max={statMax.blk} mode={statsShade} />
+                      <div className="hidden shrink-0 items-center gap-1 text-[11px] font-bold tabular-nums sm:flex">
+                        {STAT_COLUMNS.map((col) => (
+                          <Stat
+                            key={col.key}
+                            label={col.label}
+                            value={s?.[col.key] as number | null | undefined}
+                            max={statMax[col.key]}
+                            mode={statsShade}
+                            decimals={col.decimals}
+                            active={sortKey === col.key}
+                          />
+                        ))}
                       </div>
 
                       <Button
