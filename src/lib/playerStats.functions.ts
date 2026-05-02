@@ -203,7 +203,7 @@ export const fetchPlayerStatsServer = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("player_season_stats")
       .select(
-        "season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
+        "season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg3_made, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
       )
       .eq("loose_key", looseKey(data.playerKey))
       .order("season", { ascending: false });
