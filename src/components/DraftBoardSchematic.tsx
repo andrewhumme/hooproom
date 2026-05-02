@@ -73,8 +73,8 @@ export function DraftBoardSchematic({ className }: { className?: string }) {
           />
         </pattern>
         <linearGradient id="snake-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="oklch(var(--primary) / 0.15)" />
-          <stop offset="100%" stopColor="oklch(var(--primary) / 0.6)" />
+          <stop offset="0%" stopColor="color-mix(in oklab, var(--primary) 15%, transparent)" />
+          <stop offset="100%" stopColor="color-mix(in oklab, var(--primary) 60%, transparent)" />
         </linearGradient>
       </defs>
 
@@ -175,9 +175,9 @@ export function DraftBoardSchematic({ className }: { className?: string }) {
                 height={cellH}
                 fill={
                   isClock
-                    ? "oklch(var(--primary) / 0.14)"
+                    ? "color-mix(in oklab, var(--primary) 14%, transparent)"
                     : isMade
-                      ? "oklch(var(--foreground) / 0.04)"
+                      ? "color-mix(in oklab, var(--foreground) 4%, transparent)"
                       : "transparent"
                 }
                 stroke="currentColor"
@@ -204,7 +204,7 @@ export function DraftBoardSchematic({ className }: { className?: string }) {
                     width={cellW - 8}
                     height={cellH - 8}
                     fill="none"
-                    stroke="oklch(var(--primary))"
+                    stroke="var(--primary)"
                     strokeWidth="1.5"
                     strokeDasharray="3 3"
                   />
@@ -216,7 +216,7 @@ export function DraftBoardSchematic({ className }: { className?: string }) {
                       fontFamily: "ui-monospace, monospace",
                       fontSize: 10,
                       fontWeight: 800,
-                      fill: "oklch(var(--primary))",
+                      fill: "var(--primary)",
                       letterSpacing: 1,
                     }}
                   >
@@ -233,7 +233,7 @@ export function DraftBoardSchematic({ className }: { className?: string }) {
       <polyline
         points={snakePoints.slice(0, made).join(" ")}
         fill="none"
-        stroke="oklch(var(--primary))"
+        stroke="var(--primary)"
         strokeOpacity="0.55"
         strokeWidth="1.25"
         strokeLinecap="round"
@@ -242,7 +242,7 @@ export function DraftBoardSchematic({ className }: { className?: string }) {
       <polyline
         points={snakePoints.slice(made - 1, made + 1).join(" ")}
         fill="none"
-        stroke="oklch(var(--primary))"
+        stroke="var(--primary)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeDasharray="4 4"
