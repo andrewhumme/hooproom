@@ -309,19 +309,36 @@ function DraftRoomPage() {
 
   const availablePlayers = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return players
+    const filtered = players
       .filter((p) => !takenIds.has(p.id))
       .filter((p) => (posFilter === "ALL" ? true : (p.position || "").includes(posFilter)))
       .filter((p) =>
         q ? p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q) : true
-      )
-      .sort(compareByRank)
-      .slice(0, 200);
-  }, [players, takenIds, search, posFilter]);
+      );
+
+    if (sortKey === "rank") {
+      filtered.sort(compareByRank);
+    } else {
+      const dir = sortDir === "asc" ? 1 : -1;
+      filtered.sort((a, b) => {
+        const sa = latestStats[a.id];
+        const sb = latestStats[b.id];
+        const va = sa ? (sa[sortKey] as number | null | undefined) : null;
+        const vb = sb ? (sb[sortKey] as number | null | undefined) : null;
+        // Missing values always sort to the bottom regardless of direction.
+        if (va == null && vb == null) return compareByRank(a, b);
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        if (va === vb) return compareByRank(a, b);
+        return (va < vb ? -1 : 1) * dir;
+      });
+    }
+    return filtered.slice(0, 200);
+  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats]);
 
   // Per-stat max across visible players (for heatmap shading).
   const statMax = useMemo(() => {
-    const keys = ["pts", "reb", "ast", "stl", "blk"] as const;
+    const keys = ["pts", "reb", "ast", "stl", "blk", "fg3_made", "fg_pct", "ft_pct"] as const;
     const max: Record<string, number> = {};
     for (const k of keys) max[k] = 0;
     for (const p of availablePlayers) {
