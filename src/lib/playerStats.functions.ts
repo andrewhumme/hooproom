@@ -188,6 +188,7 @@ export type PlayerSeasonStats = {
   stl: number | null;
   blk: number | null;
   tov: number | null;
+  fg3_made: number | null;
   fg_pct: number | null;
   fg3_pct: number | null;
   ft_pct: number | null;
