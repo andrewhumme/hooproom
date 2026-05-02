@@ -1279,11 +1279,15 @@ function Stat({
   value,
   max,
   mode,
+  decimals = 1,
+  active = false,
 }: {
   label: string;
   value: number | null | undefined;
   max?: number;
   mode?: "stats" | "zebra" | "heatmap";
+  decimals?: number;
+  active?: boolean;
 }) {
   // Heatmap: shade cell background based on value/max ratio.
   let style: React.CSSProperties | undefined;
@@ -1294,12 +1298,20 @@ function Stat({
       backgroundColor: `color-mix(in oklab, var(--primary) ${(alpha * 100).toFixed(0)}%, transparent)`,
     };
   }
+  const formatted =
+    value == null
+      ? "—"
+      : decimals === 3
+        ? Number(value).toFixed(3).replace(/^0\./, ".")
+        : Number(value).toFixed(decimals);
   return (
     <div
-      className="flex w-11 flex-col items-center rounded-md px-1 py-0.5 leading-tight"
+      className={`flex w-11 flex-col items-center rounded-md px-1 py-0.5 leading-tight ${
+        active && mode !== "heatmap" ? "ring-1 ring-primary/40" : ""
+      }`}
       style={style}
     >
-      <span className="text-foreground">{value == null ? "—" : Number(value).toFixed(1)}</span>
+      <span className={active ? "text-primary" : "text-foreground"}>{formatted}</span>
       <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
