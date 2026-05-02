@@ -379,6 +379,21 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     [activeNom]
   );
 
+  const handleEndDraft = async () => {
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase
+      .from("draft_rooms")
+      .update({ status: "complete", completed_at: new Date().toISOString(), pick_deadline: null })
+      .eq("id", room.id);
+    setActionBusy(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    navigate({ to: "/lobby" });
+  };
+
   const handleExport = () => {
     const teamNameByIdx = new Map<number, string>();
     for (const p of participants) {
