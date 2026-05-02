@@ -1069,6 +1069,7 @@ function DraftRoomPage() {
                   </li>
                 )}
               </ul>
+              </>
             )}
           </div>
         </Card>
