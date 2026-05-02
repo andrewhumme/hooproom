@@ -633,7 +633,9 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                 </div>
               ) : (
                 <ul className="max-h-[60vh] overflow-y-auto divide-y divide-border">
-                  {filteredPlayers.map((pl) => (
+                  {filteredPlayers.map((pl) => {
+                    const sug = valueByKey[looseKey(pl.id)];
+                    return (
                     <li
                       key={pl.id}
                       className="flex items-center justify-between gap-3 px-4 py-2 hover:bg-muted/50"
@@ -652,22 +654,32 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           </div>
                         </div>
                       </div>
-                      {isMyNomination && !activeNom ? (
-                        <Button
-                          onClick={() => handleNominate(pl)}
-                          size="sm"
-                          disabled={actionBusy}
-                          className="font-bold"
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div
+                          className="text-right tabular-nums"
+                          title="Suggested auction value (z-score, last season)"
                         >
-                          <Gavel className="h-3 w-3" /> Nominate
-                        </Button>
-                      ) : (
-                        <span className="text-xs font-semibold text-muted-foreground">
-                          —
-                        </span>
-                      )}
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Sug
+                          </div>
+                          <div className="text-sm font-black text-primary">
+                            {sug != null ? `$${sug}` : "—"}
+                          </div>
+                        </div>
+                        {isMyNomination && !activeNom ? (
+                          <Button
+                            onClick={() => handleNominate(pl)}
+                            size="sm"
+                            disabled={actionBusy}
+                            className="font-bold"
+                          >
+                            <Gavel className="h-3 w-3" /> Nominate
+                          </Button>
+                        ) : null}
+                      </div>
                     </li>
-                  ))}
+                    );
+                  })}
                   {filteredPlayers.length === 0 && (
                     <li className="p-6 text-center text-sm text-muted-foreground">
                       No players match
