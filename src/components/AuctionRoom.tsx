@@ -115,6 +115,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   const [players, setPlayers] = useState<DraftablePlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
+  const [valueByKey, setValueByKey] = useState<Record<string, number>>({});
   const [activeNom, setActiveNom] = useState<Nomination | null>(null);
   const [bidHistory, setBidHistory] = useState<Bid[]>([]);
   const [now, setNow] = useState(Date.now());
