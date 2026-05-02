@@ -1193,15 +1193,16 @@ function Stat({
   label: string;
   value: number | null | undefined;
   max?: number;
-  mode?: "zebra" | "heatmap";
+  mode?: "stats" | "zebra" | "heatmap";
 }) {
   // Heatmap: shade cell background based on value/max ratio.
   let style: React.CSSProperties | undefined;
   if (mode === "heatmap" && value != null && max && max > 0) {
     const ratio = Math.min(1, Math.max(0, Number(value) / max));
-    // Use primary color with varying alpha (0.08 → 0.55).
-    const alpha = 0.08 + ratio * 0.47;
-    style = { backgroundColor: `color-mix(in oklab, hsl(var(--primary)) ${(alpha * 100).toFixed(0)}%, transparent)` };
+    const alpha = 0.1 + ratio * 0.55;
+    style = {
+      backgroundColor: `color-mix(in oklab, var(--primary) ${(alpha * 100).toFixed(0)}%, transparent)`,
+    };
   }
   return (
     <div
