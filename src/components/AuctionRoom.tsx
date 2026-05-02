@@ -116,6 +116,7 @@ interface Props {
 const POSITIONS = ["ALL", "PG", "SG", "SF", "PF", "C"] as const;
 
 export function AuctionRoom({ room, userId, participants, picks }: Props) {
+  const navigate = useNavigate();
   const totalSlots =
     room.slots_pg +
     room.slots_sg +
