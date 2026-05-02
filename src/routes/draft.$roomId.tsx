@@ -110,6 +110,20 @@ type Pick = {
   auction_price: number | null;
 };
 
+type StatKey = "pts" | "reb" | "ast" | "stl" | "blk" | "fg3_made" | "fg_pct" | "ft_pct";
+type SortKey = "rank" | StatKey;
+
+const STAT_COLUMNS: { key: StatKey; label: string; decimals: number }[] = [
+  { key: "pts", label: "PTS", decimals: 1 },
+  { key: "reb", label: "REB", decimals: 1 },
+  { key: "ast", label: "AST", decimals: 1 },
+  { key: "stl", label: "STL", decimals: 1 },
+  { key: "blk", label: "BLK", decimals: 1 },
+  { key: "fg3_made", label: "3PM", decimals: 1 },
+  { key: "fg_pct", label: "FG%", decimals: 3 },
+  { key: "ft_pct", label: "FT%", decimals: 3 },
+];
+
 function DraftRoomPage() {
   const { roomId } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
@@ -130,6 +144,8 @@ function DraftRoomPage() {
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
   const [statsShade, setStatsShade] = useState<"stats" | "zebra" | "heatmap">("zebra");
+  const [sortKey, setSortKey] = useState<SortKey>("rank");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
@@ -307,19 +323,36 @@ function DraftRoomPage() {
 
   const availablePlayers = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return players
+    const filtered = players
       .filter((p) => !takenIds.has(p.id))
       .filter((p) => (posFilter === "ALL" ? true : (p.position || "").includes(posFilter)))
       .filter((p) =>
         q ? p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q) : true
-      )
-      .sort(compareByRank)
-      .slice(0, 200);
-  }, [players, takenIds, search, posFilter]);
+      );
+
+    if (sortKey === "rank") {
+      filtered.sort(compareByRank);
+    } else {
+      const dir = sortDir === "asc" ? 1 : -1;
+      filtered.sort((a, b) => {
+        const sa = latestStats[a.id];
+        const sb = latestStats[b.id];
+        const va = sa ? (sa[sortKey] as number | null | undefined) : null;
+        const vb = sb ? (sb[sortKey] as number | null | undefined) : null;
+        // Missing values always sort to the bottom regardless of direction.
+        if (va == null && vb == null) return compareByRank(a, b);
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        if (va === vb) return compareByRank(a, b);
+        return (va < vb ? -1 : 1) * dir;
+      });
+    }
+    return filtered.slice(0, 200);
+  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats]);
 
   // Per-stat max across visible players (for heatmap shading).
   const statMax = useMemo(() => {
-    const keys = ["pts", "reb", "ast", "stl", "blk"] as const;
+    const keys = ["pts", "reb", "ast", "stl", "blk", "fg3_made", "fg_pct", "ft_pct"] as const;
     const max: Record<string, number> = {};
     for (const k of keys) max[k] = 0;
     for (const p of availablePlayers) {
@@ -928,7 +961,57 @@ function DraftRoomPage() {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <ul className="divide-y divide-border">
+              <>
+                <div className="sticky top-0 z-10 hidden items-center gap-3 border-b-2 border-border bg-card px-4 py-2 sm:flex">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (sortKey === "rank") {
+                        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                      } else {
+                        setSortKey("rank");
+                        setSortDir("asc");
+                      }
+                    }}
+                    className={`min-w-0 flex-1 text-left text-[10px] font-black uppercase tracking-wider ${
+                      sortKey === "rank" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Player {sortKey === "rank" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                  </button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {STAT_COLUMNS.map((col) => {
+                      const active = sortKey === col.key;
+                      return (
+                        <button
+                          key={col.key}
+                          type="button"
+                          onClick={() => {
+                            if (active) {
+                              setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                            } else {
+                              setSortKey(col.key);
+                              setSortDir("desc");
+                            }
+                          }}
+                          className={`flex w-11 flex-col items-center rounded-md px-1 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                            active
+                              ? "bg-primary/15 text-primary"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                          title={`Sort by ${col.label}`}
+                        >
+                          <span>{col.label}</span>
+                          <span className="text-[9px] leading-none">
+                            {active ? (sortDir === "asc" ? "▲" : "▼") : "↕"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="w-[68px] shrink-0" />
+                </div>
+                <ul className="divide-y divide-border">
                 {availablePlayers.map((p, idx) => {
                   const s = latestStats[p.id];
                   const zebra = statsShade === "zebra" && idx % 2 === 1 ? "bg-muted/40" : "";
@@ -954,12 +1037,18 @@ function DraftRoomPage() {
                         </div>
                       </button>
 
-                      <div className="hidden shrink-0 items-center gap-1.5 text-[11px] font-bold tabular-nums sm:flex">
-                        <Stat label="PTS" value={s?.pts} max={statMax.pts} mode={statsShade} />
-                        <Stat label="REB" value={s?.reb} max={statMax.reb} mode={statsShade} />
-                        <Stat label="AST" value={s?.ast} max={statMax.ast} mode={statsShade} />
-                        <Stat label="STL" value={s?.stl} max={statMax.stl} mode={statsShade} />
-                        <Stat label="BLK" value={s?.blk} max={statMax.blk} mode={statsShade} />
+                      <div className="hidden shrink-0 items-center gap-1 text-[11px] font-bold tabular-nums sm:flex">
+                        {STAT_COLUMNS.map((col) => (
+                          <Stat
+                            key={col.key}
+                            label={col.label}
+                            value={s?.[col.key] as number | null | undefined}
+                            max={statMax[col.key]}
+                            mode={statsShade}
+                            decimals={col.decimals}
+                            active={sortKey === col.key}
+                          />
+                        ))}
                       </div>
 
                       <Button
@@ -980,6 +1069,7 @@ function DraftRoomPage() {
                   </li>
                 )}
               </ul>
+              </>
             )}
           </div>
         </Card>
@@ -1189,11 +1279,15 @@ function Stat({
   value,
   max,
   mode,
+  decimals = 1,
+  active = false,
 }: {
   label: string;
   value: number | null | undefined;
   max?: number;
   mode?: "stats" | "zebra" | "heatmap";
+  decimals?: number;
+  active?: boolean;
 }) {
   // Heatmap: shade cell background based on value/max ratio.
   let style: React.CSSProperties | undefined;
@@ -1204,12 +1298,20 @@ function Stat({
       backgroundColor: `color-mix(in oklab, var(--primary) ${(alpha * 100).toFixed(0)}%, transparent)`,
     };
   }
+  const formatted =
+    value == null
+      ? "—"
+      : decimals === 3
+        ? Number(value).toFixed(3).replace(/^0\./, ".")
+        : Number(value).toFixed(decimals);
   return (
     <div
-      className="flex w-11 flex-col items-center rounded-md px-1 py-0.5 leading-tight"
+      className={`flex w-11 flex-col items-center rounded-md px-1 py-0.5 leading-tight ${
+        active && mode !== "heatmap" ? "ring-1 ring-primary/40" : ""
+      }`}
       style={style}
     >
-      <span className="text-foreground">{value == null ? "—" : Number(value).toFixed(1)}</span>
+      <span className={active ? "text-primary" : "text-foreground"}>{formatted}</span>
       <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
