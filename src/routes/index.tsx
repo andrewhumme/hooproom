@@ -110,7 +110,7 @@ function Landing() {
           </div>
           <div className="relative">
             <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-2xl border-2 border-border bg-card p-6 shadow-[var(--shadow-bold)] md:p-8">
+            <div className="relative overflow-hidden rounded-2xl border-2 border-border bg-card p-4 shadow-[var(--shadow-bold)] md:p-6">
               <DraftBoardSchematic className="h-auto w-full text-foreground" />
             </div>
           </div>
