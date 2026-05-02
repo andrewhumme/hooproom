@@ -110,6 +110,20 @@ type Pick = {
   auction_price: number | null;
 };
 
+type StatKey = "pts" | "reb" | "ast" | "stl" | "blk" | "fg3_made" | "fg_pct" | "ft_pct";
+type SortKey = "rank" | StatKey;
+
+const STAT_COLUMNS: { key: StatKey; label: string; decimals: number }[] = [
+  { key: "pts", label: "PTS", decimals: 1 },
+  { key: "reb", label: "REB", decimals: 1 },
+  { key: "ast", label: "AST", decimals: 1 },
+  { key: "stl", label: "STL", decimals: 1 },
+  { key: "blk", label: "BLK", decimals: 1 },
+  { key: "fg3_made", label: "3PM", decimals: 1 },
+  { key: "fg_pct", label: "FG%", decimals: 3 },
+  { key: "ft_pct", label: "FT%", decimals: 3 },
+];
+
 function DraftRoomPage() {
   const { roomId } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
