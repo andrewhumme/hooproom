@@ -113,13 +113,6 @@ function Landing() {
             <div className="relative overflow-hidden rounded-2xl border-2 border-border bg-card p-6 shadow-[var(--shadow-bold)] md:p-8">
               <DraftBoardSchematic className="h-auto w-full text-foreground" />
             </div>
-            <div className="absolute -bottom-6 -left-6 hidden rounded-xl border-2 border-secondary bg-card px-4 py-3 shadow-[var(--shadow-bold)] md:block">
-              <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">On the Clock</div>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-2xl font-black text-primary">00:23</span>
-                <span className="text-sm font-semibold">Pick 1.07</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
