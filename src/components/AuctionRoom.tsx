@@ -9,9 +9,12 @@ import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
+import { getAuctionValuesServer } from "@/lib/auctionValues.functions";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
+
+const looseKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
 import {
   ArrowLeft,
   Clock,
