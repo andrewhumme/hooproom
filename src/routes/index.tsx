@@ -14,7 +14,7 @@ import {
   X,
   ArrowRight,
 } from "lucide-react";
-import heroImage from "@/assets/hero-dunk.jpg";
+import { DraftBoardSchematic } from "@/components/DraftBoardSchematic";
 
 export const Route = createFileRoute("/")({
   component: Landing,
