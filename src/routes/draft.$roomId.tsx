@@ -961,7 +961,57 @@ function DraftRoomPage() {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <ul className="divide-y divide-border">
+              <>
+                <div className="sticky top-0 z-10 hidden items-center gap-3 border-b-2 border-border bg-card px-4 py-2 sm:flex">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (sortKey === "rank") {
+                        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                      } else {
+                        setSortKey("rank");
+                        setSortDir("asc");
+                      }
+                    }}
+                    className={`min-w-0 flex-1 text-left text-[10px] font-black uppercase tracking-wider ${
+                      sortKey === "rank" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Player {sortKey === "rank" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                  </button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {STAT_COLUMNS.map((col) => {
+                      const active = sortKey === col.key;
+                      return (
+                        <button
+                          key={col.key}
+                          type="button"
+                          onClick={() => {
+                            if (active) {
+                              setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                            } else {
+                              setSortKey(col.key);
+                              setSortDir("desc");
+                            }
+                          }}
+                          className={`flex w-11 flex-col items-center rounded-md px-1 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                            active
+                              ? "bg-primary/15 text-primary"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                          title={`Sort by ${col.label}`}
+                        >
+                          <span>{col.label}</span>
+                          <span className="text-[9px] leading-none">
+                            {active ? (sortDir === "asc" ? "▲" : "▼") : "↕"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="w-[68px] shrink-0" />
+                </div>
+                <ul className="divide-y divide-border">
                 {availablePlayers.map((p, idx) => {
                   const s = latestStats[p.id];
                   const zebra = statsShade === "zebra" && idx % 2 === 1 ? "bg-muted/40" : "";
