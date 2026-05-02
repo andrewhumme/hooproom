@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +35,7 @@ import {
   Loader2,
   Search,
   Trophy,
+  XCircle,
   Zap,
 } from "lucide-react";
 
@@ -104,6 +116,7 @@ interface Props {
 const POSITIONS = ["ALL", "PG", "SG", "SF", "PF", "C"] as const;
 
 export function AuctionRoom({ room, userId, participants, picks }: Props) {
+  const navigate = useNavigate();
   const totalSlots =
     room.slots_pg +
     room.slots_sg +
@@ -137,6 +150,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const myTeamIdx = meParticipant?.draft_position ?? null;
   const isComplete = room.status === "complete";
   const isDrafting = room.status === "drafting";
+  const isHost = !!userId && userId === room.host_user_id;
 
   // ---- player pool ----
   const playersFetchedRef = useRef(false);
@@ -365,6 +379,21 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     [activeNom]
   );
 
+  const handleEndDraft = async () => {
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase
+      .from("draft_rooms")
+      .update({ status: "complete", completed_at: new Date().toISOString(), pick_deadline: null })
+      .eq("id", room.id);
+    setActionBusy(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    navigate({ to: "/lobby" });
+  };
+
   const handleExport = () => {
     const teamNameByIdx = new Map<number, string>();
     for (const p of participants) {
@@ -431,6 +460,37 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export CSV
               </Button>
+            )}
+            {isHost && !isComplete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="font-bold border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    disabled={actionBusy}
+                  >
+                    <XCircle /> End draft
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>End this draft?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This marks the room as complete and removes it from the active lobby. Picks made so far stay in the record and remain exportable. This can't be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleEndDraft}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      End draft
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
