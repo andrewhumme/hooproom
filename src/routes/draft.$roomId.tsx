@@ -904,10 +904,7 @@ function DraftRoomPage() {
                   : `${availablePlayers.length} available · sorted by ranking`}
               </div>
               <div className="flex items-center gap-1 rounded-md border-2 border-border bg-card p-1">
-                <span className="hidden px-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground sm:inline">
-                  Stats
-                </span>
-                {(["zebra", "heatmap"] as const).map((m) => (
+                {(["stats", "zebra", "heatmap"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
