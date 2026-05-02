@@ -462,6 +462,34 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                     <div className="text-sm text-muted-foreground">
                       {activeNom.player_position} · {activeNom.player_team}
                     </div>
+                    {(() => {
+                      const sug = valueByKey[looseKey(activeNom.player_id)];
+                      if (sug == null) return null;
+                      const delta = sug - activeNom.current_bid;
+                      const isValue = delta > 0;
+                      return (
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className="font-bold text-xs"
+                            title="Suggested value (z-score, last season)"
+                          >
+                            Sug ${sug}
+                          </Badge>
+                          <span
+                            className={`text-xs font-bold ${
+                              isValue
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : delta < 0
+                                  ? "text-destructive"
+                                  : "text-muted-foreground"
+                            }`}
+                          >
+                            {delta > 0 ? `+$${delta} value` : delta < 0 ? `$${Math.abs(delta)} over` : "at value"}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
