@@ -109,14 +109,10 @@ function Landing() {
             </div>
           </div>
           <div className="relative">
-            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/30 to-secondary/30 blur-2xl" />
-            <img
-              src={heroImage}
-              alt="Basketball player driving to the rim — HoopRoom live mock drafts"
-              width={1600}
-              height={1200}
-              className="relative rounded-2xl shadow-[var(--shadow-bold)]"
-            />
+            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 blur-2xl" />
+            <div className="relative overflow-hidden rounded-2xl border-2 border-border bg-card p-6 shadow-[var(--shadow-bold)] md:p-8">
+              <DraftBoardSchematic className="h-auto w-full text-foreground" />
+            </div>
             <div className="absolute -bottom-6 -left-6 hidden rounded-xl border-2 border-secondary bg-card px-4 py-3 shadow-[var(--shadow-bold)] md:block">
               <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">On the Clock</div>
               <div className="mt-1 flex items-baseline gap-2">
