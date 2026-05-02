@@ -35,6 +35,7 @@ import {
   Loader2,
   Search,
   Trophy,
+  XCircle,
   Zap,
 } from "lucide-react";
 
