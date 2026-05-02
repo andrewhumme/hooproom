@@ -9,9 +9,12 @@ import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
+import { getAuctionValuesServer } from "@/lib/auctionValues.functions";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
+
+const looseKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
 import {
   ArrowLeft,
   Clock,
@@ -112,6 +115,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   const [players, setPlayers] = useState<DraftablePlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
+  const [valueByKey, setValueByKey] = useState<Record<string, number>>({});
   const [activeNom, setActiveNom] = useState<Nomination | null>(null);
   const [bidHistory, setBidHistory] = useState<Bid[]>([]);
   const [now, setNow] = useState(Date.now());
@@ -145,6 +149,27 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       .catch((e) => console.error(e))
       .finally(() => setPlayersLoading(false));
   }, [room.status]);
+
+  // Suggested auction values (z-score). Recompute when league shape changes.
+  useEffect(() => {
+    if (room.status === "waiting") return;
+    getAuctionValuesServer({
+      data: {
+        teamCount: room.team_count,
+        rosterSize: totalSlots,
+        budget: room.auction_budget,
+        scoringFormat: room.scoring_format,
+      },
+    })
+      .then(setValueByKey)
+      .catch((e) => console.error("auction values failed", e));
+  }, [
+    room.status,
+    room.team_count,
+    totalSlots,
+    room.auction_budget,
+    room.scoring_format,
+  ]);
 
   // ---- subscribe to auction tables ----
   useEffect(() => {
@@ -437,6 +462,34 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                     <div className="text-sm text-muted-foreground">
                       {activeNom.player_position} · {activeNom.player_team}
                     </div>
+                    {(() => {
+                      const sug = valueByKey[looseKey(activeNom.player_id)];
+                      if (sug == null) return null;
+                      const delta = sug - activeNom.current_bid;
+                      const isValue = delta > 0;
+                      return (
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className="font-bold text-xs"
+                            title="Suggested value (z-score, last season)"
+                          >
+                            Sug ${sug}
+                          </Badge>
+                          <span
+                            className={`text-xs font-bold ${
+                              isValue
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : delta < 0
+                                  ? "text-destructive"
+                                  : "text-muted-foreground"
+                            }`}
+                          >
+                            {delta > 0 ? `+$${delta} value` : delta < 0 ? `$${Math.abs(delta)} over` : "at value"}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -608,7 +661,9 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                 </div>
               ) : (
                 <ul className="max-h-[60vh] overflow-y-auto divide-y divide-border">
-                  {filteredPlayers.map((pl) => (
+                  {filteredPlayers.map((pl) => {
+                    const sug = valueByKey[looseKey(pl.id)];
+                    return (
                     <li
                       key={pl.id}
                       className="flex items-center justify-between gap-3 px-4 py-2 hover:bg-muted/50"
@@ -627,22 +682,32 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           </div>
                         </div>
                       </div>
-                      {isMyNomination && !activeNom ? (
-                        <Button
-                          onClick={() => handleNominate(pl)}
-                          size="sm"
-                          disabled={actionBusy}
-                          className="font-bold"
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div
+                          className="text-right tabular-nums"
+                          title="Suggested auction value (z-score, last season)"
                         >
-                          <Gavel className="h-3 w-3" /> Nominate
-                        </Button>
-                      ) : (
-                        <span className="text-xs font-semibold text-muted-foreground">
-                          —
-                        </span>
-                      )}
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Sug
+                          </div>
+                          <div className="text-sm font-black text-primary">
+                            {sug != null ? `$${sug}` : "—"}
+                          </div>
+                        </div>
+                        {isMyNomination && !activeNom ? (
+                          <Button
+                            onClick={() => handleNominate(pl)}
+                            size="sm"
+                            disabled={actionBusy}
+                            className="font-bold"
+                          >
+                            <Gavel className="h-3 w-3" /> Nominate
+                          </Button>
+                        ) : null}
+                      </div>
                     </li>
-                  ))}
+                    );
+                  })}
                   {filteredPlayers.length === 0 && (
                     <li className="p-6 text-center text-sm text-muted-foreground">
                       No players match
