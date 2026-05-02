@@ -150,6 +150,27 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       .finally(() => setPlayersLoading(false));
   }, [room.status]);
 
+  // Suggested auction values (z-score). Recompute when league shape changes.
+  useEffect(() => {
+    if (room.status === "waiting") return;
+    getAuctionValuesServer({
+      data: {
+        teamCount: room.team_count,
+        rosterSize: totalSlots,
+        budget: room.auction_budget,
+        scoringFormat: room.scoring_format,
+      },
+    })
+      .then(setValueByKey)
+      .catch((e) => console.error("auction values failed", e));
+  }, [
+    room.status,
+    room.team_count,
+    totalSlots,
+    room.auction_budget,
+    room.scoring_format,
+  ]);
+
   // ---- subscribe to auction tables ----
   useEffect(() => {
     let mounted = true;
