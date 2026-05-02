@@ -191,7 +191,7 @@ export function DraftBoardSchematic({ className }: { className?: string }) {
                   y={padY + r * cellH + cellH / 2 + 3}
                   textAnchor="middle"
                   className="fill-foreground"
-                  style={{ fontFamily: "ui-monospace, monospace", fontSize: 10, fontWeight: 600, opacity: 0.55 }}
+                  style={{ fontFamily: "ui-monospace, monospace", fontSize: 10, fontWeight: 600, opacity: 0.7 }}
                 >
                   ·{String(n).padStart(2, "0")}·
                 </text>
