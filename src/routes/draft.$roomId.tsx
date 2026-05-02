@@ -129,7 +129,7 @@ function DraftRoomPage() {
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
-  const [statsShade, setStatsShade] = useState<"zebra" | "heatmap">("zebra");
+  const [statsShade, setStatsShade] = useState<"stats" | "zebra" | "heatmap">("zebra");
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
@@ -904,10 +904,7 @@ function DraftRoomPage() {
                   : `${availablePlayers.length} available · sorted by ranking`}
               </div>
               <div className="flex items-center gap-1 rounded-md border-2 border-border bg-card p-1">
-                <span className="hidden px-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground sm:inline">
-                  Stats
-                </span>
-                {(["zebra", "heatmap"] as const).map((m) => (
+                {(["stats", "zebra", "heatmap"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
@@ -1196,15 +1193,16 @@ function Stat({
   label: string;
   value: number | null | undefined;
   max?: number;
-  mode?: "zebra" | "heatmap";
+  mode?: "stats" | "zebra" | "heatmap";
 }) {
   // Heatmap: shade cell background based on value/max ratio.
   let style: React.CSSProperties | undefined;
   if (mode === "heatmap" && value != null && max && max > 0) {
     const ratio = Math.min(1, Math.max(0, Number(value) / max));
-    // Use primary color with varying alpha (0.08 → 0.55).
-    const alpha = 0.08 + ratio * 0.47;
-    style = { backgroundColor: `color-mix(in oklab, hsl(var(--primary)) ${(alpha * 100).toFixed(0)}%, transparent)` };
+    const alpha = 0.1 + ratio * 0.55;
+    style = {
+      backgroundColor: `color-mix(in oklab, var(--primary) ${(alpha * 100).toFixed(0)}%, transparent)`,
+    };
   }
   return (
     <div
