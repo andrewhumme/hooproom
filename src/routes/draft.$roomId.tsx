@@ -12,6 +12,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
+import { DraftQueuePanel } from "@/components/DraftQueuePanel";
+import { useDraftQueue } from "@/hooks/useDraftQueue";
 import {
   Dialog,
   DialogContent,
@@ -44,7 +46,9 @@ import {
   Download,
   Loader2,
   Play,
+  Plus,
   Search,
+  Star,
   Trophy,
   Users,
   XCircle,
