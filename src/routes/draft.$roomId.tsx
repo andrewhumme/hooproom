@@ -12,6 +12,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
+import { DraftQueuePanel } from "@/components/DraftQueuePanel";
+import { useDraftQueue } from "@/hooks/useDraftQueue";
 import {
   Dialog,
   DialogContent,
@@ -44,7 +46,9 @@ import {
   Download,
   Loader2,
   Play,
+  Plus,
   Search,
+  Star,
   Trophy,
   Users,
   XCircle,
@@ -320,6 +324,15 @@ function DraftRoomPage() {
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
 
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
+
+  // Per-user draft queue. Realtime-synced; used as autopick source by the
+  // server tick when the clock expires.
+  const queueApi = useDraftQueue(roomId, user?.id ?? null);
+  const queuedIds = useMemo(
+    () => new Set(queueApi.queue.map((q) => q.player_id)),
+    [queueApi.queue],
+  );
+  const isSlow = !!room && room.pick_clock_sec >= 3600;
 
   const availablePlayers = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -1051,15 +1064,41 @@ function DraftRoomPage() {
                         ))}
                       </div>
 
-                      <Button
-                        size="sm"
-                        onClick={() => handlePick(p)}
-                        disabled={!isMyTurn || actionBusy}
-                        className="font-bold"
-                        variant={isMyTurn ? "default" : "outline"}
-                      >
-                        Draft
-                      </Button>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {isJoined && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() =>
+                              queuedIds.has(p.id)
+                                ? queueApi.remove(p.id)
+                                : queueApi.add({
+                                    id: p.id,
+                                    name: p.name,
+                                    position: p.position,
+                                    team: p.team,
+                                  })
+                            }
+                            title={queuedIds.has(p.id) ? "Remove from queue" : "Add to queue"}
+                          >
+                            {queuedIds.has(p.id) ? (
+                              <Star className="h-4 w-4 fill-primary text-primary" />
+                            ) : (
+                              <Plus className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          onClick={() => handlePick(p)}
+                          disabled={!isMyTurn || actionBusy}
+                          className="font-bold"
+                          variant={isMyTurn ? "default" : "outline"}
+                        >
+                          Draft
+                        </Button>
+                      </div>
                     </li>
                   );
                 })}
@@ -1102,6 +1141,23 @@ function DraftRoomPage() {
                 teamCount={room.team_count}
               />
             </Card>
+          )}
+
+          {isJoined && (
+            <div
+              className={`lg:block ${
+                mobileTab === "myteam" ? "block" : "hidden"
+              }`}
+            >
+              <DraftQueuePanel
+                queue={queueApi.queue}
+                takenIds={takenIds}
+                onRemove={queueApi.remove}
+                onMoveUp={queueApi.moveUp}
+                onMoveDown={queueApi.moveDown}
+                isSlow={isSlow}
+              />
+            </div>
           )}
 
           <Card className="border-2 lg:block">
