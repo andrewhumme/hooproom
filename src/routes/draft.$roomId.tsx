@@ -325,6 +325,15 @@ function DraftRoomPage() {
 
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
 
+  // Per-user draft queue. Realtime-synced; used as autopick source by the
+  // server tick when the clock expires.
+  const queueApi = useDraftQueue(roomId, user?.id ?? null);
+  const queuedIds = useMemo(
+    () => new Set(queueApi.queue.map((q) => q.player_id)),
+    [queueApi.queue],
+  );
+  const isSlow = !!room && room.pick_clock_sec >= 3600;
+
   const availablePlayers = useMemo(() => {
     const q = search.trim().toLowerCase();
     const filtered = players
