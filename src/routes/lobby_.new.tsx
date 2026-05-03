@@ -520,6 +520,11 @@ function NewRoomPage() {
                 <p className="text-xs font-semibold text-muted-foreground">
                   Selected: {formatClock(pickClock)} per pick
                 </p>
+                {pickClock >= 3600 && (
+                  <p className="text-xs text-muted-foreground">
+                    Slow drafts run async — when a clock expires, we'll autopick from the on-the-clock manager's <strong>queue</strong> (set inside the draft room) or fall back to the top available player.
+                  </p>
+                )}
               </div>
             </div>
 
