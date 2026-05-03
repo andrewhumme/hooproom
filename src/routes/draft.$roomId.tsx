@@ -1064,15 +1064,41 @@ function DraftRoomPage() {
                         ))}
                       </div>
 
-                      <Button
-                        size="sm"
-                        onClick={() => handlePick(p)}
-                        disabled={!isMyTurn || actionBusy}
-                        className="font-bold"
-                        variant={isMyTurn ? "default" : "outline"}
-                      >
-                        Draft
-                      </Button>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {isJoined && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() =>
+                              queuedIds.has(p.id)
+                                ? queueApi.remove(p.id)
+                                : queueApi.add({
+                                    id: p.id,
+                                    name: p.name,
+                                    position: p.position,
+                                    team: p.team,
+                                  })
+                            }
+                            title={queuedIds.has(p.id) ? "Remove from queue" : "Add to queue"}
+                          >
+                            {queuedIds.has(p.id) ? (
+                              <Star className="h-4 w-4 fill-primary text-primary" />
+                            ) : (
+                              <Plus className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          onClick={() => handlePick(p)}
+                          disabled={!isMyTurn || actionBusy}
+                          className="font-bold"
+                          variant={isMyTurn ? "default" : "outline"}
+                        >
+                          Draft
+                        </Button>
+                      </div>
                     </li>
                   );
                 })}
