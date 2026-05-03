@@ -221,6 +221,45 @@ export type Database = {
           },
         ]
       }
+      draft_queues: {
+        Row: {
+          created_at: string
+          id: string
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          rank: number
+          room_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_id: string
+          player_name: string
+          player_position?: string | null
+          player_team?: string | null
+          rank: number
+          room_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_id?: string
+          player_name?: string
+          player_position?: string | null
+          player_team?: string | null
+          rank?: number
+          room_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       draft_rooms: {
         Row: {
           auction_antisnipe_threshold_sec: number | null
@@ -627,6 +666,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      snake_autopick_due: { Args: never; Returns: number }
       start_draft: {
         Args: { _room_id: string }
         Returns: {
