@@ -919,7 +919,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                         <span>max ${maxBid}</span>
                       </div>
                       <div className="mt-1 flex gap-1">
-                        {isNom && !activeNom && (
+                        {isNom && (teamActiveNomCount.get(idx) ?? 0) === 0 && canNominateMore && (
                           <Badge variant="outline" className="text-[10px] font-bold">
                             <Gavel className="h-3 w-3" /> Nominating
                           </Badge>
