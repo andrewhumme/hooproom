@@ -306,9 +306,9 @@ function NewRoomPage() {
             <div>
               <Label>Draft format</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Snake = real-time picks. Auction = live bidding. Slow Auction = async bidding with anti-snipe.
+                Snake = sequential picks. Auction = nominations + bidding. Both run live or slow based on the clocks you choose below.
               </p>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {DRAFT_FORMATS.map((f) => {
                   const active = draftFormat === f.value;
                   const disabled = !f.available;
@@ -320,12 +320,7 @@ function NewRoomPage() {
                       onClick={() => {
                         if (disabled) return;
                         setDraftFormat(f.value);
-                        // Sensible defaults when switching modes
                         if (f.value === "auction") setAuctionBidClock(30);
-                        if (f.value === "auction_slow") {
-                          setAuctionBidClock(8 * 3600);
-                          setAuctionAntisnipe(3600);
-                        }
                       }}
                       className={`relative rounded-md border-2 p-3 text-left transition ${
                         active
@@ -350,7 +345,7 @@ function NewRoomPage() {
               </div>
             </div>
 
-            {(draftFormat === "auction" || draftFormat === "auction_slow") && (
+            {isAuction && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
                 <div>
                   <div className="text-xs font-black uppercase tracking-widest text-primary">
