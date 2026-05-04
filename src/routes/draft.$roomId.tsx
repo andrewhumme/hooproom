@@ -707,15 +707,46 @@ function DraftRoomPage() {
               )}
 
               {isHost && (
-                <Button
-                  onClick={handleStart}
-                  size="lg"
-                  className="font-bold shadow-[var(--shadow-glow)]"
-                  disabled={actionBusy || participants.length === 0}
-                >
-                  {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
-                  Start draft
-                </Button>
+                <>
+                  <Button
+                    onClick={handleStart}
+                    size="lg"
+                    className="font-bold shadow-[var(--shadow-glow)]"
+                    disabled={actionBusy || participants.length === 0}
+                  >
+                    {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
+                    Start draft
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="font-bold border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        disabled={actionBusy}
+                      >
+                        <XCircle /> End draft
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>End this draft?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This closes the room and removes it from the active lobby. Since the draft hasn't started, no picks will be recorded. This can't be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleEndDraft}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          End draft
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
               )}
             </div>
           </Card>
