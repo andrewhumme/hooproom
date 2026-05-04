@@ -404,19 +404,18 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   );
 
   const handleBid = useCallback(
-    async (amount: number) => {
-      if (!activeNom) return;
+    async (nomId: string, amount: number) => {
       setActionBusy(true);
       setError(null);
       const { error } = await supabase.rpc("auction_bid", {
-        _nomination_id: activeNom.id,
+        _nomination_id: nomId,
         _amount: amount,
       });
       setActionBusy(false);
       if (error) setError(error.message);
-      else setBidAmount("");
+      else setBidAmountByNom((prev) => ({ ...prev, [nomId]: "" }));
     },
-    [activeNom]
+    []
   );
 
   const handleEndDraft = async () => {
@@ -455,9 +454,6 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   };
 
   // ---- render ----
-  const isMyTopBid =
-    activeNom && myTeamIdx === activeNom.current_bidder_team_idx;
-  const minNextBid = activeNom ? activeNom.current_bid + 1 : 0;
   const formatLabel =
     room.draft_format === "auction_slow" ? "Slow Auction" : "Auction";
 
