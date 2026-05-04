@@ -62,10 +62,11 @@ const SLOW_CLOCK_OPTIONS = [
 ] as const;
 const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
 const DRAFT_FORMATS = [
-  { value: "snake", label: "Snake", available: true, hint: "Live, real-time picks" },
-  { value: "auction", label: "Auction", available: true, hint: "Live nominations + bidding" },
-  { value: "auction_slow", label: "Slow Auction", available: true, hint: "Async bidding w/ anti-snipe" },
+  { value: "snake", label: "Snake", available: true, hint: "Sequential picks — live or slow based on pick clock" },
+  { value: "auction", label: "Auction", available: true, hint: "Nominations + bidding — live or slow based on bid clock" },
 ] as const;
+// Bid clock at or above this threshold flips an auction into "slow" mode (enables anti-snipe).
+const SLOW_AUCTION_THRESHOLD_SEC = 3600;
 const AUCTION_BUDGET_PRESETS = [100, 200, 300] as const;
 const AUCTION_MIN_BID_PRESETS = [1, 2, 5] as const;
 const AUCTION_FAST_BID_CLOCK = [
