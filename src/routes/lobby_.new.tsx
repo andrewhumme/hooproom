@@ -69,12 +69,10 @@ const DRAFT_FORMATS = [
 const SLOW_AUCTION_THRESHOLD_SEC = 3600;
 const AUCTION_BUDGET_PRESETS = [100, 200, 300] as const;
 const AUCTION_MIN_BID_PRESETS = [1, 2, 5] as const;
-const AUCTION_FAST_BID_CLOCK = [
+const AUCTION_BID_CLOCK_OPTIONS = [
   { label: "20s", value: 20 },
   { label: "30s", value: 30 },
   { label: "60s", value: 60 },
-] as const;
-const AUCTION_SLOW_BID_CLOCK = [
   { label: "1h", value: 3600 },
   { label: "4h", value: 4 * 3600 },
   { label: "8h", value: 8 * 3600 },
