@@ -93,7 +93,7 @@ function NewRoomPage() {
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
   const [customHours, setCustomHours] = useState<string>("");
-  const [draftFormat, setDraftFormat] = useState<"snake" | "auction" | "auction_slow">("snake");
+  const [draftFormat, setDraftFormat] = useState<"snake" | "auction">("snake");
   const [auctionBudget, setAuctionBudget] = useState<number>(200);
   const [auctionMinBid, setAuctionMinBid] = useState<number>(1);
   const [auctionBidClock, setAuctionBidClock] = useState<number>(30);
