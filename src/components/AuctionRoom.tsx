@@ -131,19 +131,19 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const [players, setPlayers] = useState<DraftablePlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [valueByKey, setValueByKey] = useState<Record<string, number>>({});
-  const [activeNom, setActiveNom] = useState<Nomination | null>(null);
-  const [bidHistory, setBidHistory] = useState<Bid[]>([]);
+  const [activeNoms, setActiveNoms] = useState<Nomination[]>([]);
+  const [bidsByNom, setBidsByNom] = useState<Record<string, Bid[]>>({});
   const [now, setNow] = useState(Date.now());
   const [actionBusy, setActionBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [posFilter, setPosFilter] = useState<(typeof POSITIONS)[number]>("ALL");
-  const [bidAmount, setBidAmount] = useState<string>("");
+  const [bidAmountByNom, setBidAmountByNom] = useState<Record<string, string>>({});
   const [openingBid, setOpeningBid] = useState<string>("");
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">(
     "players"
   );
-  const awardCallFiredRef = useRef<string>("");
+  const awardCallFiredRef = useRef<Set<string>>(new Set());
 
   const meParticipant = useMemo(
     () => participants.find((p) => p.user_id === userId) ?? null,
