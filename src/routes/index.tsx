@@ -73,18 +73,19 @@ function Landing() {
           <div className="relative z-10">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-secondary bg-secondary/5 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-secondary">
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-              NBA Season 25-26 · Mock Drafts Live Soon
+              NBA Season 25-26 · Build Your Draft, Your Way
             </div>
             <h1 className="text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
-              Mock drafts,
+              The most customizable
               <br />
               <span className="bg-gradient-to-r from-primary to-[oklch(0.78_0.19_55)] bg-clip-text text-transparent">
-                rebuilt for live.
+                draft room in fantasy hoops.
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground md:text-xl">
-              Real-time picks. Live chat. Smart rankings. AI draft grades. The fantasy
-              basketball mock draft platform that doesn't feel like it's from 2008.
+              Snake or auction. Live, slow, or offline. Custom rules, custom clocks,
+              custom rosters. Draft anywhere — then export your results straight into
+              ESPN, Yahoo, Sleeper, or any platform you play on.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
@@ -101,11 +102,11 @@ function Landing() {
               </Button>
             </div>
             <div className="mt-10 flex items-center gap-6 text-sm">
-              <Stat number="< 50ms" label="Pick latency" />
+              <Stat number="2" label="Draft formats" />
               <div className="h-10 w-px bg-border" />
               <Stat number="450+" label="NBA players" />
               <div className="h-10 w-px bg-border" />
-              <Stat number="12" label="League formats" />
+              <Stat number="1-click" label="Export to CSV" />
             </div>
           </div>
           <div className="relative">
@@ -125,39 +126,39 @@ function Landing() {
               The Toolkit
             </div>
             <h2 className="mt-2 text-4xl font-black md:text-5xl">
-              Everything legacy mock sites forgot.
+              Built for managers who want control.
             </h2>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Feature
               icon={<Zap />}
-              title="Real-time picks"
-              copy="WebSocket-powered draft rooms. Picks land instantly — no F5, no stale boards."
-            />
-            <Feature
-              icon={<Brain />}
-              title="AI draft grade"
-              copy="Get a per-pick and per-team grade the second the draft ends. Know what worked."
+              title="Snake & auction"
+              copy="Run a classic snake or a full auction with concurrent nominations and per-team quotas. Your call."
             />
             <Feature
               icon={<Trophy />}
-              title="Personal rankings"
-              copy="Drag-and-drop tier builder. Your ranks power 'best available' across every draft."
-            />
-            <Feature
-              icon={<Users />}
-              title="Smart lobby"
-              copy="Filter by scoring, team count, pick speed, and skill. Quick-join in 10 seconds."
-            />
-            <Feature
-              icon={<MessageSquare />}
-              title="Live trash talk"
-              copy="Built-in draft chat with reactions. Mock drafting should be fun, not silent."
+              title="Custom everything"
+              copy="Roster slots, scoring, pick clocks, budgets, nomination caps. Configure the lobby to match your league."
             />
             <Feature
               icon={<Clock />}
-              title="Async drafts"
-              copy="Slow drafts with mobile push notifications. Draft from anywhere, on your time."
+              title="Live or slow"
+              copy="Real-time rooms with sub-second picks, or multi-day slow drafts with autopick queues. Draft on your schedule."
+            />
+            <Feature
+              icon={<ArrowRight />}
+              title="Export anywhere"
+              copy="One-click CSV export. Drop your results into ESPN, Yahoo, Sleeper, Fantrax — wherever your league actually lives."
+            />
+            <Feature
+              icon={<Brain />}
+              title="Personal rankings & queues"
+              copy="Pre-rank your board. Powers 'best available' suggestions and autopicks when you can't make it."
+            />
+            <Feature
+              icon={<Users />}
+              title="Offline draft assist"
+              copy="Drafting in person? Use HoopRoom as the war room — track picks, see best available, export when you're done."
             />
           </div>
         </div>
@@ -172,6 +173,10 @@ function Landing() {
           <h2 className="mt-2 text-4xl font-black md:text-5xl">
             HoopRoom vs. the old guard.
           </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+            Most mock sites lock you into their format and their platform. HoopRoom is the
+            pre-draft toolkit — you customize the room, then take the results wherever you want.
+          </p>
         </div>
         <Card className="overflow-hidden border-2 shadow-[var(--shadow-bold)]">
           <div className="grid grid-cols-3 border-b-2 border-border bg-muted">
@@ -186,12 +191,12 @@ function Landing() {
             </div>
           </div>
           {[
-            ["Real-time picks (no refresh)", true, false],
-            ["Mobile-first draft room", true, false],
-            ["AI draft grade & analysis", true, false],
-            ["Personal ranking tiers", true, false],
-            ["Live in-draft chat", true, false],
-            ["Async + slow draft modes", true, true],
+            ["Snake + auction in one tool", true, false],
+            ["Custom rules, clocks & rosters", true, false],
+            ["Concurrent auction nominations", true, false],
+            ["Slow drafts with autopick queues", true, true],
+            ["1-click CSV export to any platform", true, false],
+            ["Offline / in-person draft assist", true, false],
           ].map(([label, us, them]) => (
             <div key={label as string} className="grid grid-cols-3 border-b border-border last:border-0">
               <div className="p-5 text-sm font-semibold">{label}</div>
