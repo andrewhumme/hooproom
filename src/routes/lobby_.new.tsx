@@ -35,6 +35,8 @@ const SCHEMA = z.object({
   auction_min_bid: z.number().int().min(1).max(100000),
   auction_bid_clock_sec: z.number().int().min(10).max(72 * 60 * 60),
   auction_antisnipe_threshold_sec: z.number().int().min(10).max(72 * 60 * 60).nullable(),
+  auction_max_concurrent_nominations: z.number().int().min(1).max(20),
+  auction_nominations_per_team: z.number().int().min(1).max(1000).nullable(),
   slots_pg: z.number().int().min(0).max(10),
   slots_sg: z.number().int().min(0).max(10),
   slots_sf: z.number().int().min(0).max(10),
@@ -96,6 +98,9 @@ function NewRoomPage() {
   const [auctionMinBid, setAuctionMinBid] = useState<number>(1);
   const [auctionBidClock, setAuctionBidClock] = useState<number>(30);
   const [auctionAntisnipe, setAuctionAntisnipe] = useState<number | null>(null);
+  const [auctionMaxConcurrent, setAuctionMaxConcurrent] = useState<number>(1);
+  const [auctionNomQuotaEnabled, setAuctionNomQuotaEnabled] = useState<boolean>(false);
+  const [auctionNomQuota, setAuctionNomQuota] = useState<number>(15);
   const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
@@ -136,6 +141,12 @@ function NewRoomPage() {
       auction_min_bid: auctionMinBid,
       auction_bid_clock_sec: auctionBidClock,
       auction_antisnipe_threshold_sec: draftFormat === "auction_slow" ? auctionAntisnipe : null,
+      auction_max_concurrent_nominations:
+        draftFormat === "auction" || draftFormat === "auction_slow" ? auctionMaxConcurrent : 1,
+      auction_nominations_per_team:
+        (draftFormat === "auction" || draftFormat === "auction_slow") && auctionNomQuotaEnabled
+          ? auctionNomQuota
+          : null,
       slots_pg: slots.PG,
       slots_sg: slots.SG,
       slots_sf: slots.SF,
@@ -452,6 +463,71 @@ function NewRoomPage() {
                     </div>
                   </div>
                 )}
+
+                <div>
+                  <Label>Concurrent nominations</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    How many players can be on the block at the same time. Higher values speed up slow auctions; each team is still limited to one active nomination of their own.
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    {[1, 2, 3, 5].map((n) => (
+                      <ClockChip
+                        key={n}
+                        label={`${n}`}
+                        active={auctionMaxConcurrent === n}
+                        onClick={() => setAuctionMaxConcurrent(n)}
+                      />
+                    ))}
+                    <Input
+                      type="number"
+                      min={1}
+                      max={20}
+                      step={1}
+                      value={auctionMaxConcurrent}
+                      onChange={(e) => {
+                        const n = parseInt(e.target.value || "1", 10);
+                        if (!isNaN(n)) setAuctionMaxConcurrent(Math.max(1, Math.min(20, n)));
+                      }}
+                      className="h-9 w-20 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Nominations per team</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Cap how many times each team can nominate over the whole draft. Once they hit the cap, the snake skips them. Must be at least roster size ({rounds}).
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <ClockChip
+                      label="Unlimited"
+                      active={!auctionNomQuotaEnabled}
+                      onClick={() => setAuctionNomQuotaEnabled(false)}
+                    />
+                    <ClockChip
+                      label="Set a cap"
+                      active={auctionNomQuotaEnabled}
+                      onClick={() => {
+                        setAuctionNomQuotaEnabled(true);
+                        if (auctionNomQuota < rounds) setAuctionNomQuota(rounds);
+                      }}
+                    />
+                    {auctionNomQuotaEnabled && (
+                      <Input
+                        type="number"
+                        min={rounds}
+                        max={1000}
+                        step={1}
+                        value={auctionNomQuota}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value || "0", 10);
+                          if (!isNaN(n)) setAuctionNomQuota(Math.max(rounds, Math.min(1000, n)));
+                        }}
+                        className="h-9 w-24 font-bold"
+                      />
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 

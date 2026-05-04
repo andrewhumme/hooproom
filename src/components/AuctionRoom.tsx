@@ -52,6 +52,8 @@ type Room = {
   auction_min_bid: number;
   auction_bid_clock_sec: number;
   auction_antisnipe_threshold_sec: number | null;
+  auction_max_concurrent_nominations: number;
+  auction_nominations_per_team: number | null;
   slots_pg: number;
   slots_sg: number;
   slots_sf: number;
@@ -129,19 +131,19 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const [players, setPlayers] = useState<DraftablePlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [valueByKey, setValueByKey] = useState<Record<string, number>>({});
-  const [activeNom, setActiveNom] = useState<Nomination | null>(null);
-  const [bidHistory, setBidHistory] = useState<Bid[]>([]);
+  const [activeNoms, setActiveNoms] = useState<Nomination[]>([]);
+  const [bidsByNom, setBidsByNom] = useState<Record<string, Bid[]>>({});
   const [now, setNow] = useState(Date.now());
   const [actionBusy, setActionBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [posFilter, setPosFilter] = useState<(typeof POSITIONS)[number]>("ALL");
-  const [bidAmount, setBidAmount] = useState<string>("");
+  const [bidAmountByNom, setBidAmountByNom] = useState<Record<string, string>>({});
   const [openingBid, setOpeningBid] = useState<string>("");
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">(
     "players"
   );
-  const awardCallFiredRef = useRef<string>("");
+  const awardCallFiredRef = useRef<Set<string>>(new Set());
 
   const meParticipant = useMemo(
     () => participants.find((p) => p.user_id === userId) ?? null,
@@ -194,12 +196,11 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
         .select("*")
         .eq("room_id", room.id)
         .eq("status", "active")
-        .order("nomination_number", { ascending: false })
-        .limit(1);
+        .order("nomination_number", { ascending: true });
       if (!mounted) return;
-      const nom = (data?.[0] ?? null) as Nomination | null;
-      setActiveNom(nom);
-      if (nom) loadBids(nom.id);
+      const noms = (data ?? []) as Nomination[];
+      setActiveNoms(noms);
+      for (const n of noms) loadBids(n.id);
     };
     const loadBids = async (nomId: string) => {
       const { data } = await supabase
@@ -208,7 +209,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
         .eq("nomination_id", nomId)
         .order("bid_at", { ascending: false })
         .limit(20);
-      if (mounted) setBidHistory((data ?? []) as Bid[]);
+      if (mounted) setBidsByNom((prev) => ({ ...prev, [nomId]: (data ?? []) as Bid[] }));
     };
     loadActive();
 
@@ -226,11 +227,15 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           const row = payload.new as Nomination | undefined;
           if (!row) return;
           if (row.status === "active") {
-            setActiveNom(row);
-            loadBids(row.id);
+            setActiveNoms((prev) => {
+              const others = prev.filter((n) => n.id !== row.id);
+              return [...others, row].sort(
+                (a, b) => a.nomination_number - b.nomination_number,
+              );
+            });
+            if (!bidsByNom[row.id]) loadBids(row.id);
           } else {
-            // awarded / cancelled — clear if it was current
-            setActiveNom((prev) => (prev && prev.id === row.id ? null : prev));
+            setActiveNoms((prev) => prev.filter((n) => n.id !== row.id));
           }
         }
       )
@@ -244,7 +249,10 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
         },
         (payload) => {
           const bid = payload.new as Bid;
-          setBidHistory((prev) => [bid, ...prev].slice(0, 20));
+          setBidsByNom((prev) => ({
+            ...prev,
+            [bid.nomination_id]: [bid, ...(prev[bid.nomination_id] ?? [])].slice(0, 20),
+          }));
         }
       )
       .subscribe();
@@ -253,6 +261,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       mounted = false;
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room.id]);
 
   // ---- countdown tick ----
@@ -261,21 +270,24 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     return () => clearInterval(t);
   }, []);
 
-  const secondsLeft = useMemo(() => {
-    if (!activeNom) return 0;
-    return Math.max(0, Math.ceil((new Date(activeNom.deadline).getTime() - now) / 1000));
-  }, [activeNom, now]);
+  const secondsLeftByNom = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const n of activeNoms) {
+      m[n.id] = Math.max(0, Math.ceil((new Date(n.deadline).getTime() - now) / 1000));
+    }
+    return m;
+  }, [activeNoms, now]);
 
-  // ---- when timer hits 0, fire award_due (any client) ----
+  // ---- when any nomination's timer hits 0, fire award_due (any client) ----
   useEffect(() => {
-    if (!activeNom || activeNom.status !== "active") return;
-    if (secondsLeft > 0) return;
-    if (awardCallFiredRef.current === activeNom.id) return;
-    awardCallFiredRef.current = activeNom.id;
+    const expired = activeNoms.filter((n) => (secondsLeftByNom[n.id] ?? 1) <= 0);
+    const fresh = expired.filter((n) => !awardCallFiredRef.current.has(n.id));
+    if (fresh.length === 0) return;
+    fresh.forEach((n) => awardCallFiredRef.current.add(n.id));
     supabase.rpc("auction_award_due", { _room_id: room.id }).then(({ error }) => {
       if (error) console.error("award_due failed", error);
     });
-  }, [secondsLeft, activeNom, room.id]);
+  }, [secondsLeftByNom, activeNoms, room.id]);
 
   // ---- per-team budgets / rosters ----
   const teamSpent = useMemo(() => {
@@ -291,6 +303,24 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     return m;
   }, [picks]);
 
+  // Per-team active nomination & total nomination counts (for snake skip logic)
+  const teamActiveNomCount = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const n of activeNoms) {
+      m.set(n.nominator_team_idx, (m.get(n.nominator_team_idx) ?? 0) + 1);
+    }
+    return m;
+  }, [activeNoms]);
+  // Total noms (active + awarded). Awarded ones become picks, active ones live in activeNoms.
+  const teamTotalNomCount = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const p of picks) m.set(p.team_idx, (m.get(p.team_idx) ?? 0) + 1);
+    for (const n of activeNoms) {
+      m.set(n.nominator_team_idx, (m.get(n.nominator_team_idx) ?? 0) + 1);
+    }
+    return m;
+  }, [picks, activeNoms]);
+
   const myPicks = useMemo(
     () => (myTeamIdx ? picks.filter((p) => p.team_idx === myTeamIdx) : []),
     [picks, myTeamIdx]
@@ -303,43 +333,53 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     room.auction_budget - mySpent - Math.max(0, myRemainingSlots - 1)
   );
 
-  // ---- nomination turn ----
-  const completedNoms = picks.length; // 1 award per pick
-  const direction = Math.floor(completedNoms / room.team_count) % 2; // 0 fwd, 1 rev
-  const slotInRound = completedNoms % room.team_count;
-  // walk teams, skipping full rosters
+  // ---- nomination turn (snake, skipping full / quota-exhausted / already-active teams) ----
+  const totalNomsCreated = picks.length + activeNoms.length;
+  const nomQuota = room.auction_nominations_per_team;
   const nominatorTeamIdx = useMemo(() => {
-    let cursor = completedNoms;
-    for (let i = 0; i < room.team_count * totalSlots; i++) {
+    let cursor = totalNomsCreated;
+    for (let i = 0; i < room.team_count * (totalSlots + 2); i++) {
       const dir = Math.floor(cursor / room.team_count) % 2;
       const slot = cursor % room.team_count;
       const candidate = dir === 0 ? slot + 1 : room.team_count - slot;
       const cnt = teamPickCount.get(candidate) ?? 0;
-      if (cnt < totalSlots) return candidate;
+      const activeCnt = teamActiveNomCount.get(candidate) ?? 0;
+      const totalNoms = teamTotalNomCount.get(candidate) ?? 0;
+      const underQuota = nomQuota == null || totalNoms < nomQuota;
+      if (cnt < totalSlots && activeCnt === 0 && underQuota) return candidate;
       cursor++;
     }
     return null;
-  }, [completedNoms, room.team_count, totalSlots, teamPickCount]);
-  void direction;
-  void slotInRound;
+  }, [totalNomsCreated, room.team_count, totalSlots, teamPickCount, teamActiveNomCount, teamTotalNomCount, nomQuota]);
 
-  const isMyNomination = activeNom === null && nominatorTeamIdx === myTeamIdx;
+  const concurrencyCap = room.auction_max_concurrent_nominations ?? 1;
+  const canNominateMore = activeNoms.length < concurrencyCap;
+  const myActiveNomCount = myTeamIdx ? teamActiveNomCount.get(myTeamIdx) ?? 0 : 0;
+  const myTotalNomCount = myTeamIdx ? teamTotalNomCount.get(myTeamIdx) ?? 0 : 0;
+  const myQuotaRemaining =
+    nomQuota == null ? Infinity : Math.max(0, nomQuota - myTotalNomCount);
+  const isMyNomination =
+    canNominateMore &&
+    myActiveNomCount === 0 &&
+    myQuotaRemaining > 0 &&
+    nominatorTeamIdx === myTeamIdx;
   const nominatorParticipant = participants.find(
     (p) => p.draft_position === nominatorTeamIdx
   );
 
   // ---- player filtering ----
   const draftedIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
+  const onBlockIds = useMemo(() => new Set(activeNoms.map((n) => n.player_id)), [activeNoms]);
   const filteredPlayers = useMemo(() => {
     const q = search.toLowerCase().trim();
     return players
       .filter((p) => !draftedIds.has(p.id))
-      .filter((p) => activeNom?.player_id !== p.id)
+      .filter((p) => !onBlockIds.has(p.id))
       .filter((p) => posFilter === "ALL" || (p.position || "").includes(posFilter))
       .filter((p) => !q || p.name.toLowerCase().includes(q))
       .sort(compareByRank)
       .slice(0, 200);
-  }, [players, draftedIds, activeNom, posFilter, search]);
+  }, [players, draftedIds, onBlockIds, posFilter, search]);
 
   // ---- handlers ----
   const handleNominate = useCallback(
@@ -364,19 +404,18 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   );
 
   const handleBid = useCallback(
-    async (amount: number) => {
-      if (!activeNom) return;
+    async (nomId: string, amount: number) => {
       setActionBusy(true);
       setError(null);
       const { error } = await supabase.rpc("auction_bid", {
-        _nomination_id: activeNom.id,
+        _nomination_id: nomId,
         _amount: amount,
       });
       setActionBusy(false);
       if (error) setError(error.message);
-      else setBidAmount("");
+      else setBidAmountByNom((prev) => ({ ...prev, [nomId]: "" }));
     },
-    [activeNom]
+    []
   );
 
   const handleEndDraft = async () => {
@@ -415,9 +454,6 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   };
 
   // ---- render ----
-  const isMyTopBid =
-    activeNom && myTeamIdx === activeNom.current_bidder_team_idx;
-  const minNextBid = activeNom ? activeNom.current_bid + 1 : 0;
   const formatLabel =
     room.draft_format === "auction_slow" ? "Slow Auction" : "Auction";
 
@@ -503,167 +539,196 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           </div>
         )}
 
-        {/* Active nomination card */}
+        {/* Active nominations */}
         {isDrafting && (
-          <Card className="mb-6 border-2 p-5">
-            {activeNom ? (
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-4">
-                  <PlayerAvatar
-                    name={activeNom.player_name}
-                    team={activeNom.player_team ?? ""}
-                    size={80}
-                  />
+          <div className="mb-6 space-y-4">
+            {activeNoms.length === 0 && (
+              <Card className="border-2 p-5">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      On the block
+                      Up to nominate
                     </div>
-                    <div className="text-2xl font-black">{activeNom.player_name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {activeNom.player_position} · {activeNom.player_team}
+                    <div className="text-xl font-black">
+                      {nominatorParticipant?.team_name ?? (nominatorTeamIdx ? `Team ${nominatorTeamIdx}` : "—")}
                     </div>
-                    {(() => {
-                      const sug = valueByKey[looseKey(activeNom.player_id)];
-                      if (sug == null) return null;
-                      const delta = sug - activeNom.current_bid;
-                      const isValue = delta > 0;
-                      return (
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className="font-bold text-xs"
-                            title="Suggested value (z-score, last season)"
-                          >
-                            Sug ${sug}
-                          </Badge>
-                          <span
-                            className={`text-xs font-bold ${
-                              isValue
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : delta < 0
-                                  ? "text-destructive"
-                                  : "text-muted-foreground"
-                            }`}
-                          >
-                            {delta > 0 ? `+$${delta} value` : delta < 0 ? `$${Math.abs(delta)} over` : "at value"}
-                          </span>
-                        </div>
-                      );
-                    })()}
                   </div>
-                </div>
-
-                <div className="flex flex-col items-start gap-1 lg:items-end">
-                  <div className="flex items-center gap-2">
-                    <Clock
-                      className={`h-5 w-5 ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
-                    />
-                    <span
-                      className={`text-3xl font-black tabular-nums ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
-                    >
-                      {Math.floor(secondsLeft / 60)}:
-                      {String(secondsLeft % 60).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                    <span className="text-2xl font-black tabular-nums text-primary">
-                      ${activeNom.current_bid}
-                    </span>
-                    <span className="text-muted-foreground">
-                      ·{" "}
-                      {participants.find(
-                        (p) => p.draft_position === activeNom.current_bidder_team_idx
-                      )?.team_name ?? `Team ${activeNom.current_bidder_team_idx}`}
-                    </span>
-                  </div>
-                </div>
-
-                {/* bid controls */}
-                {myTeamIdx && !isMyTopBid && myPickCount < totalSlots && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    {[1, 2, 5, 10].map((delta) => {
-                      const amt = activeNom.current_bid + delta;
-                      const disabled = amt > myMaxAffordable || actionBusy;
-                      return (
-                        <Button
-                          key={delta}
-                          onClick={() => handleBid(amt)}
-                          disabled={disabled}
-                          variant="outline"
-                          className="font-bold"
-                        >
-                          +${delta}
-                        </Button>
-                      );
-                    })}
-                    <div className="flex items-center gap-1">
+                  {isMyNomination ? (
+                    <div className="flex items-center gap-2">
+                      <Gavel className="h-5 w-5 text-primary" />
                       <Input
                         type="number"
-                        placeholder={`min $${minNextBid}`}
-                        value={bidAmount}
-                        onChange={(e) => setBidAmount(e.target.value)}
-                        className="h-9 w-24"
-                        min={minNextBid}
+                        placeholder={`opening $${room.auction_min_bid}`}
+                        value={openingBid}
+                        onChange={(e) => setOpeningBid(e.target.value)}
+                        className="h-9 w-32"
+                        min={room.auction_min_bid}
                         max={myMaxAffordable}
                       />
-                      <Button
-                        onClick={() => {
-                          const a = parseInt(bidAmount, 10);
-                          if (!isNaN(a)) handleBid(a);
-                        }}
-                        disabled={actionBusy || !bidAmount}
-                        className="font-bold"
-                      >
-                        Bid
-                      </Button>
+                      <span className="text-sm font-semibold text-muted-foreground">
+                        Pick a player below to nominate
+                      </span>
                     </div>
-                    <div className="text-xs font-semibold text-muted-foreground">
-                      max ${myMaxAffordable}
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      Waiting for nomination…
                     </div>
-                  </div>
-                )}
-                {isMyTopBid && (
-                  <Badge className="font-bold">
-                    <Zap className="mr-1 inline h-3 w-3" />
-                    You hold the high bid
-                  </Badge>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                    Up to nominate
-                  </div>
-                  <div className="text-xl font-black">
-                    {nominatorParticipant?.team_name ?? `Team ${nominatorTeamIdx}`}
-                  </div>
+                  )}
                 </div>
-                {isMyNomination ? (
-                  <div className="flex items-center gap-2">
-                    <Gavel className="h-5 w-5 text-primary" />
-                    <Input
-                      type="number"
-                      placeholder={`opening $${room.auction_min_bid}`}
-                      value={openingBid}
-                      onChange={(e) => setOpeningBid(e.target.value)}
-                      className="h-9 w-32"
-                      min={room.auction_min_bid}
-                      max={myMaxAffordable}
-                    />
-                    <span className="text-sm font-semibold text-muted-foreground">
-                      Pick a player below to nominate
-                    </span>
-                  </div>
-                ) : (
-                  <div className="text-sm text-muted-foreground">
-                    Waiting for nomination…
-                  </div>
-                )}
-              </div>
+              </Card>
             )}
-          </Card>
+
+            {activeNoms.map((nom) => {
+              const secondsLeft = secondsLeftByNom[nom.id] ?? 0;
+              const isMyTop = myTeamIdx === nom.current_bidder_team_idx;
+              const minNextBid = nom.current_bid + 1;
+              const bidAmount = bidAmountByNom[nom.id] ?? "";
+              const sug = valueByKey[looseKey(nom.player_id)];
+              const delta = sug != null ? sug - nom.current_bid : null;
+              return (
+                <Card key={nom.id} className="border-2 p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex items-center gap-4">
+                      <PlayerAvatar
+                        name={nom.player_name}
+                        team={nom.player_team ?? ""}
+                        size={64}
+                      />
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                          On the block
+                        </div>
+                        <div className="text-xl font-black">{nom.player_name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {nom.player_position} · {nom.player_team}
+                        </div>
+                        {sug != null && delta != null && (
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <Badge variant="outline" className="font-bold text-xs">
+                              Sug ${sug}
+                            </Badge>
+                            <span
+                              className={`text-xs font-bold ${
+                                delta > 0
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : delta < 0
+                                    ? "text-destructive"
+                                    : "text-muted-foreground"
+                              }`}
+                            >
+                              {delta > 0 ? `+$${delta} value` : delta < 0 ? `$${Math.abs(delta)} over` : "at value"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-start gap-1 lg:items-end">
+                      <div className="flex items-center gap-2">
+                        <Clock
+                          className={`h-5 w-5 ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
+                        />
+                        <span
+                          className={`text-2xl font-black tabular-nums ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
+                        >
+                          {Math.floor(secondsLeft / 60)}:
+                          {String(secondsLeft % 60).padStart(2, "0")}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                        <span className="text-xl font-black tabular-nums text-primary">
+                          ${nom.current_bid}
+                        </span>
+                        <span className="text-muted-foreground">
+                          ·{" "}
+                          {participants.find(
+                            (p) => p.draft_position === nom.current_bidder_team_idx
+                          )?.team_name ?? `Team ${nom.current_bidder_team_idx}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    {myTeamIdx && !isMyTop && myPickCount < totalSlots && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {[1, 2, 5, 10].map((d) => {
+                          const amt = nom.current_bid + d;
+                          const disabled = amt > myMaxAffordable || actionBusy;
+                          return (
+                            <Button
+                              key={d}
+                              onClick={() => handleBid(nom.id, amt)}
+                              disabled={disabled}
+                              variant="outline"
+                              size="sm"
+                              className="font-bold"
+                            >
+                              +${d}
+                            </Button>
+                          );
+                        })}
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            placeholder={`min $${minNextBid}`}
+                            value={bidAmount}
+                            onChange={(e) =>
+                              setBidAmountByNom((prev) => ({ ...prev, [nom.id]: e.target.value }))
+                            }
+                            className="h-9 w-24"
+                            min={minNextBid}
+                            max={myMaxAffordable}
+                          />
+                          <Button
+                            onClick={() => {
+                              const a = parseInt(bidAmount, 10);
+                              if (!isNaN(a)) handleBid(nom.id, a);
+                            }}
+                            disabled={actionBusy || !bidAmount}
+                            size="sm"
+                            className="font-bold"
+                          >
+                            Bid
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {isMyTop && (
+                      <Badge className="font-bold">
+                        <Zap className="mr-1 inline h-3 w-3" />
+                        You hold the high bid
+                      </Badge>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+
+            {/* "Nominate next" hint when concurrency allows it */}
+            {activeNoms.length > 0 && isMyNomination && (
+              <Card className="border-2 border-dashed border-primary/40 p-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Gavel className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-bold">
+                    You can nominate another player ({activeNoms.length}/{concurrencyCap} on the block)
+                    {nomQuota != null && ` · ${myQuotaRemaining} of ${nomQuota} nominations left`}
+                  </span>
+                  <Input
+                    type="number"
+                    placeholder={`opening $${room.auction_min_bid}`}
+                    value={openingBid}
+                    onChange={(e) => setOpeningBid(e.target.value)}
+                    className="h-9 w-32"
+                    min={room.auction_min_bid}
+                    max={myMaxAffordable}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    Pick a player below to nominate
+                  </span>
+                </div>
+              </Card>
+            )}
+          </div>
         )}
 
         {/* Mobile tabs */}
@@ -754,7 +819,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                             {sug != null ? `$${sug}` : "—"}
                           </div>
                         </div>
-                        {isMyNomination && !activeNom ? (
+                        {isMyNomination ? (
                           <Button
                             onClick={() => handleNominate(pl)}
                             size="sm"
@@ -777,24 +842,32 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               )}
             </Card>
 
-            {/* Bid history */}
-            {activeNom && bidHistory.length > 0 && (
+            {/* Bid history (combined across active nominations) */}
+            {activeNoms.length > 0 && (
               <Card className="mt-4 border-2 p-4">
                 <div className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Bid history
+                  Recent bids
                 </div>
                 <ul className="space-y-1 text-sm">
-                  {bidHistory.slice(0, 8).map((b) => {
-                    const bp = participants.find((p) => p.draft_position === b.team_idx);
-                    return (
-                      <li key={b.id} className="flex justify-between font-mono">
-                        <span className="font-bold">
-                          {bp?.team_name ?? `Team ${b.team_idx}`}
-                        </span>
-                        <span className="text-primary font-black">${b.amount}</span>
-                      </li>
-                    );
-                  })}
+                  {activeNoms.flatMap((n) =>
+                    (bidsByNom[n.id] ?? []).slice(0, 3).map((b) => ({ ...b, nom: n }))
+                  )
+                    .sort((a, b) => new Date(b.bid_at).getTime() - new Date(a.bid_at).getTime())
+                    .slice(0, 10)
+                    .map((b) => {
+                      const bp = participants.find((p) => p.draft_position === b.team_idx);
+                      return (
+                        <li key={b.id} className="flex justify-between gap-2 font-mono">
+                          <span className="truncate font-bold">
+                            {bp?.team_name ?? `Team ${b.team_idx}`}
+                          </span>
+                          <span className="truncate text-xs text-muted-foreground">
+                            {b.nom.player_name}
+                          </span>
+                          <span className="text-primary font-black">${b.amount}</span>
+                        </li>
+                      );
+                    })}
                 </ul>
               </Card>
             )}
@@ -816,8 +889,9 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                   const remainingSlots = totalSlots - cnt;
                   const maxBid = Math.max(0, remaining - Math.max(0, remainingSlots - 1));
                   const isNom = idx === nominatorTeamIdx;
-                  const isHigh =
-                    activeNom && activeNom.current_bidder_team_idx === idx;
+                  const isHigh = activeNoms.some(
+                    (n) => n.current_bidder_team_idx === idx,
+                  );
                   const isMine = idx === myTeamIdx;
                   return (
                     <li
@@ -845,7 +919,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                         <span>max ${maxBid}</span>
                       </div>
                       <div className="mt-1 flex gap-1">
-                        {isNom && !activeNom && (
+                        {isNom && (teamActiveNomCount.get(idx) ?? 0) === 0 && canNominateMore && (
                           <Badge variant="outline" className="text-[10px] font-bold">
                             <Gavel className="h-3 w-3" /> Nominating
                           </Badge>
