@@ -417,28 +417,29 @@ function NewRoomPage() {
                 <div>
                   <Label>Bid clock</Label>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {draftFormat === "auction"
-                      ? "How long bidding stays open after each new bid."
-                      : "How long bidding stays open after each new bid (slow drafts can run for hours per nomination)."}
+                    How long bidding stays open after each new bid. Pick a clock of <strong>1h+</strong> to run a slow async auction (anti-snipe unlocks).
                   </p>
                   <div className="mt-1.5 flex flex-wrap gap-2">
-                    {(draftFormat === "auction" ? AUCTION_FAST_BID_CLOCK : AUCTION_SLOW_BID_CLOCK).map((opt) => (
+                    {AUCTION_BID_CLOCK_OPTIONS.map((opt) => (
                       <ClockChip
                         key={opt.value}
                         label={opt.label}
                         active={auctionBidClock === opt.value}
                         onClick={() => {
                           setAuctionBidClock(opt.value);
-                          if (draftFormat === "auction_slow" && auctionAntisnipe && auctionAntisnipe > opt.value) {
+                          if (auctionAntisnipe && auctionAntisnipe > opt.value) {
                             setAuctionAntisnipe(opt.value);
                           }
                         }}
                       />
                     ))}
                   </div>
+                  <p className="mt-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
+                    {isSlowAuction ? "Slow auction · async bidding" : "Live auction · real-time bidding"}
+                  </p>
                 </div>
 
-                {draftFormat === "auction_slow" && (
+                {isSlowAuction && (
                   <div>
                     <Label>Anti-snipe</Label>
                     <p className="mt-1 text-xs text-muted-foreground">
