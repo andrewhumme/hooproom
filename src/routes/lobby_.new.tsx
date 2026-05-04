@@ -108,6 +108,12 @@ function NewRoomPage() {
   const [error, setError] = useState<string | null>(null);
 
   const rounds = totalSlots(slots);
+  // Auction goes "slow" automatically when bid clock crosses the threshold
+  const isAuction = draftFormat === "auction";
+  const isSlowAuction = isAuction && auctionBidClock >= SLOW_AUCTION_THRESHOLD_SEC;
+  const storedDraftFormat: "snake" | "auction" | "auction_slow" = isSlowAuction
+    ? "auction_slow"
+    : draftFormat;
 
   // Drop any reversal rounds outside the valid range when slots change
   useEffect(() => {
