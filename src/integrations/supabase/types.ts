@@ -265,7 +265,9 @@ export type Database = {
           auction_antisnipe_threshold_sec: number | null
           auction_bid_clock_sec: number
           auction_budget: number
+          auction_max_concurrent_nominations: number
           auction_min_bid: number
+          auction_nominations_per_team: number | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
@@ -295,7 +297,9 @@ export type Database = {
           auction_antisnipe_threshold_sec?: number | null
           auction_bid_clock_sec?: number
           auction_budget?: number
+          auction_max_concurrent_nominations?: number
           auction_min_bid?: number
+          auction_nominations_per_team?: number | null
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
@@ -325,7 +329,9 @@ export type Database = {
           auction_antisnipe_threshold_sec?: number | null
           auction_bid_clock_sec?: number
           auction_budget?: number
+          auction_max_concurrent_nominations?: number
           auction_min_bid?: number
+          auction_nominations_per_team?: number | null
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
@@ -598,7 +604,9 @@ export type Database = {
           auction_antisnipe_threshold_sec: number | null
           auction_bid_clock_sec: number
           auction_budget: number
+          auction_max_concurrent_nominations: number
           auction_min_bid: number
+          auction_nominations_per_team: number | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
@@ -673,7 +681,9 @@ export type Database = {
           auction_antisnipe_threshold_sec: number | null
           auction_bid_clock_sec: number
           auction_budget: number
+          auction_max_concurrent_nominations: number
           auction_min_bid: number
+          auction_nominations_per_team: number | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
