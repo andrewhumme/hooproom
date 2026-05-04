@@ -842,24 +842,32 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               )}
             </Card>
 
-            {/* Bid history */}
-            {activeNom && bidHistory.length > 0 && (
+            {/* Bid history (combined across active nominations) */}
+            {activeNoms.length > 0 && (
               <Card className="mt-4 border-2 p-4">
                 <div className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Bid history
+                  Recent bids
                 </div>
                 <ul className="space-y-1 text-sm">
-                  {bidHistory.slice(0, 8).map((b) => {
-                    const bp = participants.find((p) => p.draft_position === b.team_idx);
-                    return (
-                      <li key={b.id} className="flex justify-between font-mono">
-                        <span className="font-bold">
-                          {bp?.team_name ?? `Team ${b.team_idx}`}
-                        </span>
-                        <span className="text-primary font-black">${b.amount}</span>
-                      </li>
-                    );
-                  })}
+                  {activeNoms.flatMap((n) =>
+                    (bidsByNom[n.id] ?? []).slice(0, 3).map((b) => ({ ...b, nom: n }))
+                  )
+                    .sort((a, b) => new Date(b.bid_at).getTime() - new Date(a.bid_at).getTime())
+                    .slice(0, 10)
+                    .map((b) => {
+                      const bp = participants.find((p) => p.draft_position === b.team_idx);
+                      return (
+                        <li key={b.id} className="flex justify-between gap-2 font-mono">
+                          <span className="truncate font-bold">
+                            {bp?.team_name ?? `Team ${b.team_idx}`}
+                          </span>
+                          <span className="truncate text-xs text-muted-foreground">
+                            {b.nom.player_name}
+                          </span>
+                          <span className="text-primary font-black">${b.amount}</span>
+                        </li>
+                      );
+                    })}
                 </ul>
               </Card>
             )}
