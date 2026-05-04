@@ -196,12 +196,11 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
         .select("*")
         .eq("room_id", room.id)
         .eq("status", "active")
-        .order("nomination_number", { ascending: false })
-        .limit(1);
+        .order("nomination_number", { ascending: true });
       if (!mounted) return;
-      const nom = (data?.[0] ?? null) as Nomination | null;
-      setActiveNom(nom);
-      if (nom) loadBids(nom.id);
+      const noms = (data ?? []) as Nomination[];
+      setActiveNoms(noms);
+      for (const n of noms) loadBids(n.id);
     };
     const loadBids = async (nomId: string) => {
       const { data } = await supabase
@@ -210,7 +209,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
         .eq("nomination_id", nomId)
         .order("bid_at", { ascending: false })
         .limit(20);
-      if (mounted) setBidHistory((data ?? []) as Bid[]);
+      if (mounted) setBidsByNom((prev) => ({ ...prev, [nomId]: (data ?? []) as Bid[] }));
     };
     loadActive();
 
@@ -228,11 +227,15 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           const row = payload.new as Nomination | undefined;
           if (!row) return;
           if (row.status === "active") {
-            setActiveNom(row);
-            loadBids(row.id);
+            setActiveNoms((prev) => {
+              const others = prev.filter((n) => n.id !== row.id);
+              return [...others, row].sort(
+                (a, b) => a.nomination_number - b.nomination_number,
+              );
+            });
+            if (!bidsByNom[row.id]) loadBids(row.id);
           } else {
-            // awarded / cancelled — clear if it was current
-            setActiveNom((prev) => (prev && prev.id === row.id ? null : prev));
+            setActiveNoms((prev) => prev.filter((n) => n.id !== row.id));
           }
         }
       )
@@ -246,7 +249,10 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
         },
         (payload) => {
           const bid = payload.new as Bid;
-          setBidHistory((prev) => [bid, ...prev].slice(0, 20));
+          setBidsByNom((prev) => ({
+            ...prev,
+            [bid.nomination_id]: [bid, ...(prev[bid.nomination_id] ?? [])].slice(0, 20),
+          }));
         }
       )
       .subscribe();
@@ -255,6 +261,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       mounted = false;
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room.id]);
 
   // ---- countdown tick ----
@@ -263,21 +270,24 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     return () => clearInterval(t);
   }, []);
 
-  const secondsLeft = useMemo(() => {
-    if (!activeNom) return 0;
-    return Math.max(0, Math.ceil((new Date(activeNom.deadline).getTime() - now) / 1000));
-  }, [activeNom, now]);
+  const secondsLeftByNom = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const n of activeNoms) {
+      m[n.id] = Math.max(0, Math.ceil((new Date(n.deadline).getTime() - now) / 1000));
+    }
+    return m;
+  }, [activeNoms, now]);
 
-  // ---- when timer hits 0, fire award_due (any client) ----
+  // ---- when any nomination's timer hits 0, fire award_due (any client) ----
   useEffect(() => {
-    if (!activeNom || activeNom.status !== "active") return;
-    if (secondsLeft > 0) return;
-    if (awardCallFiredRef.current === activeNom.id) return;
-    awardCallFiredRef.current = activeNom.id;
+    const expired = activeNoms.filter((n) => (secondsLeftByNom[n.id] ?? 1) <= 0);
+    const fresh = expired.filter((n) => !awardCallFiredRef.current.has(n.id));
+    if (fresh.length === 0) return;
+    fresh.forEach((n) => awardCallFiredRef.current.add(n.id));
     supabase.rpc("auction_award_due", { _room_id: room.id }).then(({ error }) => {
       if (error) console.error("award_due failed", error);
     });
-  }, [secondsLeft, activeNom, room.id]);
+  }, [secondsLeftByNom, activeNoms, room.id]);
 
   // ---- per-team budgets / rosters ----
   const teamSpent = useMemo(() => {
@@ -293,6 +303,24 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     return m;
   }, [picks]);
 
+  // Per-team active nomination & total nomination counts (for snake skip logic)
+  const teamActiveNomCount = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const n of activeNoms) {
+      m.set(n.nominator_team_idx, (m.get(n.nominator_team_idx) ?? 0) + 1);
+    }
+    return m;
+  }, [activeNoms]);
+  // Total noms (active + awarded). Awarded ones become picks, active ones live in activeNoms.
+  const teamTotalNomCount = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const p of picks) m.set(p.team_idx, (m.get(p.team_idx) ?? 0) + 1);
+    for (const n of activeNoms) {
+      m.set(n.nominator_team_idx, (m.get(n.nominator_team_idx) ?? 0) + 1);
+    }
+    return m;
+  }, [picks, activeNoms]);
+
   const myPicks = useMemo(
     () => (myTeamIdx ? picks.filter((p) => p.team_idx === myTeamIdx) : []),
     [picks, myTeamIdx]
@@ -305,43 +333,53 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     room.auction_budget - mySpent - Math.max(0, myRemainingSlots - 1)
   );
 
-  // ---- nomination turn ----
-  const completedNoms = picks.length; // 1 award per pick
-  const direction = Math.floor(completedNoms / room.team_count) % 2; // 0 fwd, 1 rev
-  const slotInRound = completedNoms % room.team_count;
-  // walk teams, skipping full rosters
+  // ---- nomination turn (snake, skipping full / quota-exhausted / already-active teams) ----
+  const totalNomsCreated = picks.length + activeNoms.length;
+  const nomQuota = room.auction_nominations_per_team;
   const nominatorTeamIdx = useMemo(() => {
-    let cursor = completedNoms;
-    for (let i = 0; i < room.team_count * totalSlots; i++) {
+    let cursor = totalNomsCreated;
+    for (let i = 0; i < room.team_count * (totalSlots + 2); i++) {
       const dir = Math.floor(cursor / room.team_count) % 2;
       const slot = cursor % room.team_count;
       const candidate = dir === 0 ? slot + 1 : room.team_count - slot;
       const cnt = teamPickCount.get(candidate) ?? 0;
-      if (cnt < totalSlots) return candidate;
+      const activeCnt = teamActiveNomCount.get(candidate) ?? 0;
+      const totalNoms = teamTotalNomCount.get(candidate) ?? 0;
+      const underQuota = nomQuota == null || totalNoms < nomQuota;
+      if (cnt < totalSlots && activeCnt === 0 && underQuota) return candidate;
       cursor++;
     }
     return null;
-  }, [completedNoms, room.team_count, totalSlots, teamPickCount]);
-  void direction;
-  void slotInRound;
+  }, [totalNomsCreated, room.team_count, totalSlots, teamPickCount, teamActiveNomCount, teamTotalNomCount, nomQuota]);
 
-  const isMyNomination = activeNom === null && nominatorTeamIdx === myTeamIdx;
+  const concurrencyCap = room.auction_max_concurrent_nominations ?? 1;
+  const canNominateMore = activeNoms.length < concurrencyCap;
+  const myActiveNomCount = myTeamIdx ? teamActiveNomCount.get(myTeamIdx) ?? 0 : 0;
+  const myTotalNomCount = myTeamIdx ? teamTotalNomCount.get(myTeamIdx) ?? 0 : 0;
+  const myQuotaRemaining =
+    nomQuota == null ? Infinity : Math.max(0, nomQuota - myTotalNomCount);
+  const isMyNomination =
+    canNominateMore &&
+    myActiveNomCount === 0 &&
+    myQuotaRemaining > 0 &&
+    nominatorTeamIdx === myTeamIdx;
   const nominatorParticipant = participants.find(
     (p) => p.draft_position === nominatorTeamIdx
   );
 
   // ---- player filtering ----
   const draftedIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
+  const onBlockIds = useMemo(() => new Set(activeNoms.map((n) => n.player_id)), [activeNoms]);
   const filteredPlayers = useMemo(() => {
     const q = search.toLowerCase().trim();
     return players
       .filter((p) => !draftedIds.has(p.id))
-      .filter((p) => activeNom?.player_id !== p.id)
+      .filter((p) => !onBlockIds.has(p.id))
       .filter((p) => posFilter === "ALL" || (p.position || "").includes(posFilter))
       .filter((p) => !q || p.name.toLowerCase().includes(q))
       .sort(compareByRank)
       .slice(0, 200);
-  }, [players, draftedIds, activeNom, posFilter, search]);
+  }, [players, draftedIds, onBlockIds, posFilter, search]);
 
   // ---- handlers ----
   const handleNominate = useCallback(
