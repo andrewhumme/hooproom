@@ -539,167 +539,196 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           </div>
         )}
 
-        {/* Active nomination card */}
+        {/* Active nominations */}
         {isDrafting && (
-          <Card className="mb-6 border-2 p-5">
-            {activeNom ? (
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-4">
-                  <PlayerAvatar
-                    name={activeNom.player_name}
-                    team={activeNom.player_team ?? ""}
-                    size={80}
-                  />
+          <div className="mb-6 space-y-4">
+            {activeNoms.length === 0 && (
+              <Card className="border-2 p-5">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      On the block
+                      Up to nominate
                     </div>
-                    <div className="text-2xl font-black">{activeNom.player_name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {activeNom.player_position} · {activeNom.player_team}
+                    <div className="text-xl font-black">
+                      {nominatorParticipant?.team_name ?? (nominatorTeamIdx ? `Team ${nominatorTeamIdx}` : "—")}
                     </div>
-                    {(() => {
-                      const sug = valueByKey[looseKey(activeNom.player_id)];
-                      if (sug == null) return null;
-                      const delta = sug - activeNom.current_bid;
-                      const isValue = delta > 0;
-                      return (
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className="font-bold text-xs"
-                            title="Suggested value (z-score, last season)"
-                          >
-                            Sug ${sug}
-                          </Badge>
-                          <span
-                            className={`text-xs font-bold ${
-                              isValue
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : delta < 0
-                                  ? "text-destructive"
-                                  : "text-muted-foreground"
-                            }`}
-                          >
-                            {delta > 0 ? `+$${delta} value` : delta < 0 ? `$${Math.abs(delta)} over` : "at value"}
-                          </span>
-                        </div>
-                      );
-                    })()}
                   </div>
-                </div>
-
-                <div className="flex flex-col items-start gap-1 lg:items-end">
-                  <div className="flex items-center gap-2">
-                    <Clock
-                      className={`h-5 w-5 ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
-                    />
-                    <span
-                      className={`text-3xl font-black tabular-nums ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
-                    >
-                      {Math.floor(secondsLeft / 60)}:
-                      {String(secondsLeft % 60).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                    <span className="text-2xl font-black tabular-nums text-primary">
-                      ${activeNom.current_bid}
-                    </span>
-                    <span className="text-muted-foreground">
-                      ·{" "}
-                      {participants.find(
-                        (p) => p.draft_position === activeNom.current_bidder_team_idx
-                      )?.team_name ?? `Team ${activeNom.current_bidder_team_idx}`}
-                    </span>
-                  </div>
-                </div>
-
-                {/* bid controls */}
-                {myTeamIdx && !isMyTopBid && myPickCount < totalSlots && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    {[1, 2, 5, 10].map((delta) => {
-                      const amt = activeNom.current_bid + delta;
-                      const disabled = amt > myMaxAffordable || actionBusy;
-                      return (
-                        <Button
-                          key={delta}
-                          onClick={() => handleBid(amt)}
-                          disabled={disabled}
-                          variant="outline"
-                          className="font-bold"
-                        >
-                          +${delta}
-                        </Button>
-                      );
-                    })}
-                    <div className="flex items-center gap-1">
+                  {isMyNomination ? (
+                    <div className="flex items-center gap-2">
+                      <Gavel className="h-5 w-5 text-primary" />
                       <Input
                         type="number"
-                        placeholder={`min $${minNextBid}`}
-                        value={bidAmount}
-                        onChange={(e) => setBidAmount(e.target.value)}
-                        className="h-9 w-24"
-                        min={minNextBid}
+                        placeholder={`opening $${room.auction_min_bid}`}
+                        value={openingBid}
+                        onChange={(e) => setOpeningBid(e.target.value)}
+                        className="h-9 w-32"
+                        min={room.auction_min_bid}
                         max={myMaxAffordable}
                       />
-                      <Button
-                        onClick={() => {
-                          const a = parseInt(bidAmount, 10);
-                          if (!isNaN(a)) handleBid(a);
-                        }}
-                        disabled={actionBusy || !bidAmount}
-                        className="font-bold"
-                      >
-                        Bid
-                      </Button>
+                      <span className="text-sm font-semibold text-muted-foreground">
+                        Pick a player below to nominate
+                      </span>
                     </div>
-                    <div className="text-xs font-semibold text-muted-foreground">
-                      max ${myMaxAffordable}
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      Waiting for nomination…
                     </div>
-                  </div>
-                )}
-                {isMyTopBid && (
-                  <Badge className="font-bold">
-                    <Zap className="mr-1 inline h-3 w-3" />
-                    You hold the high bid
-                  </Badge>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                    Up to nominate
-                  </div>
-                  <div className="text-xl font-black">
-                    {nominatorParticipant?.team_name ?? `Team ${nominatorTeamIdx}`}
-                  </div>
+                  )}
                 </div>
-                {isMyNomination ? (
-                  <div className="flex items-center gap-2">
-                    <Gavel className="h-5 w-5 text-primary" />
-                    <Input
-                      type="number"
-                      placeholder={`opening $${room.auction_min_bid}`}
-                      value={openingBid}
-                      onChange={(e) => setOpeningBid(e.target.value)}
-                      className="h-9 w-32"
-                      min={room.auction_min_bid}
-                      max={myMaxAffordable}
-                    />
-                    <span className="text-sm font-semibold text-muted-foreground">
-                      Pick a player below to nominate
-                    </span>
-                  </div>
-                ) : (
-                  <div className="text-sm text-muted-foreground">
-                    Waiting for nomination…
-                  </div>
-                )}
-              </div>
+              </Card>
             )}
-          </Card>
+
+            {activeNoms.map((nom) => {
+              const secondsLeft = secondsLeftByNom[nom.id] ?? 0;
+              const isMyTop = myTeamIdx === nom.current_bidder_team_idx;
+              const minNextBid = nom.current_bid + 1;
+              const bidAmount = bidAmountByNom[nom.id] ?? "";
+              const sug = valueByKey[looseKey(nom.player_id)];
+              const delta = sug != null ? sug - nom.current_bid : null;
+              return (
+                <Card key={nom.id} className="border-2 p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex items-center gap-4">
+                      <PlayerAvatar
+                        name={nom.player_name}
+                        team={nom.player_team ?? ""}
+                        size={64}
+                      />
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                          On the block
+                        </div>
+                        <div className="text-xl font-black">{nom.player_name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {nom.player_position} · {nom.player_team}
+                        </div>
+                        {sug != null && delta != null && (
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <Badge variant="outline" className="font-bold text-xs">
+                              Sug ${sug}
+                            </Badge>
+                            <span
+                              className={`text-xs font-bold ${
+                                delta > 0
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : delta < 0
+                                    ? "text-destructive"
+                                    : "text-muted-foreground"
+                              }`}
+                            >
+                              {delta > 0 ? `+$${delta} value` : delta < 0 ? `$${Math.abs(delta)} over` : "at value"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-start gap-1 lg:items-end">
+                      <div className="flex items-center gap-2">
+                        <Clock
+                          className={`h-5 w-5 ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
+                        />
+                        <span
+                          className={`text-2xl font-black tabular-nums ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
+                        >
+                          {Math.floor(secondsLeft / 60)}:
+                          {String(secondsLeft % 60).padStart(2, "0")}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                        <span className="text-xl font-black tabular-nums text-primary">
+                          ${nom.current_bid}
+                        </span>
+                        <span className="text-muted-foreground">
+                          ·{" "}
+                          {participants.find(
+                            (p) => p.draft_position === nom.current_bidder_team_idx
+                          )?.team_name ?? `Team ${nom.current_bidder_team_idx}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    {myTeamIdx && !isMyTop && myPickCount < totalSlots && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {[1, 2, 5, 10].map((d) => {
+                          const amt = nom.current_bid + d;
+                          const disabled = amt > myMaxAffordable || actionBusy;
+                          return (
+                            <Button
+                              key={d}
+                              onClick={() => handleBid(nom.id, amt)}
+                              disabled={disabled}
+                              variant="outline"
+                              size="sm"
+                              className="font-bold"
+                            >
+                              +${d}
+                            </Button>
+                          );
+                        })}
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            placeholder={`min $${minNextBid}`}
+                            value={bidAmount}
+                            onChange={(e) =>
+                              setBidAmountByNom((prev) => ({ ...prev, [nom.id]: e.target.value }))
+                            }
+                            className="h-9 w-24"
+                            min={minNextBid}
+                            max={myMaxAffordable}
+                          />
+                          <Button
+                            onClick={() => {
+                              const a = parseInt(bidAmount, 10);
+                              if (!isNaN(a)) handleBid(nom.id, a);
+                            }}
+                            disabled={actionBusy || !bidAmount}
+                            size="sm"
+                            className="font-bold"
+                          >
+                            Bid
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {isMyTop && (
+                      <Badge className="font-bold">
+                        <Zap className="mr-1 inline h-3 w-3" />
+                        You hold the high bid
+                      </Badge>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+
+            {/* "Nominate next" hint when concurrency allows it */}
+            {activeNoms.length > 0 && isMyNomination && (
+              <Card className="border-2 border-dashed border-primary/40 p-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Gavel className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-bold">
+                    You can nominate another player ({activeNoms.length}/{concurrencyCap} on the block)
+                    {nomQuota != null && ` · ${myQuotaRemaining} of ${nomQuota} nominations left`}
+                  </span>
+                  <Input
+                    type="number"
+                    placeholder={`opening $${room.auction_min_bid}`}
+                    value={openingBid}
+                    onChange={(e) => setOpeningBid(e.target.value)}
+                    className="h-9 w-32"
+                    min={room.auction_min_bid}
+                    max={myMaxAffordable}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    Pick a player below to nominate
+                  </span>
+                </div>
+              </Card>
+            )}
+          </div>
         )}
 
         {/* Mobile tabs */}
