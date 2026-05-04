@@ -31,6 +31,8 @@ const SCHEMA = z.object({
   pick_clock_sec: z.number().int().min(15).max(MAX_CLOCK_SEC),
   scoring_format: z.enum(["9-CAT", "8-CAT", "POINTS", "ROTO"]),
   draft_format: z.enum(["snake", "auction", "auction_slow"]),
+  // UI-side selection only; mapped to "auction"/"auction_slow" at submit
+
   auction_budget: z.number().int().min(10).max(100000),
   auction_min_bid: z.number().int().min(1).max(100000),
   auction_bid_clock_sec: z.number().int().min(10).max(72 * 60 * 60),
