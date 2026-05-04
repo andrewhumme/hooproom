@@ -819,7 +819,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                             {sug != null ? `$${sug}` : "—"}
                           </div>
                         </div>
-                        {isMyNomination && !activeNom ? (
+                        {isMyNomination ? (
                           <Button
                             onClick={() => handleNominate(pl)}
                             size="sm"
