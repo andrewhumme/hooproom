@@ -142,17 +142,14 @@ function NewRoomPage() {
       rounds,
       pick_clock_sec: pickClock,
       scoring_format: format,
-      draft_format: draftFormat,
+      draft_format: storedDraftFormat,
       auction_budget: auctionBudget,
       auction_min_bid: auctionMinBid,
       auction_bid_clock_sec: auctionBidClock,
-      auction_antisnipe_threshold_sec: draftFormat === "auction_slow" ? auctionAntisnipe : null,
-      auction_max_concurrent_nominations:
-        draftFormat === "auction" || draftFormat === "auction_slow" ? auctionMaxConcurrent : 1,
+      auction_antisnipe_threshold_sec: isSlowAuction ? auctionAntisnipe : null,
+      auction_max_concurrent_nominations: isAuction ? auctionMaxConcurrent : 1,
       auction_nominations_per_team:
-        (draftFormat === "auction" || draftFormat === "auction_slow") && auctionNomQuotaEnabled
-          ? auctionNomQuota
-          : null,
+        isAuction && auctionNomQuotaEnabled ? auctionNomQuota : null,
       slots_pg: slots.PG,
       slots_sg: slots.SG,
       slots_sf: slots.SF,
