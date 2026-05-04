@@ -889,8 +889,9 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                   const remainingSlots = totalSlots - cnt;
                   const maxBid = Math.max(0, remaining - Math.max(0, remainingSlots - 1));
                   const isNom = idx === nominatorTeamIdx;
-                  const isHigh =
-                    activeNom && activeNom.current_bidder_team_idx === idx;
+                  const isHigh = activeNoms.some(
+                    (n) => n.current_bidder_team_idx === idx,
+                  );
                   const isMine = idx === myTeamIdx;
                   return (
                     <li
