@@ -463,6 +463,71 @@ function NewRoomPage() {
                     </div>
                   </div>
                 )}
+
+                <div>
+                  <Label>Concurrent nominations</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    How many players can be on the block at the same time. Higher values speed up slow auctions; each team is still limited to one active nomination of their own.
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    {[1, 2, 3, 5].map((n) => (
+                      <ClockChip
+                        key={n}
+                        label={`${n}`}
+                        active={auctionMaxConcurrent === n}
+                        onClick={() => setAuctionMaxConcurrent(n)}
+                      />
+                    ))}
+                    <Input
+                      type="number"
+                      min={1}
+                      max={20}
+                      step={1}
+                      value={auctionMaxConcurrent}
+                      onChange={(e) => {
+                        const n = parseInt(e.target.value || "1", 10);
+                        if (!isNaN(n)) setAuctionMaxConcurrent(Math.max(1, Math.min(20, n)));
+                      }}
+                      className="h-9 w-20 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Nominations per team</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Cap how many times each team can nominate over the whole draft. Once they hit the cap, the snake skips them. Must be at least roster size ({rounds}).
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <ClockChip
+                      label="Unlimited"
+                      active={!auctionNomQuotaEnabled}
+                      onClick={() => setAuctionNomQuotaEnabled(false)}
+                    />
+                    <ClockChip
+                      label="Set a cap"
+                      active={auctionNomQuotaEnabled}
+                      onClick={() => {
+                        setAuctionNomQuotaEnabled(true);
+                        if (auctionNomQuota < rounds) setAuctionNomQuota(rounds);
+                      }}
+                    />
+                    {auctionNomQuotaEnabled && (
+                      <Input
+                        type="number"
+                        min={rounds}
+                        max={1000}
+                        step={1}
+                        value={auctionNomQuota}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value || "0", 10);
+                          if (!isNaN(n)) setAuctionNomQuota(Math.max(rounds, Math.min(1000, n)));
+                        }}
+                        className="h-9 w-24 font-bold"
+                      />
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
