@@ -31,6 +31,7 @@ const SCHEMA = z.object({
   pick_clock_sec: z.number().int().min(15).max(MAX_CLOCK_SEC),
   scoring_format: z.enum(["9-CAT", "8-CAT", "POINTS", "ROTO"]),
   draft_format: z.enum(["snake", "auction", "auction_slow"]),
+
   auction_budget: z.number().int().min(10).max(100000),
   auction_min_bid: z.number().int().min(1).max(100000),
   auction_bid_clock_sec: z.number().int().min(10).max(72 * 60 * 60),
@@ -62,18 +63,17 @@ const SLOW_CLOCK_OPTIONS = [
 ] as const;
 const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
 const DRAFT_FORMATS = [
-  { value: "snake", label: "Snake", available: true, hint: "Live, real-time picks" },
-  { value: "auction", label: "Auction", available: true, hint: "Live nominations + bidding" },
-  { value: "auction_slow", label: "Slow Auction", available: true, hint: "Async bidding w/ anti-snipe" },
+  { value: "snake", label: "Snake", available: true, hint: "Sequential picks — live or slow based on pick clock" },
+  { value: "auction", label: "Auction", available: true, hint: "Nominations + bidding — live or slow based on bid clock" },
 ] as const;
+// Bid clock at or above this threshold flips an auction into "slow" mode (enables anti-snipe).
+const SLOW_AUCTION_THRESHOLD_SEC = 3600;
 const AUCTION_BUDGET_PRESETS = [100, 200, 300] as const;
 const AUCTION_MIN_BID_PRESETS = [1, 2, 5] as const;
-const AUCTION_FAST_BID_CLOCK = [
+const AUCTION_BID_CLOCK_OPTIONS = [
   { label: "20s", value: 20 },
   { label: "30s", value: 30 },
   { label: "60s", value: 60 },
-] as const;
-const AUCTION_SLOW_BID_CLOCK = [
   { label: "1h", value: 3600 },
   { label: "4h", value: 4 * 3600 },
   { label: "8h", value: 8 * 3600 },
@@ -93,7 +93,7 @@ function NewRoomPage() {
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
   const [customHours, setCustomHours] = useState<string>("");
-  const [draftFormat, setDraftFormat] = useState<"snake" | "auction" | "auction_slow">("snake");
+  const [draftFormat, setDraftFormat] = useState<"snake" | "auction">("snake");
   const [auctionBudget, setAuctionBudget] = useState<number>(200);
   const [auctionMinBid, setAuctionMinBid] = useState<number>(1);
   const [auctionBidClock, setAuctionBidClock] = useState<number>(30);
@@ -108,6 +108,12 @@ function NewRoomPage() {
   const [error, setError] = useState<string | null>(null);
 
   const rounds = totalSlots(slots);
+  // Auction goes "slow" automatically when bid clock crosses the threshold
+  const isAuction = draftFormat === "auction";
+  const isSlowAuction = isAuction && auctionBidClock >= SLOW_AUCTION_THRESHOLD_SEC;
+  const storedDraftFormat: "snake" | "auction" | "auction_slow" = isSlowAuction
+    ? "auction_slow"
+    : draftFormat;
 
   // Drop any reversal rounds outside the valid range when slots change
   useEffect(() => {
@@ -136,17 +142,14 @@ function NewRoomPage() {
       rounds,
       pick_clock_sec: pickClock,
       scoring_format: format,
-      draft_format: draftFormat,
+      draft_format: storedDraftFormat,
       auction_budget: auctionBudget,
       auction_min_bid: auctionMinBid,
       auction_bid_clock_sec: auctionBidClock,
-      auction_antisnipe_threshold_sec: draftFormat === "auction_slow" ? auctionAntisnipe : null,
-      auction_max_concurrent_nominations:
-        draftFormat === "auction" || draftFormat === "auction_slow" ? auctionMaxConcurrent : 1,
+      auction_antisnipe_threshold_sec: isSlowAuction ? auctionAntisnipe : null,
+      auction_max_concurrent_nominations: isAuction ? auctionMaxConcurrent : 1,
       auction_nominations_per_team:
-        (draftFormat === "auction" || draftFormat === "auction_slow") && auctionNomQuotaEnabled
-          ? auctionNomQuota
-          : null,
+        isAuction && auctionNomQuotaEnabled ? auctionNomQuota : null,
       slots_pg: slots.PG,
       slots_sg: slots.SG,
       slots_sf: slots.SF,
@@ -303,9 +306,9 @@ function NewRoomPage() {
             <div>
               <Label>Draft format</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Snake = real-time picks. Auction = live bidding. Slow Auction = async bidding with anti-snipe.
+                Snake = sequential picks. Auction = nominations + bidding. Both run live or slow based on the clocks you choose below.
               </p>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {DRAFT_FORMATS.map((f) => {
                   const active = draftFormat === f.value;
                   const disabled = !f.available;
@@ -317,12 +320,7 @@ function NewRoomPage() {
                       onClick={() => {
                         if (disabled) return;
                         setDraftFormat(f.value);
-                        // Sensible defaults when switching modes
                         if (f.value === "auction") setAuctionBidClock(30);
-                        if (f.value === "auction_slow") {
-                          setAuctionBidClock(8 * 3600);
-                          setAuctionAntisnipe(3600);
-                        }
                       }}
                       className={`relative rounded-md border-2 p-3 text-left transition ${
                         active
@@ -347,7 +345,7 @@ function NewRoomPage() {
               </div>
             </div>
 
-            {(draftFormat === "auction" || draftFormat === "auction_slow") && (
+            {isAuction && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
                 <div>
                   <div className="text-xs font-black uppercase tracking-widest text-primary">
@@ -419,28 +417,29 @@ function NewRoomPage() {
                 <div>
                   <Label>Bid clock</Label>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {draftFormat === "auction"
-                      ? "How long bidding stays open after each new bid."
-                      : "How long bidding stays open after each new bid (slow drafts can run for hours per nomination)."}
+                    How long bidding stays open after each new bid. Pick a clock of <strong>1h+</strong> to run a slow async auction (anti-snipe unlocks).
                   </p>
                   <div className="mt-1.5 flex flex-wrap gap-2">
-                    {(draftFormat === "auction" ? AUCTION_FAST_BID_CLOCK : AUCTION_SLOW_BID_CLOCK).map((opt) => (
+                    {AUCTION_BID_CLOCK_OPTIONS.map((opt) => (
                       <ClockChip
                         key={opt.value}
                         label={opt.label}
                         active={auctionBidClock === opt.value}
                         onClick={() => {
                           setAuctionBidClock(opt.value);
-                          if (draftFormat === "auction_slow" && auctionAntisnipe && auctionAntisnipe > opt.value) {
+                          if (auctionAntisnipe && auctionAntisnipe > opt.value) {
                             setAuctionAntisnipe(opt.value);
                           }
                         }}
                       />
                     ))}
                   </div>
+                  <p className="mt-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
+                    {isSlowAuction ? "Slow auction · async bidding" : "Live auction · real-time bidding"}
+                  </p>
                 </div>
 
-                {draftFormat === "auction_slow" && (
+                {isSlowAuction && (
                   <div>
                     <Label>Anti-snipe</Label>
                     <p className="mt-1 text-xs text-muted-foreground">
