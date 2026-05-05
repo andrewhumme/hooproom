@@ -140,7 +140,7 @@ function NewRoomPage() {
       name: name.trim(),
       team_count: teamCount,
       rounds,
-      pick_clock_sec: pickClock,
+      pick_clock_sec: isAuction ? auctionBidClock : pickClock,
       scoring_format: format,
       draft_format: storedDraftFormat,
       auction_budget: auctionBudget,
