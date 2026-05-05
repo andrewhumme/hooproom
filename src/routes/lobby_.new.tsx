@@ -264,9 +264,9 @@ function NewRoomPage() {
             <div>
               <Label>Roster slots</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Players auto-fill the first matching slot. FLX accepts any position.
+                Players auto-fill the first matching slot. G = any guard, F = any forward, FLX = any position.
               </p>
-              <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
+              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-9">
                 {SLOT_KEYS.map((k) => (
                   <div key={k} className="rounded-md border-2 border-border bg-card p-2">
                     <div className="text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
