@@ -92,6 +92,7 @@ function NewRoomPage() {
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
+  const [customSeconds, setCustomSeconds] = useState<string>("");
   const [customHours, setCustomHours] = useState<string>("");
   const [draftFormat, setDraftFormat] = useState<"snake" | "auction">("snake");
   const [auctionBudget, setAuctionBudget] = useState<number>(200);
