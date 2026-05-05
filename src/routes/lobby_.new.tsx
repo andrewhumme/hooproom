@@ -227,13 +227,35 @@ function NewRoomPage() {
               />
             </div>
 
-            <ChipGroup
-              label="Teams"
-              options={TEAM_OPTIONS}
-              value={teamCount}
-              onChange={setTeamCount}
-            />
-
+            <div>
+              <Label>Teams</Label>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                {TEAM_OPTIONS.map((opt) => (
+                  <ClockChip
+                    key={opt}
+                    label={String(opt)}
+                    active={teamCount === opt}
+                    onClick={() => setTeamCount(opt)}
+                  />
+                ))}
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min={4}
+                    max={20}
+                    step={1}
+                    placeholder="Custom"
+                    value={(TEAM_OPTIONS as readonly number[]).includes(teamCount) ? "" : teamCount}
+                    onChange={(e) => {
+                      const n = parseInt(e.target.value || "0", 10);
+                      if (!isNaN(n) && n >= 4 && n <= 20) setTeamCount(n);
+                    }}
+                    className="h-9 w-24 font-bold"
+                  />
+                  <span className="text-xs font-bold text-muted-foreground">teams</span>
+                </div>
+              </div>
+            </div>
             <div>
               <Label>Roster slots</Label>
               <p className="mt-1 text-xs text-muted-foreground">
