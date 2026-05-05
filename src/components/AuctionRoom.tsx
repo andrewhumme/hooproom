@@ -56,8 +56,10 @@ type Room = {
   auction_nominations_per_team: number | null;
   slots_pg: number;
   slots_sg: number;
+  slots_g: number;
   slots_sf: number;
   slots_pf: number;
+  slots_f: number;
   slots_c: number;
   slots_flx: number;
   slots_bn: number;
