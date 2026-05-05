@@ -5,7 +5,7 @@
 // Each pick fills the first available slot matching the player's position,
 // falling back to FLX if no specific slot is open.
 
-export const SLOT_KEYS = ["PG", "SG", "G", "SF", "PF", "F", "C", "FLX", "BN"] as const;
+export const SLOT_KEYS = ["PG", "SG", "SF", "PF", "C", "G", "F", "FLX", "BN"] as const;
 export type SlotKey = (typeof SLOT_KEYS)[number];
 
 export type SlotConfig = Record<SlotKey, number>;
@@ -13,11 +13,11 @@ export type SlotConfig = Record<SlotKey, number>;
 export const DEFAULT_SLOTS: SlotConfig = {
   PG: 1,
   SG: 1,
-  G: 0,
   SF: 1,
   PF: 1,
-  F: 0,
   C: 1,
+  G: 1,
+  F: 1,
   FLX: 3,
   BN: 3,
 };
