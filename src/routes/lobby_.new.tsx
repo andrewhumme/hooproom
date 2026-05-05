@@ -48,7 +48,7 @@ const SCHEMA = z.object({
   reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
 });
 
-const TEAM_OPTIONS = [8, 10, 12, 14] as const;
+const TEAM_OPTIONS = [6, 8, 10, 12, 14] as const;
 // Live presets (seconds) + slow presets (hours, stored as seconds)
 const FAST_CLOCK_OPTIONS = [
   { label: "30s", value: 30 },
