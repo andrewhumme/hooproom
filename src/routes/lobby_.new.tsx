@@ -266,10 +266,10 @@ function NewRoomPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 Players auto-fill the first matching slot. G = any guard, F = any forward, FLX = any position.
               </p>
-              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-9">
+              <div className="mt-2 grid grid-cols-5 gap-1.5 sm:grid-cols-9">
                 {SLOT_KEYS.map((k) => (
-                  <div key={k} className="rounded-md border-2 border-border bg-card p-2">
-                    <div className="text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  <div key={k} className="rounded-md border-2 border-border bg-card p-1.5">
+                    <div className="text-center text-[10px] font-black uppercase tracking-wider text-muted-foreground">
                       {k}
                     </div>
                     <Input
@@ -284,7 +284,7 @@ function NewRoomPage() {
                           [k]: Math.max(0, Math.min(cap, parseInt(e.target.value || "0", 10))),
                         }));
                       }}
-                      className="mt-1 h-9 text-center font-black"
+                      className="mt-1 h-9 px-0 text-center font-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                 ))}
