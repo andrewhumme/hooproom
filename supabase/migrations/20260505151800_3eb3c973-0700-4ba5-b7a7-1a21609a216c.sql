@@ -1,0 +1,3 @@
+ALTER TABLE public.draft_rooms
+  ADD COLUMN IF NOT EXISTS slots_g smallint NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS slots_f smallint NOT NULL DEFAULT 0;

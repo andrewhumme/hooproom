@@ -85,8 +85,10 @@ type Room = {
   auction_nominations_per_team: number | null;
   slots_pg: number;
   slots_sg: number;
+  slots_g: number;
   slots_sf: number;
   slots_pf: number;
+  slots_f: number;
   slots_c: number;
   slots_flx: number;
   slots_bn: number;
@@ -314,8 +316,10 @@ function DraftRoomPage() {
     return {
       PG: room.slots_pg,
       SG: room.slots_sg,
+      G: room.slots_g ?? 0,
       SF: room.slots_sf,
       PF: room.slots_pf,
+      F: room.slots_f ?? 0,
       C: room.slots_c,
       FLX: room.slots_flx,
       BN: room.slots_bn,

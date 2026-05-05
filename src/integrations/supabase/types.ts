@@ -283,7 +283,9 @@ export type Database = {
           scoring_format: string
           slots_bn: number
           slots_c: number
+          slots_f: number
           slots_flx: number
+          slots_g: number
           slots_pf: number
           slots_pg: number
           slots_sf: number
@@ -315,7 +317,9 @@ export type Database = {
           scoring_format?: string
           slots_bn?: number
           slots_c?: number
+          slots_f?: number
           slots_flx?: number
+          slots_g?: number
           slots_pf?: number
           slots_pg?: number
           slots_sf?: number
@@ -347,7 +351,9 @@ export type Database = {
           scoring_format?: string
           slots_bn?: number
           slots_c?: number
+          slots_f?: number
           slots_flx?: number
+          slots_g?: number
           slots_pf?: number
           slots_pg?: number
           slots_sf?: number
@@ -622,7 +628,9 @@ export type Database = {
           scoring_format: string
           slots_bn: number
           slots_c: number
+          slots_f: number
           slots_flx: number
+          slots_g: number
           slots_pf: number
           slots_pg: number
           slots_sf: number
@@ -699,7 +707,9 @@ export type Database = {
           scoring_format: string
           slots_bn: number
           slots_c: number
+          slots_f: number
           slots_flx: number
+          slots_g: number
           slots_pf: number
           slots_pg: number
           slots_sf: number

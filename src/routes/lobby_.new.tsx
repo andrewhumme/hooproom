@@ -40,8 +40,10 @@ const SCHEMA = z.object({
   auction_nominations_per_team: z.number().int().min(1).max(1000).nullable(),
   slots_pg: z.number().int().min(0).max(10),
   slots_sg: z.number().int().min(0).max(10),
+  slots_g: z.number().int().min(0).max(10),
   slots_sf: z.number().int().min(0).max(10),
   slots_pf: z.number().int().min(0).max(10),
+  slots_f: z.number().int().min(0).max(10),
   slots_c: z.number().int().min(0).max(10),
   slots_flx: z.number().int().min(0).max(10),
   slots_bn: z.number().int().min(0).max(15),
@@ -154,8 +156,10 @@ function NewRoomPage() {
         isAuction && auctionNomQuotaEnabled ? auctionNomQuota : null,
       slots_pg: slots.PG,
       slots_sg: slots.SG,
+      slots_g: slots.G,
       slots_sf: slots.SF,
       slots_pf: slots.PF,
+      slots_f: slots.F,
       slots_c: slots.C,
       slots_flx: slots.FLX,
       slots_bn: slots.BN,
@@ -260,9 +264,9 @@ function NewRoomPage() {
             <div>
               <Label>Roster slots</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Players auto-fill the first matching slot. FLX accepts any position.
+                Players auto-fill the first matching slot. G = any guard, F = any forward, FLX = any position.
               </p>
-              <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
+              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-9">
                 {SLOT_KEYS.map((k) => (
                   <div key={k} className="rounded-md border-2 border-border bg-card p-2">
                     <div className="text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
