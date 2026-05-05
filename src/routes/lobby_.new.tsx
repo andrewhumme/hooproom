@@ -92,6 +92,7 @@ function NewRoomPage() {
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
+  const [customSeconds, setCustomSeconds] = useState<string>("");
   const [customHours, setCustomHours] = useState<string>("");
   const [draftFormat, setDraftFormat] = useState<"snake" | "auction">("snake");
   const [auctionBudget, setAuctionBudget] = useState<number>(200);
@@ -531,76 +532,108 @@ function NewRoomPage() {
             )}
 
             {!isAuction && (
-              <div>
-                <Label>Pick clock</Label>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Short clocks for live drafts, long clocks for slow drafts (up to 72h).
-                </p>
-                <div className="mt-2 space-y-2">
-                  <div>
-                    <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Live
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {FAST_CLOCK_OPTIONS.map((opt) => (
-                        <ClockChip
-                          key={opt.value}
-                          label={opt.label}
-                          active={pickClock === opt.value}
-                          onClick={() => {
-                            setPickClock(opt.value);
-                            setCustomHours("");
-                          }}
-                        />
-                      ))}
-                    </div>
+              <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-widest text-primary">
+                    Snake settings
                   </div>
-                  <div>
-                    <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Slow
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {SLOW_CLOCK_OPTIONS.map((opt) => (
-                        <ClockChip
-                          key={opt.value}
-                          label={opt.label}
-                          active={pickClock === opt.value && customHours === ""}
-                          onClick={() => {
-                            setPickClock(opt.value);
-                            setCustomHours("");
-                          }}
-                        />
-                      ))}
-                      <div className="flex items-center gap-1.5">
-                        <Input
-                          type="number"
-                          min={1}
-                          max={72}
-                          step={1}
-                          placeholder="Custom"
-                          value={customHours}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            setCustomHours(v);
-                            const n = parseFloat(v);
-                            if (!isNaN(n) && n >= 1 && n <= 72) {
-                              setPickClock(Math.round(n * 3600));
-                            }
-                          }}
-                          className="h-9 w-24 font-bold"
-                        />
-                        <span className="text-xs font-bold text-muted-foreground">hrs</span>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Short clocks for live drafts, long clocks for slow drafts (up to 72h).
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Pick clock</Label>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Live
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {FAST_CLOCK_OPTIONS.map((opt) => (
+                          <ClockChip
+                            key={opt.value}
+                            label={opt.label}
+                            active={pickClock === opt.value && customSeconds === ""}
+                            onClick={() => {
+                              setPickClock(opt.value);
+                              setCustomSeconds("");
+                              setCustomHours("");
+                            }}
+                          />
+                        ))}
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="number"
+                            min={15}
+                            max={3599}
+                            step={1}
+                            placeholder="Custom"
+                            value={customSeconds}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setCustomSeconds(v);
+                              setCustomHours("");
+                              const n = parseInt(v, 10);
+                              if (!isNaN(n) && n >= 15 && n <= 3599) {
+                                setPickClock(n);
+                              }
+                            }}
+                            className="h-9 w-24 font-bold"
+                          />
+                          <span className="text-xs font-bold text-muted-foreground">sec</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <p className="text-xs font-semibold text-muted-foreground">
-                    Selected: {formatClock(pickClock)} per pick
-                  </p>
-                  {pickClock >= 3600 && (
-                    <p className="text-xs text-muted-foreground">
-                      Slow drafts run async — when a clock expires, we'll autopick from the on-the-clock manager's <strong>queue</strong> (set inside the draft room) or fall back to the top available player.
+                    <div>
+                      <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Slow
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {SLOW_CLOCK_OPTIONS.map((opt) => (
+                          <ClockChip
+                            key={opt.value}
+                            label={opt.label}
+                            active={pickClock === opt.value && customHours === ""}
+                            onClick={() => {
+                              setPickClock(opt.value);
+                              setCustomHours("");
+                              setCustomSeconds("");
+                            }}
+                          />
+                        ))}
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="number"
+                            min={1}
+                            max={72}
+                            step={1}
+                            placeholder="Custom"
+                            value={customHours}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setCustomHours(v);
+                              setCustomSeconds("");
+                              const n = parseFloat(v);
+                              if (!isNaN(n) && n >= 1 && n <= 72) {
+                                setPickClock(Math.round(n * 3600));
+                              }
+                            }}
+                            className="h-9 w-24 font-bold"
+                          />
+                          <span className="text-xs font-bold text-muted-foreground">hrs</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      Selected: {formatClock(pickClock)} per pick
                     </p>
-                  )}
+                    {pickClock >= 3600 && (
+                      <p className="text-xs text-muted-foreground">
+                        Slow drafts run async — when a clock expires, we'll autopick from the on-the-clock manager's <strong>queue</strong> (set inside the draft room) or fall back to the top available player.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
