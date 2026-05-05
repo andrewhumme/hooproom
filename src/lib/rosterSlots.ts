@@ -86,13 +86,25 @@ export function assignPicksToSlots<P extends { player_position: string | null }>
     // 1. Try a specific slot matching one of the eligible positions.
     for (const spot of spots) {
       if (taken.has(spot.key)) continue;
-      if (spot.pos === "FLX" || spot.pos === "BN") continue;
+      if (spot.pos === "FLX" || spot.pos === "BN" || spot.pos === "G" || spot.pos === "F") continue;
       if (eligible.includes(spot.pos)) {
         chosen = spot.key;
         break;
       }
     }
-    // 2. Fall back to first open FLX.
+    // 2. Fall back to G slot (any guard) or F slot (any forward).
+    if (!chosen) {
+      const isGuard = eligible.includes("PG") || eligible.includes("SG");
+      const isForward = eligible.includes("SF") || eligible.includes("PF");
+      for (const spot of spots) {
+        if (taken.has(spot.key)) continue;
+        if ((spot.pos === "G" && isGuard) || (spot.pos === "F" && isForward)) {
+          chosen = spot.key;
+          break;
+        }
+      }
+    }
+    // 3. Fall back to first open FLX.
     if (!chosen) {
       for (const spot of spots) {
         if (taken.has(spot.key)) continue;
@@ -102,7 +114,7 @@ export function assignPicksToSlots<P extends { player_position: string | null }>
         }
       }
     }
-    // 3. Fall back to first open BN (bench).
+    // 4. Fall back to first open BN (bench).
     if (!chosen) {
       for (const spot of spots) {
         if (taken.has(spot.key)) continue;
