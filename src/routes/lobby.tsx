@@ -54,7 +54,7 @@ function LobbyPage() {
       const { data: roomData, error } = await supabase
         .from("draft_rooms")
         .select("*")
-        .in("status", ["waiting", "drafting"])
+        .in("status", ["waiting", "drafting", "paused"])
         .order("created_at", { ascending: false })
         .limit(50);
 
