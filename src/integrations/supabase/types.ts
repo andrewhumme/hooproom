@@ -276,6 +276,7 @@ export type Database = {
           id: string
           league_id: string | null
           name: string
+          paused_at: string | null
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
@@ -310,6 +311,7 @@ export type Database = {
           id?: string
           league_id?: string | null
           name: string
+          paused_at?: string | null
           pick_clock_sec: number
           pick_deadline?: string | null
           reversal_rounds?: number[]
@@ -344,6 +346,7 @@ export type Database = {
           id?: string
           league_id?: string | null
           name?: string
+          paused_at?: string | null
           pick_clock_sec?: number
           pick_deadline?: string | null
           reversal_rounds?: number[]
@@ -621,6 +624,7 @@ export type Database = {
           id: string
           league_id: string | null
           name: string
+          paused_at: string | null
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
@@ -682,6 +686,94 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      pause_draft: {
+        Args: { _room_id: string }
+        Returns: {
+          auction_antisnipe_threshold_sec: number | null
+          auction_bid_clock_sec: number
+          auction_budget: number
+          auction_max_concurrent_nominations: number
+          auction_min_bid: number
+          auction_nominations_per_team: number | null
+          completed_at: string | null
+          created_at: string
+          current_pick_number: number
+          draft_format: string
+          host_user_id: string
+          id: string
+          league_id: string | null
+          name: string
+          paused_at: string | null
+          pick_clock_sec: number
+          pick_deadline: string | null
+          reversal_rounds: number[]
+          rounds: number
+          scoring_format: string
+          slots_bn: number
+          slots_c: number
+          slots_f: number
+          slots_flx: number
+          slots_g: number
+          slots_pf: number
+          slots_pg: number
+          slots_sf: number
+          slots_sg: number
+          started_at: string | null
+          status: string
+          team_count: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_rooms"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      resume_draft: {
+        Args: { _room_id: string }
+        Returns: {
+          auction_antisnipe_threshold_sec: number | null
+          auction_bid_clock_sec: number
+          auction_budget: number
+          auction_max_concurrent_nominations: number
+          auction_min_bid: number
+          auction_nominations_per_team: number | null
+          completed_at: string | null
+          created_at: string
+          current_pick_number: number
+          draft_format: string
+          host_user_id: string
+          id: string
+          league_id: string | null
+          name: string
+          paused_at: string | null
+          pick_clock_sec: number
+          pick_deadline: string | null
+          reversal_rounds: number[]
+          rounds: number
+          scoring_format: string
+          slots_bn: number
+          slots_c: number
+          slots_f: number
+          slots_flx: number
+          slots_g: number
+          slots_pf: number
+          slots_pg: number
+          slots_sf: number
+          slots_sg: number
+          started_at: string | null
+          status: string
+          team_count: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_rooms"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       snake_autopick_due: { Args: never; Returns: number }
       start_draft: {
         Args: { _room_id: string }
@@ -700,6 +792,7 @@ export type Database = {
           id: string
           league_id: string | null
           name: string
+          paused_at: string | null
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
