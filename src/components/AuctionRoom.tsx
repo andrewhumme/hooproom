@@ -286,6 +286,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   // ---- when any nomination's timer hits 0, fire award_due (any client) ----
   useEffect(() => {
+    if (isPaused) return;
     const expired = activeNoms.filter((n) => (secondsLeftByNom[n.id] ?? 1) <= 0);
     const fresh = expired.filter((n) => !awardCallFiredRef.current.has(n.id));
     if (fresh.length === 0) return;
@@ -293,7 +294,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     supabase.rpc("auction_award_due", { _room_id: room.id }).then(({ error }) => {
       if (error) console.error("award_due failed", error);
     });
-  }, [secondsLeftByNom, activeNoms, room.id]);
+  }, [secondsLeftByNom, activeNoms, room.id, isPaused]);
 
   // ---- per-team budgets / rosters ----
   const teamSpent = useMemo(() => {
