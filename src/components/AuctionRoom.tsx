@@ -427,6 +427,15 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     []
   );
 
+  const handlePauseToggle = async () => {
+    setActionBusy(true);
+    setError(null);
+    const rpcName = isPaused ? "resume_draft" : "pause_draft";
+    const { error } = await supabase.rpc(rpcName, { _room_id: room.id });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
   const handleEndDraft = async () => {
     setActionBusy(true);
     setError(null);
