@@ -496,6 +496,16 @@ function DraftRoomPage() {
     if (error) setError(error.message);
   };
 
+  const handlePauseToggle = async () => {
+    if (!room) return;
+    setActionBusy(true);
+    setError(null);
+    const rpcName = room.status === "paused" ? "resume_draft" : "pause_draft";
+    const { error } = await supabase.rpc(rpcName, { _room_id: room.id });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
   const handleEndDraft = async () => {
     if (!room) return;
     setActionBusy(true);
