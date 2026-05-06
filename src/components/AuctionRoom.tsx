@@ -33,6 +33,8 @@ import {
   Download,
   Gavel,
   Loader2,
+  Pause,
+  Play,
   Search,
   Trophy,
   XCircle,
