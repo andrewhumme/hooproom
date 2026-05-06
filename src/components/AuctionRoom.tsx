@@ -33,6 +33,8 @@ import {
   Download,
   Gavel,
   Loader2,
+  Pause,
+  Play,
   Search,
   Trophy,
   XCircle,
@@ -46,7 +48,8 @@ type Room = {
   team_count: number;
   rounds: number;
   draft_format: string;
-  status: "waiting" | "drafting" | "complete";
+  status: "waiting" | "drafting" | "paused" | "complete";
+  paused_at?: string | null;
   scoring_format: string;
   auction_budget: number;
   auction_min_bid: number;
@@ -157,6 +160,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const isComplete = room.status === "complete";
   const isDrafting = room.status === "drafting";
   const isHost = !!userId && userId === room.host_user_id;
+  const isPaused = room.status === "paused";
 
   // ---- player pool ----
   const playersFetchedRef = useRef(false);
@@ -284,6 +288,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   // ---- when any nomination's timer hits 0, fire award_due (any client) ----
   useEffect(() => {
+    if (isPaused) return;
     const expired = activeNoms.filter((n) => (secondsLeftByNom[n.id] ?? 1) <= 0);
     const fresh = expired.filter((n) => !awardCallFiredRef.current.has(n.id));
     if (fresh.length === 0) return;
@@ -291,7 +296,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     supabase.rpc("auction_award_due", { _room_id: room.id }).then(({ error }) => {
       if (error) console.error("award_due failed", error);
     });
-  }, [secondsLeftByNom, activeNoms, room.id]);
+  }, [secondsLeftByNom, activeNoms, room.id, isPaused]);
 
   // ---- per-team budgets / rosters ----
   const teamSpent = useMemo(() => {
@@ -422,6 +427,15 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     []
   );
 
+  const handlePauseToggle = async () => {
+    setActionBusy(true);
+    setError(null);
+    const rpcName = isPaused ? "resume_draft" : "pause_draft";
+    const { error } = await supabase.rpc(rpcName, { _room_id: room.id });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
   const handleEndDraft = async () => {
     setActionBusy(true);
     setError(null);
@@ -496,9 +510,25 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                 </div>
               </div>
             )}
+            {isPaused && (
+              <div className="rounded-md border-2 border-amber-500/60 bg-amber-500/10 px-3 py-1.5 text-sm font-black uppercase tracking-widest text-amber-600">
+                <Pause className="mr-1 inline h-4 w-4" /> Paused by commissioner
+              </div>
+            )}
             {isComplete && (
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export CSV
+              </Button>
+            )}
+            {isHost && (isDrafting || isPaused) && (
+              <Button
+                onClick={handlePauseToggle}
+                variant="outline"
+                size="sm"
+                className="font-bold"
+                disabled={actionBusy}
+              >
+                {isPaused ? <><Play /> Resume</> : <><Pause /> Pause</>}
               </Button>
             )}
             {isHost && !isComplete && (

@@ -35,7 +35,7 @@ type Room = {
   rounds: number;
   pick_clock_sec: number;
   scoring_format: string;
-  status: "waiting" | "drafting" | "complete";
+  status: "waiting" | "drafting" | "paused" | "complete";
   created_at: string;
   participant_count?: number;
 };
@@ -54,7 +54,7 @@ function LobbyPage() {
       const { data: roomData, error } = await supabase
         .from("draft_rooms")
         .select("*")
-        .in("status", ["waiting", "drafting"])
+        .in("status", ["waiting", "drafting", "paused"])
         .order("created_at", { ascending: false })
         .limit(50);
 

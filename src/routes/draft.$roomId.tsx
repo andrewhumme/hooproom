@@ -45,6 +45,7 @@ import {
   Copy,
   Download,
   Loader2,
+  Pause,
   Play,
   Plus,
   Search,
@@ -73,9 +74,10 @@ type Room = {
   rounds: number;
   pick_clock_sec: number;
   scoring_format: string;
-  status: "waiting" | "drafting" | "complete";
+  status: "waiting" | "drafting" | "paused" | "complete";
   current_pick_number: number;
   pick_deadline: string | null;
+  paused_at: string | null;
   draft_format: string;
   auction_budget: number;
   auction_min_bid: number;
@@ -286,6 +288,7 @@ function DraftRoomPage() {
   const currentPickNumber = room?.current_pick_number ?? 0;
   const isComplete = room?.status === "complete";
   const isDrafting = room?.status === "drafting";
+  const isPaused = room?.status === "paused";
 
   const { currentRound, currentTeamIdx, currentReverse } = useMemo(() => {
     if (!room || !isDrafting) return { currentRound: 0, currentTeamIdx: 0, currentReverse: false };
@@ -489,6 +492,16 @@ function DraftRoomPage() {
       room?.draft_format === "auction" || room?.draft_format === "auction_slow";
     const rpcName = isAuction ? "auction_start" : "start_draft";
     const { error } = await supabase.rpc(rpcName, { _room_id: roomId });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
+  const handlePauseToggle = async () => {
+    if (!room) return;
+    setActionBusy(true);
+    setError(null);
+    const rpcName = room.status === "paused" ? "resume_draft" : "pause_draft";
+    const { error } = await supabase.rpc(rpcName, { _room_id: room.id });
     setActionBusy(false);
     if (error) setError(error.message);
   };
@@ -816,9 +829,25 @@ function DraftRoomPage() {
                 </div>
               </>
             )}
+            {isPaused && (
+              <div className="rounded-md border-2 border-amber-500/60 bg-amber-500/10 px-3 py-1.5 text-sm font-black uppercase tracking-widest text-amber-600">
+                <Pause className="mr-1 inline h-4 w-4" /> Paused by commissioner
+              </div>
+            )}
             {isComplete && (
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export CSV
+              </Button>
+            )}
+            {isHost && (isDrafting || isPaused) && (
+              <Button
+                onClick={handlePauseToggle}
+                variant="outline"
+                size="sm"
+                className="font-bold"
+                disabled={actionBusy}
+              >
+                {isPaused ? <><Play /> Resume</> : <><Pause /> Pause</>}
               </Button>
             )}
             {isHost && !isComplete && (
