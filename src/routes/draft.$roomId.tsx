@@ -45,6 +45,7 @@ import {
   Copy,
   Download,
   Loader2,
+  Pause,
   Play,
   Plus,
   Search,
