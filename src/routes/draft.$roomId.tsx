@@ -827,11 +827,26 @@ function DraftRoomPage() {
                     </>
                   )}
                 </div>
-              </>
+            )}
+            {isPaused && (
+              <div className="rounded-md border-2 border-amber-500/60 bg-amber-500/10 px-3 py-1.5 text-sm font-black uppercase tracking-widest text-amber-600">
+                <Pause className="mr-1 inline h-4 w-4" /> Paused by commissioner
+              </div>
             )}
             {isComplete && (
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export CSV
+              </Button>
+            )}
+            {isHost && (isDrafting || isPaused) && (
+              <Button
+                onClick={handlePauseToggle}
+                variant="outline"
+                size="sm"
+                className="font-bold"
+                disabled={actionBusy}
+              >
+                {isPaused ? <><Play /> Resume</> : <><Pause /> Pause</>}
               </Button>
             )}
             {isHost && !isComplete && (
