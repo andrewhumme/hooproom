@@ -73,9 +73,10 @@ type Room = {
   rounds: number;
   pick_clock_sec: number;
   scoring_format: string;
-  status: "waiting" | "drafting" | "complete";
+  status: "waiting" | "drafting" | "paused" | "complete";
   current_pick_number: number;
   pick_deadline: string | null;
+  paused_at: string | null;
   draft_format: string;
   auction_budget: number;
   auction_min_bid: number;
