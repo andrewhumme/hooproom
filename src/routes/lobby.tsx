@@ -35,7 +35,7 @@ type Room = {
   rounds: number;
   pick_clock_sec: number;
   scoring_format: string;
-  status: "waiting" | "drafting" | "complete";
+  status: "waiting" | "drafting" | "paused" | "complete";
   created_at: string;
   participant_count?: number;
 };
