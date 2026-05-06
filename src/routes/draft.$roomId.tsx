@@ -827,6 +827,7 @@ function DraftRoomPage() {
                     </>
                   )}
                 </div>
+              </>
             )}
             {isPaused && (
               <div className="rounded-md border-2 border-amber-500/60 bg-amber-500/10 px-3 py-1.5 text-sm font-black uppercase tracking-widest text-amber-600">
