@@ -1,0 +1,2 @@
+ALTER TABLE public.draft_rooms DROP CONSTRAINT draft_rooms_draft_format_check;
+ALTER TABLE public.draft_rooms ADD CONSTRAINT draft_rooms_draft_format_check CHECK (draft_format = ANY (ARRAY['snake'::text, 'auction'::text, 'auction_slow'::text]));
