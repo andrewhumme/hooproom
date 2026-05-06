@@ -46,7 +46,8 @@ type Room = {
   team_count: number;
   rounds: number;
   draft_format: string;
-  status: "waiting" | "drafting" | "complete";
+  status: "waiting" | "drafting" | "paused" | "complete";
+  paused_at?: string | null;
   scoring_format: string;
   auction_budget: number;
   auction_min_bid: number;
