@@ -158,6 +158,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const isComplete = room.status === "complete";
   const isDrafting = room.status === "drafting";
   const isHost = !!userId && userId === room.host_user_id;
+  const isPaused = room.status === "paused";
 
   // ---- player pool ----
   const playersFetchedRef = useRef(false);
