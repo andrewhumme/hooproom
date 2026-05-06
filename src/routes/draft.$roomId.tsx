@@ -288,6 +288,7 @@ function DraftRoomPage() {
   const currentPickNumber = room?.current_pick_number ?? 0;
   const isComplete = room?.status === "complete";
   const isDrafting = room?.status === "drafting";
+  const isPaused = room?.status === "paused";
 
   const { currentRound, currentTeamIdx, currentReverse } = useMemo(() => {
     if (!room || !isDrafting) return { currentRound: 0, currentTeamIdx: 0, currentReverse: false };
