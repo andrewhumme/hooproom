@@ -665,7 +665,8 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                         <span
                           className={`text-2xl font-black tabular-nums ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
                         >
-                          {Math.floor(secondsLeft / 60)}:
+                          {String(Math.floor(secondsLeft / 3600)).padStart(2, "0")}:
+                          {String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, "0")}:
                           {String(secondsLeft % 60).padStart(2, "0")}
                         </span>
                       </div>
