@@ -842,9 +842,9 @@ function DraftRoomPage() {
             {isHost && (isDrafting || isPaused) && (
               <Button
                 onClick={handlePauseToggle}
-                variant="outline"
+                variant="secondary"
                 size="sm"
-                className="font-bold"
+                className="font-bold border-2 border-secondary"
                 disabled={actionBusy}
               >
                 {isPaused ? <><Play /> Resume</> : <><Pause /> Pause</>}
