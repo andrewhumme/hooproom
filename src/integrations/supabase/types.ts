@@ -131,6 +131,7 @@ export type Database = {
         Row: {
           draft_position: number | null
           id: string
+          is_bot: boolean
           joined_at: string
           room_id: string
           team_name: string
@@ -140,6 +141,7 @@ export type Database = {
         Insert: {
           draft_position?: number | null
           id?: string
+          is_bot?: boolean
           joined_at?: string
           room_id: string
           team_name?: string
@@ -149,6 +151,7 @@ export type Database = {
         Update: {
           draft_position?: number | null
           id?: string
+          is_bot?: boolean
           joined_at?: string
           room_id?: string
           team_name?: string
@@ -544,6 +547,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_bot_seat: {
+        Args: { _room_id: string }
+        Returns: {
+          draft_position: number | null
+          id: string
+          is_bot: boolean
+          joined_at: string
+          room_id: string
+          team_name: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_participants"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       auction_award_due: { Args: { _room_id?: string }; Returns: number }
       auction_bid: {
         Args: { _amount: number; _nomination_id: string }
@@ -572,6 +594,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      auction_bot_nominate_due: { Args: never; Returns: number }
       auction_next_nominator: { Args: { _room_id: string }; Returns: number }
       auction_nominate: {
         Args: {
@@ -730,6 +753,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      remove_bot_seat: { Args: { _participant_id: string }; Returns: undefined }
       resume_draft: {
         Args: { _room_id: string }
         Returns: {
