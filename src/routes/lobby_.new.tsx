@@ -36,7 +36,7 @@ const SCHEMA = z.object({
   auction_min_bid: z.number().int().min(1).max(100000),
   auction_bid_clock_sec: z.number().int().min(10).max(72 * 60 * 60),
   auction_antisnipe_threshold_sec: z.number().int().min(10).max(72 * 60 * 60).nullable(),
-  auction_max_concurrent_nominations: z.number().int().min(1).max(20),
+  auction_max_concurrent_nominations: z.number().int().min(1).max(400),
   auction_concurrent_per_team: z.number().int().min(1).max(20),
   auction_nominations_per_team: z.number().int().min(1).max(1000).nullable(),
   slots_pg: z.number().int().min(0).max(10),
