@@ -103,6 +103,7 @@ type Participant = {
   draft_position: number | null;
   team_name: string;
   joined_at: string;
+  is_bot?: boolean;
 };
 
 type Pick = {
