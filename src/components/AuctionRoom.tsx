@@ -569,11 +569,9 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Up to nominate
+                      Auction pool
                     </div>
-                    <div className="text-xl font-black">
-                      {nominatorParticipant?.team_name ?? (nominatorTeamIdx ? `Team ${nominatorTeamIdx}` : "—")}
-                    </div>
+                    <div className="text-xl font-black">No active nominations</div>
                   </div>
                   {isMyNomination ? (
                     <div className="flex items-center gap-2">
