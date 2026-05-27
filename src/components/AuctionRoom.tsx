@@ -896,7 +896,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           </div>
 
           {/* Right rail: budgets + my team */}
-          <div className={mobileTab !== "players" ? "" : "hidden lg:block"}>
+          <div className={mobileTab !== "players" ? "lg:h-full lg:overflow-y-auto lg:pr-1" : "hidden lg:block lg:h-full lg:overflow-y-auto lg:pr-1"}>
             <Card className="border-2 p-4">
               <div className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Team budgets
