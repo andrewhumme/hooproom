@@ -153,10 +153,10 @@ function NewRoomPage() {
       auction_min_bid: auctionMinBid,
       auction_bid_clock_sec: auctionBidClock,
       auction_antisnipe_threshold_sec: isSlowAuction ? auctionAntisnipe : null,
-      auction_max_concurrent_nominations: isAuction ? auctionMaxConcurrent : 1,
-      auction_concurrent_per_team: isAuction
-        ? Math.min(auctionConcurrentPerTeam, auctionMaxConcurrent)
+      auction_max_concurrent_nominations: isAuction
+        ? auctionConcurrentPerTeam * teamCount
         : 1,
+      auction_concurrent_per_team: isAuction ? auctionConcurrentPerTeam : 1,
       auction_nominations_per_team:
         isAuction && auctionNomQuotaEnabled ? auctionNomQuota : null,
       slots_pg: slots.PG,
