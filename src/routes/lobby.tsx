@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { ArrowRight, Clock, Plus, Trophy, Users, Zap } from "lucide-react";
+import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby")({
   component: LobbyPage,
@@ -228,7 +229,7 @@ function RoomCard({ room }: { room: Room }) {
           highlight={filling}
         />
         <Stat icon={<Trophy />} label="Rounds" value={String(room.rounds)} />
-        <Stat icon={<Clock />} label="Clock" value={`${room.pick_clock_sec}s`} />
+        <Stat icon={<Clock />} label="Clock" value={formatDuration(room.pick_clock_sec)} />
       </div>
       <div className="flex items-center justify-end gap-3 p-4">
         <Button onClick={handleOpen} className="font-bold" size="sm">

@@ -38,6 +38,7 @@ import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
 import { assignPicksToSlots, buildSlotSpots, type SlotConfig } from "@/lib/rosterSlots";
+import { formatDuration } from "@/lib/utils";
 import {
   ArrowLeft,
   Check,
@@ -649,7 +650,7 @@ function DraftRoomPage() {
             </Badge>
             <h1 className="text-3xl font-black md:text-4xl">{room.name}</h1>
             <p className="text-sm text-muted-foreground">
-              {room.team_count} teams · {room.rounds} rounds · {room.pick_clock_sec}s clock
+              {room.team_count} teams · {room.rounds} rounds · {formatDuration(room.pick_clock_sec)} clock
             </p>
           </div>
 

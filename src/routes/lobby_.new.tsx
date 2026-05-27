@@ -11,6 +11,7 @@ import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { Loader2 } from "lucide-react";
 import { DEFAULT_SLOTS, SLOT_KEYS, type SlotConfig, totalSlots } from "@/lib/rosterSlots";
+import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby_/new")({
   component: NewRoomPage,
@@ -87,9 +88,7 @@ const AUCTION_SLOW_CLOCK_OPTIONS = [
 ] as const;
 
 function formatClock(sec: number): string {
-  if (sec < 3600) return `${sec}s`;
-  const hrs = sec / 3600;
-  return Number.isInteger(hrs) ? `${hrs}h` : `${hrs.toFixed(1)}h`;
+  return formatDuration(sec);
 }
 
 function NewRoomPage() {
