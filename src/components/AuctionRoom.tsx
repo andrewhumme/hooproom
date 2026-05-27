@@ -774,8 +774,9 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           {/* Player pool */}
-          <div className={mobileTab === "players" ? "" : "hidden lg:block"}>
-            <Card className="border-2">
+          <div className={mobileTab === "players" ? "lg:flex lg:flex-col lg:h-full" : "hidden lg:flex lg:flex-col lg:h-full"}>
+            <Card className="border-2 flex flex-col lg:flex-1 lg:min-h-0">
+
               <div className="flex flex-wrap items-center gap-2 border-b-2 border-border p-4">
                 <div className="relative flex-1 min-w-[180px]">
                   <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
