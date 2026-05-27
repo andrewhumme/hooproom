@@ -229,7 +229,7 @@ function RoomCard({ room }: { room: Room }) {
           highlight={filling}
         />
         <Stat icon={<Trophy />} label="Rounds" value={String(room.rounds)} />
-        <Stat icon={<Clock />} label="Clock" value={`${room.pick_clock_sec}s`} />
+        <Stat icon={<Clock />} label="Clock" value={formatDuration(room.pick_clock_sec)} />
       </div>
       <div className="flex items-center justify-end gap-3 p-4">
         <Button onClick={handleOpen} className="font-bold" size="sm">
