@@ -104,6 +104,8 @@ function NewRoomPage() {
   const [auctionBudget, setAuctionBudget] = useState<number>(200);
   const [auctionMinBid, setAuctionMinBid] = useState<number>(1);
   const [auctionBidClock, setAuctionBidClock] = useState<number>(30);
+  const [auctionCustomSeconds, setAuctionCustomSeconds] = useState<string>("");
+  const [auctionCustomHours, setAuctionCustomHours] = useState<string>("");
   const [auctionAntisnipe, setAuctionAntisnipe] = useState<number | null>(null);
   const [auctionConcurrentPerTeam, setAuctionConcurrentPerTeam] = useState<number>(1);
   const [auctionNomQuotaEnabled, setAuctionNomQuotaEnabled] = useState<boolean>(false);
