@@ -268,6 +268,7 @@ export type Database = {
           auction_antisnipe_threshold_sec: number | null
           auction_bid_clock_sec: number
           auction_budget: number
+          auction_concurrent_per_team: number
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
@@ -303,6 +304,7 @@ export type Database = {
           auction_antisnipe_threshold_sec?: number | null
           auction_bid_clock_sec?: number
           auction_budget?: number
+          auction_concurrent_per_team?: number
           auction_max_concurrent_nominations?: number
           auction_min_bid?: number
           auction_nominations_per_team?: number | null
@@ -338,6 +340,7 @@ export type Database = {
           auction_antisnipe_threshold_sec?: number | null
           auction_bid_clock_sec?: number
           auction_budget?: number
+          auction_concurrent_per_team?: number
           auction_max_concurrent_nominations?: number
           auction_min_bid?: number
           auction_nominations_per_team?: number | null
@@ -636,6 +639,7 @@ export type Database = {
           auction_antisnipe_threshold_sec: number | null
           auction_bid_clock_sec: number
           auction_budget: number
+          auction_concurrent_per_team: number
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
@@ -715,6 +719,7 @@ export type Database = {
           auction_antisnipe_threshold_sec: number | null
           auction_bid_clock_sec: number
           auction_budget: number
+          auction_concurrent_per_team: number
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
@@ -760,6 +765,7 @@ export type Database = {
           auction_antisnipe_threshold_sec: number | null
           auction_bid_clock_sec: number
           auction_budget: number
+          auction_concurrent_per_team: number
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
@@ -805,6 +811,7 @@ export type Database = {
           auction_antisnipe_threshold_sec: number | null
           auction_bid_clock_sec: number
           auction_budget: number
+          auction_concurrent_per_team: number
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null

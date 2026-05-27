@@ -84,6 +84,7 @@ type Room = {
   auction_bid_clock_sec: number;
   auction_antisnipe_threshold_sec: number | null;
   auction_max_concurrent_nominations: number;
+  auction_concurrent_per_team: number | null;
   auction_nominations_per_team: number | null;
   slots_pg: number;
   slots_sg: number;

@@ -37,6 +37,7 @@ const SCHEMA = z.object({
   auction_bid_clock_sec: z.number().int().min(10).max(72 * 60 * 60),
   auction_antisnipe_threshold_sec: z.number().int().min(10).max(72 * 60 * 60).nullable(),
   auction_max_concurrent_nominations: z.number().int().min(1).max(20),
+  auction_concurrent_per_team: z.number().int().min(1).max(20),
   auction_nominations_per_team: z.number().int().min(1).max(1000).nullable(),
   slots_pg: z.number().int().min(0).max(10),
   slots_sg: z.number().int().min(0).max(10),
@@ -102,6 +103,7 @@ function NewRoomPage() {
   const [auctionBidClock, setAuctionBidClock] = useState<number>(30);
   const [auctionAntisnipe, setAuctionAntisnipe] = useState<number | null>(null);
   const [auctionMaxConcurrent, setAuctionMaxConcurrent] = useState<number>(1);
+  const [auctionConcurrentPerTeam, setAuctionConcurrentPerTeam] = useState<number>(1);
   const [auctionNomQuotaEnabled, setAuctionNomQuotaEnabled] = useState<boolean>(false);
   const [auctionNomQuota, setAuctionNomQuota] = useState<number>(15);
   const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
@@ -152,6 +154,9 @@ function NewRoomPage() {
       auction_bid_clock_sec: auctionBidClock,
       auction_antisnipe_threshold_sec: isSlowAuction ? auctionAntisnipe : null,
       auction_max_concurrent_nominations: isAuction ? auctionMaxConcurrent : 1,
+      auction_concurrent_per_team: isAuction
+        ? Math.min(auctionConcurrentPerTeam, auctionMaxConcurrent)
+        : 1,
       auction_nominations_per_team:
         isAuction && auctionNomQuotaEnabled ? auctionNomQuota : null,
       slots_pg: slots.PG,
@@ -521,9 +526,9 @@ function NewRoomPage() {
                 )}
 
                 <div>
-                  <Label>Concurrent nominations</Label>
+                  <Label>Total concurrent on the block</Label>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    How many players can be on the block at the same time. Higher values speed up slow auctions; each team is still limited to one active nomination of their own.
+                    Room-wide cap on how many players can be up for bid at the same time across the whole auction.
                   </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
                     {[1, 2, 3, 5].map((n) => (
@@ -543,6 +548,38 @@ function NewRoomPage() {
                       onChange={(e) => {
                         const n = parseInt(e.target.value || "1", 10);
                         if (!isNaN(n)) setAuctionMaxConcurrent(Math.max(1, Math.min(20, n)));
+                      }}
+                      className="h-9 w-20 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Concurrent nominations per team</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    How many players each team can have on the block at once. As soon as one of their nominations is awarded, they get another turn — until they hit this cap. Capped by total concurrent ({auctionMaxConcurrent}).
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    {[1, 2, 3, 5].map((n) => (
+                      <ClockChip
+                        key={n}
+                        label={`${n}`}
+                        active={auctionConcurrentPerTeam === n}
+                        onClick={() => setAuctionConcurrentPerTeam(Math.min(n, auctionMaxConcurrent))}
+                      />
+                    ))}
+                    <Input
+                      type="number"
+                      min={1}
+                      max={Math.min(20, auctionMaxConcurrent)}
+                      step={1}
+                      value={Math.min(auctionConcurrentPerTeam, auctionMaxConcurrent)}
+                      onChange={(e) => {
+                        const n = parseInt(e.target.value || "1", 10);
+                        if (!isNaN(n))
+                          setAuctionConcurrentPerTeam(
+                            Math.max(1, Math.min(auctionMaxConcurrent, n)),
+                          );
                       }}
                       className="h-9 w-20 font-bold"
                     />

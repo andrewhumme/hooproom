@@ -56,6 +56,7 @@ type Room = {
   auction_bid_clock_sec: number;
   auction_antisnipe_threshold_sec: number | null;
   auction_max_concurrent_nominations: number;
+  auction_concurrent_per_team: number | null;
   auction_nominations_per_team: number | null;
   slots_pg: number;
   slots_sg: number;
@@ -342,9 +343,10 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     room.auction_budget - mySpent - Math.max(0, myRemainingSlots - 1)
   );
 
-  // ---- nomination turn (snake, skipping full / quota-exhausted / already-active teams) ----
+  // ---- nomination turn (snake, skipping full / quota-exhausted / per-team-cap teams) ----
   const totalNomsCreated = picks.length + activeNoms.length;
   const nomQuota = room.auction_nominations_per_team;
+  const perTeamConcurrent = Math.max(1, room.auction_concurrent_per_team ?? 1);
   const nominatorTeamIdx = useMemo(() => {
     let cursor = totalNomsCreated;
     for (let i = 0; i < room.team_count * (totalSlots + 2); i++) {
@@ -355,11 +357,11 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       const activeCnt = teamActiveNomCount.get(candidate) ?? 0;
       const totalNoms = teamTotalNomCount.get(candidate) ?? 0;
       const underQuota = nomQuota == null || totalNoms < nomQuota;
-      if (cnt < totalSlots && activeCnt === 0 && underQuota) return candidate;
+      if (cnt < totalSlots && activeCnt < perTeamConcurrent && underQuota) return candidate;
       cursor++;
     }
     return null;
-  }, [totalNomsCreated, room.team_count, totalSlots, teamPickCount, teamActiveNomCount, teamTotalNomCount, nomQuota]);
+  }, [totalNomsCreated, room.team_count, totalSlots, teamPickCount, teamActiveNomCount, teamTotalNomCount, nomQuota, perTeamConcurrent]);
 
   const concurrencyCap = room.auction_max_concurrent_nominations ?? 1;
   const canNominateMore = activeNoms.length < concurrencyCap;
@@ -369,7 +371,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     nomQuota == null ? Infinity : Math.max(0, nomQuota - myTotalNomCount);
   const isMyNomination =
     canNominateMore &&
-    myActiveNomCount === 0 &&
+    myActiveNomCount < perTeamConcurrent &&
     myQuotaRemaining > 0 &&
     nominatorTeamIdx === myTeamIdx;
   const nominatorParticipant = participants.find(
