@@ -488,24 +488,107 @@ function NewRoomPage() {
                   <p className="mt-1 text-xs text-muted-foreground">
                     How long bidding stays open after each new bid. Pick a clock of <strong>1h+</strong> to run a slow async auction (anti-snipe unlocks).
                   </p>
-                  <div className="mt-1.5 flex flex-wrap gap-2">
-                    {AUCTION_BID_CLOCK_OPTIONS.map((opt) => (
-                      <ClockChip
-                        key={opt.value}
-                        label={opt.label}
-                        active={auctionBidClock === opt.value}
-                        onClick={() => {
-                          setAuctionBidClock(opt.value);
-                          if (auctionAntisnipe && auctionAntisnipe > opt.value) {
-                            setAuctionAntisnipe(opt.value);
-                          }
-                        }}
-                      />
-                    ))}
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Live
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {AUCTION_FAST_CLOCK_OPTIONS.map((opt) => (
+                          <ClockChip
+                            key={opt.value}
+                            label={opt.label}
+                            active={auctionBidClock === opt.value && auctionCustomSeconds === ""}
+                            onClick={() => {
+                              setAuctionBidClock(opt.value);
+                              setAuctionCustomSeconds("");
+                              setAuctionCustomHours("");
+                              if (auctionAntisnipe && auctionAntisnipe > opt.value) {
+                                setAuctionAntisnipe(opt.value);
+                              }
+                            }}
+                          />
+                        ))}
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="number"
+                            min={10}
+                            max={3599}
+                            step={1}
+                            placeholder="Custom"
+                            value={auctionCustomSeconds}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setAuctionCustomSeconds(v);
+                              setAuctionCustomHours("");
+                              const n = parseInt(v, 10);
+                              if (!isNaN(n) && n >= 10 && n <= 3599) {
+                                setAuctionBidClock(n);
+                                if (auctionAntisnipe && auctionAntisnipe > n) {
+                                  setAuctionAntisnipe(n);
+                                }
+                              }
+                            }}
+                            className="h-9 w-24 font-bold"
+                          />
+                          <span className="text-xs font-bold text-muted-foreground">sec</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Slow
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {AUCTION_SLOW_CLOCK_OPTIONS.map((opt) => (
+                          <ClockChip
+                            key={opt.value}
+                            label={opt.label}
+                            active={auctionBidClock === opt.value && auctionCustomHours === ""}
+                            onClick={() => {
+                              setAuctionBidClock(opt.value);
+                              setAuctionCustomSeconds("");
+                              setAuctionCustomHours("");
+                              if (auctionAntisnipe && auctionAntisnipe > opt.value) {
+                                setAuctionAntisnipe(opt.value);
+                              }
+                            }}
+                          />
+                        ))}
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="number"
+                            min={1}
+                            max={72}
+                            step={1}
+                            placeholder="Custom"
+                            value={auctionCustomHours}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setAuctionCustomHours(v);
+                              setAuctionCustomSeconds("");
+                              const n = parseFloat(v);
+                              if (!isNaN(n) && n >= 1 && n <= 72) {
+                                const sec = Math.round(n * 3600);
+                                setAuctionBidClock(sec);
+                                if (auctionAntisnipe && auctionAntisnipe > sec) {
+                                  setAuctionAntisnipe(sec);
+                                }
+                              }
+                            }}
+                            className="h-9 w-24 font-bold"
+                          />
+                          <span className="text-xs font-bold text-muted-foreground">hrs</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      Selected: {formatClock(auctionBidClock)} per bid
+                    </p>
+                    <p className="mt-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
+                      {isSlowAuction ? "Slow auction · async bidding" : "Live auction · real-time bidding"}
+                    </p>
                   </div>
-                  <p className="mt-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
-                    {isSlowAuction ? "Slow auction · async bidding" : "Live auction · real-time bidding"}
-                  </p>
                 </div>
 
                 {isSlowAuction && (
