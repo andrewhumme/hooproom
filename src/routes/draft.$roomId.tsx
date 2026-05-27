@@ -103,6 +103,7 @@ type Participant = {
   draft_position: number | null;
   team_name: string;
   joined_at: string;
+  is_bot?: boolean;
 };
 
 type Pick = {
@@ -485,6 +486,22 @@ function DraftRoomPage() {
     if (error) setError(error.message);
   };
 
+  const handleAddBot = async () => {
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase.rpc("add_bot_seat", { _room_id: roomId });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
+  const handleRemoveBot = async (participantId: string) => {
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase.rpc("remove_bot_seat", { _participant_id: participantId });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
   const handleStart = async () => {
     setActionBusy(true);
     setError(null);
@@ -679,14 +696,28 @@ function DraftRoomPage() {
                         <span className="text-sm italic text-muted-foreground">Open seat</span>
                       )}
                     </div>
-                    {p && p.user_id === room.host_user_id && (
-                      <Badge variant="secondary" className="font-bold">
-                        Host
-                      </Badge>
-                    )}
-                    {p && p.user_id === user?.id && p.user_id !== room.host_user_id && (
-                      <Badge className="font-bold">You</Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {p && p.user_id === room.host_user_id && (
+                        <Badge variant="secondary" className="font-bold">Host</Badge>
+                      )}
+                      {p && p.user_id === user?.id && p.user_id !== room.host_user_id && (
+                        <Badge className="font-bold">You</Badge>
+                      )}
+                      {p?.is_bot && (
+                        <Badge variant="outline" className="font-bold">Bot</Badge>
+                      )}
+                      {p?.is_bot && isHost && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                          disabled={actionBusy}
+                          onClick={() => handleRemoveBot(p.id)}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
                   </li>
                 );
               })}
@@ -733,6 +764,16 @@ function DraftRoomPage() {
                   >
                     {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
                     Start draft
+                  </Button>
+                  <Button
+                    onClick={handleAddBot}
+                    variant="outline"
+                    size="lg"
+                    className="font-bold"
+                    disabled={actionBusy || participants.length >= room.team_count}
+                    title="Fill an empty seat with a bot (nominates & autopicks)"
+                  >
+                    + Add bot
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
