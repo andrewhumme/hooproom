@@ -102,7 +102,6 @@ function NewRoomPage() {
   const [auctionMinBid, setAuctionMinBid] = useState<number>(1);
   const [auctionBidClock, setAuctionBidClock] = useState<number>(30);
   const [auctionAntisnipe, setAuctionAntisnipe] = useState<number | null>(null);
-  const [auctionMaxConcurrent, setAuctionMaxConcurrent] = useState<number>(1);
   const [auctionConcurrentPerTeam, setAuctionConcurrentPerTeam] = useState<number>(1);
   const [auctionNomQuotaEnabled, setAuctionNomQuotaEnabled] = useState<boolean>(false);
   const [auctionNomQuota, setAuctionNomQuota] = useState<number>(15);
