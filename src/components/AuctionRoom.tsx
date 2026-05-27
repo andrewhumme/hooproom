@@ -343,40 +343,26 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     room.auction_budget - mySpent - Math.max(0, myRemainingSlots - 1)
   );
 
-  // ---- nomination turn (snake, skipping full / quota-exhausted / per-team-cap teams) ----
-  const totalNomsCreated = picks.length + activeNoms.length;
+  // ---- nomination eligibility ----
+  // Any team can nominate concurrently as long as they're under their per-team
+  // cap, total quota, and the room-wide concurrent cap. No strict snake turn —
+  // the pool fills up quickly at draft start when concurrency is > 1.
   const nomQuota = room.auction_nominations_per_team;
   const perTeamConcurrent = Math.max(1, room.auction_concurrent_per_team ?? 1);
-  const nominatorTeamIdx = useMemo(() => {
-    let cursor = totalNomsCreated;
-    for (let i = 0; i < room.team_count * (totalSlots + 2); i++) {
-      const dir = Math.floor(cursor / room.team_count) % 2;
-      const slot = cursor % room.team_count;
-      const candidate = dir === 0 ? slot + 1 : room.team_count - slot;
-      const cnt = teamPickCount.get(candidate) ?? 0;
-      const activeCnt = teamActiveNomCount.get(candidate) ?? 0;
-      const totalNoms = teamTotalNomCount.get(candidate) ?? 0;
-      const underQuota = nomQuota == null || totalNoms < nomQuota;
-      if (cnt < totalSlots && activeCnt < perTeamConcurrent && underQuota) return candidate;
-      cursor++;
-    }
-    return null;
-  }, [totalNomsCreated, room.team_count, totalSlots, teamPickCount, teamActiveNomCount, teamTotalNomCount, nomQuota, perTeamConcurrent]);
-
   const concurrencyCap = room.auction_max_concurrent_nominations ?? 1;
   const canNominateMore = activeNoms.length < concurrencyCap;
   const myActiveNomCount = myTeamIdx ? teamActiveNomCount.get(myTeamIdx) ?? 0 : 0;
   const myTotalNomCount = myTeamIdx ? teamTotalNomCount.get(myTeamIdx) ?? 0 : 0;
+  const myPickedCount = myTeamIdx ? teamPickCount.get(myTeamIdx) ?? 0 : 0;
   const myQuotaRemaining =
     nomQuota == null ? Infinity : Math.max(0, nomQuota - myTotalNomCount);
   const isMyNomination =
+    !!myTeamIdx &&
+    isDrafting &&
     canNominateMore &&
     myActiveNomCount < perTeamConcurrent &&
     myQuotaRemaining > 0 &&
-    nominatorTeamIdx === myTeamIdx;
-  const nominatorParticipant = participants.find(
-    (p) => p.draft_position === nominatorTeamIdx
-  );
+    myPickedCount < totalSlots;
 
   // ---- player filtering ----
   const draftedIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
@@ -583,11 +569,9 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Up to nominate
+                      Auction pool
                     </div>
-                    <div className="text-xl font-black">
-                      {nominatorParticipant?.team_name ?? (nominatorTeamIdx ? `Team ${nominatorTeamIdx}` : "—")}
-                    </div>
+                    <div className="text-xl font-black">No active nominations</div>
                   </div>
                   {isMyNomination ? (
                     <div className="flex items-center gap-2">
@@ -925,7 +909,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                   const cnt = teamPickCount.get(idx) ?? 0;
                   const remainingSlots = totalSlots - cnt;
                   const maxBid = Math.max(0, remaining - Math.max(0, remainingSlots - 1));
-                  const isNom = idx === nominatorTeamIdx;
+                  const isNom = (teamActiveNomCount.get(idx) ?? 0) > 0;
                   const isHigh = activeNoms.some(
                     (n) => n.current_bidder_team_idx === idx,
                   );
