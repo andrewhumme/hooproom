@@ -38,6 +38,7 @@ import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
 import { assignPicksToSlots, buildSlotSpots, type SlotConfig } from "@/lib/rosterSlots";
+import { formatDuration } from "@/lib/utils";
 import {
   ArrowLeft,
   Check,
