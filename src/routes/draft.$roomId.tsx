@@ -696,14 +696,28 @@ function DraftRoomPage() {
                         <span className="text-sm italic text-muted-foreground">Open seat</span>
                       )}
                     </div>
-                    {p && p.user_id === room.host_user_id && (
-                      <Badge variant="secondary" className="font-bold">
-                        Host
-                      </Badge>
-                    )}
-                    {p && p.user_id === user?.id && p.user_id !== room.host_user_id && (
-                      <Badge className="font-bold">You</Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {p && p.user_id === room.host_user_id && (
+                        <Badge variant="secondary" className="font-bold">Host</Badge>
+                      )}
+                      {p && p.user_id === user?.id && p.user_id !== room.host_user_id && (
+                        <Badge className="font-bold">You</Badge>
+                      )}
+                      {p?.is_bot && (
+                        <Badge variant="outline" className="font-bold">Bot</Badge>
+                      )}
+                      {p?.is_bot && isHost && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                          disabled={actionBusy}
+                          onClick={() => handleRemoveBot(p.id)}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
                   </li>
                 );
               })}
