@@ -909,7 +909,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                   const cnt = teamPickCount.get(idx) ?? 0;
                   const remainingSlots = totalSlots - cnt;
                   const maxBid = Math.max(0, remaining - Math.max(0, remainingSlots - 1));
-                  const isNom = idx === nominatorTeamIdx;
+                  const isNom = (teamActiveNomCount.get(idx) ?? 0) > 0;
                   const isHigh = activeNoms.some(
                     (n) => n.current_bidder_team_idx === idx,
                   );
