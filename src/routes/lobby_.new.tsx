@@ -221,7 +221,7 @@ function NewRoomPage() {
           <div className="text-xs font-bold uppercase tracking-widest text-primary">
             New room
           </div>
-          <h1 className="mt-2 text-3xl font-black md:text-4xl">Host a snake draft.</h1>
+          <h1 className="mt-2 text-3xl font-black md:text-4xl">Host a draft.</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Set your format. We'll generate a shareable link you can send to your league.
           </p>
@@ -240,6 +240,48 @@ function NewRoomPage() {
                 maxLength={80}
                 className="mt-1.5"
               />
+            </div>
+
+            <div>
+              <Label>Draft format</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Snake = sequential picks. Auction = nominations + bidding. Both run live or slow based on the clocks you choose below.
+              </p>
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {DRAFT_FORMATS.map((f) => {
+                  const active = draftFormat === f.value;
+                  const disabled = !f.available;
+                  return (
+                    <button
+                      key={f.value}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => {
+                        if (disabled) return;
+                        setDraftFormat(f.value);
+                        if (f.value === "auction") setAuctionBidClock(30);
+                      }}
+                      className={`relative rounded-md border-2 p-3 text-left transition ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/40"
+                      } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-black">{f.label}</div>
+                        {!f.available && (
+                          <span className="rounded-sm bg-muted px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                            Soon
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 text-[11px] font-medium text-muted-foreground">
+                        {f.hint}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div>
@@ -367,47 +409,6 @@ function NewRoomPage() {
               </div>
             )}
 
-            <div>
-              <Label>Draft format</Label>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Snake = sequential picks. Auction = nominations + bidding. Both run live or slow based on the clocks you choose below.
-              </p>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {DRAFT_FORMATS.map((f) => {
-                  const active = draftFormat === f.value;
-                  const disabled = !f.available;
-                  return (
-                    <button
-                      key={f.value}
-                      type="button"
-                      disabled={disabled}
-                      onClick={() => {
-                        if (disabled) return;
-                        setDraftFormat(f.value);
-                        if (f.value === "auction") setAuctionBidClock(30);
-                      }}
-                      className={`relative rounded-md border-2 p-3 text-left transition ${
-                        active
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card hover:border-primary/40"
-                      } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm font-black">{f.label}</div>
-                        {!f.available && (
-                          <span className="rounded-sm bg-muted px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                            Soon
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-1 text-[11px] font-medium text-muted-foreground">
-                        {f.hint}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
 
             {isAuction && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
