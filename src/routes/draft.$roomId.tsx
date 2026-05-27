@@ -489,7 +489,6 @@ function DraftRoomPage() {
   const handleAddBot = async () => {
     setActionBusy(true);
     setError(null);
-    // @ts-expect-error rpc name not in generated types yet
     const { error } = await supabase.rpc("add_bot_seat", { _room_id: roomId });
     setActionBusy(false);
     if (error) setError(error.message);
@@ -498,7 +497,6 @@ function DraftRoomPage() {
   const handleRemoveBot = async (participantId: string) => {
     setActionBusy(true);
     setError(null);
-    // @ts-expect-error rpc name not in generated types yet
     const { error } = await supabase.rpc("remove_bot_seat", { _participant_id: participantId });
     setActionBusy(false);
     if (error) setError(error.message);
