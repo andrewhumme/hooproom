@@ -88,9 +88,7 @@ const AUCTION_SLOW_CLOCK_OPTIONS = [
 ] as const;
 
 function formatClock(sec: number): string {
-  if (sec < 3600) return `${sec}s`;
-  const hrs = sec / 3600;
-  return Number.isInteger(hrs) ? `${hrs}h` : `${hrs.toFixed(1)}h`;
+  return formatDuration(sec);
 }
 
 function NewRoomPage() {
