@@ -1,0 +1,1 @@
+ALTER TABLE public.draft_participants DROP CONSTRAINT IF EXISTS draft_participants_user_id_fkey;
