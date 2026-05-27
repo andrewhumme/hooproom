@@ -529,38 +529,9 @@ function NewRoomPage() {
                 )}
 
                 <div>
-                  <Label>Total concurrent on the block</Label>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Room-wide cap on how many players can be up for bid at the same time across the whole auction.
-                  </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    {[1, 2, 3, 5].map((n) => (
-                      <ClockChip
-                        key={n}
-                        label={`${n}`}
-                        active={auctionMaxConcurrent === n}
-                        onClick={() => setAuctionMaxConcurrent(n)}
-                      />
-                    ))}
-                    <Input
-                      type="number"
-                      min={1}
-                      max={20}
-                      step={1}
-                      value={auctionMaxConcurrent}
-                      onChange={(e) => {
-                        const n = parseInt(e.target.value || "1", 10);
-                        if (!isNaN(n)) setAuctionMaxConcurrent(Math.max(1, Math.min(20, n)));
-                      }}
-                      className="h-9 w-20 font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div>
                   <Label>Concurrent nominations per team</Label>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    How many players each team can have on the block at once. As soon as one of their nominations is awarded, they get another turn — until they hit this cap. Capped by total concurrent ({auctionMaxConcurrent}).
+                    How many players each team can have on the block at once. As soon as one of their nominations is awarded, they get another turn — until they hit this cap. With {teamCount} teams, up to <span className="font-semibold text-foreground">{auctionConcurrentPerTeam * teamCount}</span> players can be on the block at the same time.
                   </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
                     {[1, 2, 3, 5].map((n) => (
@@ -568,26 +539,25 @@ function NewRoomPage() {
                         key={n}
                         label={`${n}`}
                         active={auctionConcurrentPerTeam === n}
-                        onClick={() => setAuctionConcurrentPerTeam(Math.min(n, auctionMaxConcurrent))}
+                        onClick={() => setAuctionConcurrentPerTeam(n)}
                       />
                     ))}
                     <Input
                       type="number"
                       min={1}
-                      max={Math.min(20, auctionMaxConcurrent)}
+                      max={20}
                       step={1}
-                      value={Math.min(auctionConcurrentPerTeam, auctionMaxConcurrent)}
+                      value={auctionConcurrentPerTeam}
                       onChange={(e) => {
                         const n = parseInt(e.target.value || "1", 10);
                         if (!isNaN(n))
-                          setAuctionConcurrentPerTeam(
-                            Math.max(1, Math.min(auctionMaxConcurrent, n)),
-                          );
+                          setAuctionConcurrentPerTeam(Math.max(1, Math.min(20, n)));
                       }}
                       className="h-9 w-20 font-bold"
                     />
                   </div>
                 </div>
+
 
                 <div>
                   <Label>Nominations per team</Label>
