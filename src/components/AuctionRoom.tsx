@@ -772,7 +772,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           </Tabs>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:h-[calc(100vh-220px)] lg:min-h-[600px]">
           {/* Player pool */}
           <div className={mobileTab === "players" ? "lg:flex lg:flex-col lg:h-full" : "hidden lg:flex lg:flex-col lg:h-full"}>
             <Card className="border-2 flex flex-col lg:flex-1 lg:min-h-0">
