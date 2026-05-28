@@ -617,6 +617,11 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               </Card>
             )}
 
+            <div
+              className={`grid gap-3 ${
+                activeNoms.length > 1 ? "md:grid-cols-2 xl:grid-cols-3" : ""
+              }`}
+            >
             {activeNoms.map((nom) => {
               const secondsLeft = secondsLeftByNom[nom.id] ?? 0;
               const isMyTop = myTeamIdx === nom.current_bidder_team_idx;
@@ -625,124 +630,112 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               const sug = valueByKey[looseKey(nom.player_id)];
               const delta = sug != null ? sug - nom.current_bid : null;
               return (
-                <Card key={nom.id} className="border-2 p-5">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex items-center gap-4">
-                      <PlayerAvatar
-                        name={nom.player_name}
-                        team={nom.player_team ?? ""}
-                        size={64}
-                      />
-                      <div>
-                        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                          On the block
-                        </div>
-                        <div className="text-xl font-black">{nom.player_name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {nom.player_position} · {nom.player_team}
-                        </div>
-                        {sug != null && delta != null && (
-                          <div className="mt-1.5 flex items-center gap-2">
-                            <Badge variant="outline" className="font-bold text-xs">
-                              Sug ${sug}
-                            </Badge>
-                            <span
-                              className={`text-xs font-bold ${
-                                delta > 0
-                                  ? "text-emerald-600 dark:text-emerald-400"
-                                  : delta < 0
-                                    ? "text-destructive"
-                                    : "text-muted-foreground"
-                              }`}
-                            >
-                              {delta > 0 ? `+$${delta} value` : delta < 0 ? `$${Math.abs(delta)} over` : "at value"}
-                            </span>
-                          </div>
+                <Card key={nom.id} className="border-2 p-3">
+                  <div className="flex items-center gap-3">
+                    <PlayerAvatar
+                      name={nom.player_name}
+                      team={nom.player_team ?? ""}
+                      size={44}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-black leading-tight">
+                        {nom.player_name}
+                      </div>
+                      <div className="truncate text-[11px] text-muted-foreground">
+                        {nom.player_position} · {nom.player_team}
+                        {sug != null && (
+                          <span className="ml-1.5 font-bold">· Sug ${sug}</span>
+                        )}
+                        {delta != null && delta !== 0 && (
+                          <span
+                            className={`ml-1 font-bold ${
+                              delta > 0
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-destructive"
+                            }`}
+                          >
+                            ({delta > 0 ? `+$${delta}` : `-$${Math.abs(delta)}`})
+                          </span>
                         )}
                       </div>
                     </div>
-
-                    <div className="flex flex-col items-start gap-1 lg:items-end">
-                      <div className="flex items-center gap-2">
-                        <Clock
-                          className={`h-5 w-5 ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
-                        />
-                        <span
-                          className={`text-2xl font-black tabular-nums ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
-                        >
-                          {String(Math.floor(secondsLeft / 3600)).padStart(2, "0")}:
-                          {String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, "0")}:
-                          {String(secondsLeft % 60).padStart(2, "0")}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm font-semibold">
-                        <DollarSign className="h-4 w-4 text-primary" />
-                        <span className="text-xl font-black tabular-nums text-primary">
-                          ${nom.current_bid}
-                        </span>
-                        <span className="text-muted-foreground">
-                          ·{" "}
-                          {participants.find(
-                            (p) => p.draft_position === nom.current_bidder_team_idx
-                          )?.team_name ?? `Team ${nom.current_bidder_team_idx}`}
-                        </span>
-                      </div>
+                    <div className="flex flex-col items-end shrink-0">
+                      <span
+                        className={`text-base font-black tabular-nums leading-none ${
+                          secondsLeft <= 10 ? "text-destructive" : "text-primary"
+                        }`}
+                      >
+                        {secondsLeft >= 3600
+                          ? `${Math.floor(secondsLeft / 3600)}:${String(
+                              Math.floor((secondsLeft % 3600) / 60),
+                            ).padStart(2, "0")}:${String(secondsLeft % 60).padStart(2, "0")}`
+                          : `${Math.floor(secondsLeft / 60)}:${String(
+                              secondsLeft % 60,
+                            ).padStart(2, "0")}`}
+                      </span>
+                      <span className="mt-0.5 text-lg font-black tabular-nums text-primary leading-none">
+                        ${nom.current_bid}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">
+                        {participants.find(
+                          (p) => p.draft_position === nom.current_bidder_team_idx,
+                        )?.team_name ?? `Team ${nom.current_bidder_team_idx}`}
+                      </span>
                     </div>
-
-                    {myTeamIdx && !isMyTop && myPickCount < totalSlots && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        {[1, 2, 5, 10].map((d) => {
-                          const amt = nom.current_bid + d;
-                          const disabled = amt > myMaxAffordable || actionBusy;
-                          return (
-                            <Button
-                              key={d}
-                              onClick={() => handleBid(nom.id, amt)}
-                              disabled={disabled}
-                              variant="outline"
-                              size="sm"
-                              className="font-bold"
-                            >
-                              +${d}
-                            </Button>
-                          );
-                        })}
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number"
-                            placeholder={`min $${minNextBid}`}
-                            value={bidAmount}
-                            onChange={(e) =>
-                              setBidAmountByNom((prev) => ({ ...prev, [nom.id]: e.target.value }))
-                            }
-                            className="h-9 w-24"
-                            min={minNextBid}
-                            max={myMaxAffordable}
-                          />
-                          <Button
-                            onClick={() => {
-                              const a = parseInt(bidAmount, 10);
-                              if (!isNaN(a)) handleBid(nom.id, a);
-                            }}
-                            disabled={actionBusy || !bidAmount}
-                            size="sm"
-                            className="font-bold"
-                          >
-                            Bid
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    {isMyTop && (
-                      <Badge className="font-bold">
-                        <Zap className="mr-1 inline h-3 w-3" />
-                        You hold the high bid
-                      </Badge>
-                    )}
                   </div>
+
+                  {myTeamIdx && !isMyTop && myPickCount < totalSlots && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      {[1, 2, 5, 10].map((d) => {
+                        const amt = nom.current_bid + d;
+                        const disabled = amt > myMaxAffordable || actionBusy;
+                        return (
+                          <Button
+                            key={d}
+                            onClick={() => handleBid(nom.id, amt)}
+                            disabled={disabled}
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 font-bold text-xs"
+                          >
+                            +${d}
+                          </Button>
+                        );
+                      })}
+                      <Input
+                        type="number"
+                        placeholder={`$${minNextBid}`}
+                        value={bidAmount}
+                        onChange={(e) =>
+                          setBidAmountByNom((prev) => ({ ...prev, [nom.id]: e.target.value }))
+                        }
+                        className="h-7 w-20 text-xs"
+                        min={minNextBid}
+                        max={myMaxAffordable}
+                      />
+                      <Button
+                        onClick={() => {
+                          const a = parseInt(bidAmount, 10);
+                          if (!isNaN(a)) handleBid(nom.id, a);
+                        }}
+                        disabled={actionBusy || !bidAmount}
+                        size="sm"
+                        className="h-7 px-2 font-bold text-xs"
+                      >
+                        Bid
+                      </Button>
+                    </div>
+                  )}
+                  {isMyTop && (
+                    <Badge className="mt-2 font-bold">
+                      <Zap className="mr-1 inline h-3 w-3" />
+                      You hold the high bid
+                    </Badge>
+                  )}
                 </Card>
               );
             })}
+            </div>
 
             {/* "Nominate next" hint when concurrency allows it */}
             {activeNoms.length > 0 && isMyNomination && (
@@ -826,37 +819,34 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <ul className="max-h-[60vh] lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto divide-y divide-border">
+                <ul className="max-h-[55vh] lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto divide-y divide-border">
                   {filteredPlayers.map((pl) => {
                     const sug = valueByKey[looseKey(pl.id)];
                     return (
                     <li
                       key={pl.id}
-                      className="flex items-center justify-between gap-3 px-4 py-2 hover:bg-muted/50"
+                      className="flex items-center justify-between gap-2 px-3 py-1.5 hover:bg-muted/50"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         <PlayerAvatar
                           name={pl.name}
                           team={pl.team}
                           nbaPlayerId={pl.nbaPlayerId}
-                          size={36}
+                          size={28}
                         />
-                        <div className="min-w-0">
-                          <div className="truncate font-bold">{pl.name}</div>
-                          <div className="text-xs text-muted-foreground">
+                        <div className="min-w-0 leading-tight">
+                          <div className="truncate text-sm font-bold">{pl.name}</div>
+                          <div className="text-[10px] text-muted-foreground">
                             {pl.position} · {pl.team}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         <div
                           className="text-right tabular-nums"
                           title="Suggested auction value (z-score, last season)"
                         >
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            Sug
-                          </div>
-                          <div className="text-sm font-black text-primary">
+                          <div className="text-sm font-black text-primary leading-none">
                             {sug != null ? `$${sug}` : "—"}
                           </div>
                         </div>
@@ -865,7 +855,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                             onClick={() => handleNominate(pl)}
                             size="sm"
                             disabled={actionBusy}
-                            className="font-bold"
+                            className="h-7 px-2 font-bold text-xs"
                           >
                             <Gavel className="h-3 w-3" /> Nominate
                           </Button>
