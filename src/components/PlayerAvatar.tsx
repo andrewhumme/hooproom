@@ -61,7 +61,7 @@ export function PlayerAvatar({
   const bg = TEAM_COLORS[team.toUpperCase()] ?? "oklch(0.4 0.05 250)";
   const [imgFailed, setImgFailed] = useState(false);
   const showImg = !!nbaPlayerId && !imgFailed;
-  const radiusClass = shape === "square" ? "rounded-xl" : "rounded-full";
+  const radiusClass = shape === "square" ? "rounded-md" : "rounded-full";
 
   return (
     <div
