@@ -667,6 +667,10 @@ function DraftRoomPage() {
             </div>
           </Card>
 
+          {room.auto_start_at && (
+            <LobbyCountdown deadline={room.auto_start_at} />
+          )}
+
           <Card className="mt-6 border-2 p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
@@ -675,11 +679,12 @@ function DraftRoomPage() {
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   {room.team_count - participants.length > 0
-                    ? `${room.team_count - participants.length} open seat${room.team_count - participants.length === 1 ? "" : "s"} — empty seats will autodraft when the host starts.`
+                    ? `${room.team_count - participants.length} open seat${room.team_count - participants.length === 1 ? "" : "s"} — empty seats will fill with bots when the draft starts.`
                     : "Room is full."}
                 </p>
               </div>
             </div>
+
 
             <ul className="divide-y divide-border">
               {Array.from({ length: room.team_count }).map((_, i) => {
