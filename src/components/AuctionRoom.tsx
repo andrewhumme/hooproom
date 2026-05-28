@@ -673,6 +673,21 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                       </ToggleGroupItem>
                     </ToggleGroup>
                   </div>
+                  {nomViewMode !== "all" && pageCount > 1 && (
+                    <div className="flex flex-wrap items-center gap-1">
+                      {Array.from({ length: pageCount }).map((_, i) => (
+                        <Button
+                          key={i}
+                          size="sm"
+                          variant={i === safePage ? "default" : "outline"}
+                          onClick={() => setNomPage(i)}
+                          className="h-7 px-2 text-xs font-bold"
+                        >
+                          {i * pageSize + 1}-{Math.min((i + 1) * pageSize, activeNoms.length)}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                   <div className={scrollCls}>
                     <div className={`grid gap-3 ${gridCls}`}>
                       {visibleNoms.map((nom) => {
