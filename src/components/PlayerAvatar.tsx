@@ -3,7 +3,7 @@
 // background. Headshot URL pattern:
 //   https://cdn.nba.com/headshots/nba/latest/1040x760/{nbaPlayerId}.png
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const TEAM_COLORS: Record<string, string> = {
   ATL: "oklch(0.55 0.20 25)",
@@ -60,6 +60,11 @@ export function PlayerAvatar({
 }) {
   const bg = TEAM_COLORS[team.toUpperCase()] ?? "oklch(0.4 0.05 250)";
   const [imgFailed, setImgFailed] = useState(false);
+
+  useEffect(() => {
+    setImgFailed(false);
+  }, [nbaPlayerId]);
+
   const showImg = !!nbaPlayerId && !imgFailed;
   const radiusClass = shape === "square" ? "rounded-md" : "rounded-full";
 
