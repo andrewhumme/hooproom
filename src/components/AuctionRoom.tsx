@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { getAuctionValuesServer } from "@/lib/auctionValues.functions";
