@@ -597,6 +597,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      auction_bot_bid_due: { Args: never; Returns: number }
       auction_bot_nominate_due: { Args: never; Returns: number }
       auction_next_nominator: { Args: { _room_id: string }; Returns: number }
       auction_nominate: {
