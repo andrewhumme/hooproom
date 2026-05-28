@@ -765,16 +765,7 @@ function DraftRoomPage() {
                     {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
                     Start draft
                   </Button>
-                  <Button
-                    onClick={handleAddBot}
-                    variant="outline"
-                    size="lg"
-                    className="font-bold"
-                    disabled={actionBusy || participants.length >= room.team_count}
-                    title="Fill an empty seat with a bot (nominates & autopicks)"
-                  >
-                    + Add bot
-                  </Button>
+                  {/* Empty seats auto-fill with bots when the host starts or the lobby timer expires. */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
