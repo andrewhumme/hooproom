@@ -1140,7 +1140,7 @@ function DraftRoomPage() {
                         className="flex min-w-0 flex-1 items-center gap-3 text-left transition hover:opacity-80"
                         title="View season stats"
                       >
-                        <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} />
+                        <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} shape="square" />
                         <div className="min-w-0">
                           <div className="truncate text-sm font-bold underline-offset-2 hover:underline">
                             {p.name}
