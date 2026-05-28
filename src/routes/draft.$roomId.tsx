@@ -1564,3 +1564,43 @@ function RosterSlotList({
     </ul>
   );
 }
+
+
+function LobbyCountdown({ deadline }: { deadline: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const ms = new Date(deadline).getTime() - now;
+  const expired = ms <= 0;
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const label = d > 0
+    ? `${d}d ${h}h ${m}m`
+    : h > 0
+      ? `${h}h ${m}m ${s}s`
+      : `${m}m ${s}s`;
+  return (
+    <Card className="mt-6 border-2 border-primary/40 bg-primary/5 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-xs font-black uppercase tracking-widest text-primary">
+            Lobby auto-start
+          </div>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {expired
+              ? "Starting any moment — empty seats are being filled with bots."
+              : "When this timer hits zero, any open seats fill with bots and the draft begins."}
+          </p>
+        </div>
+        <div className="font-mono text-xl font-black text-primary tabular-nums">
+          {expired ? "Starting…" : label}
+        </div>
+      </div>
+    </Card>
+  );
+}
