@@ -97,6 +97,7 @@ type Room = {
   slots_flx: number;
   slots_bn: number;
   reversal_rounds: number[] | null;
+  auto_start_at: string | null;
 };
 
 type Participant = {
