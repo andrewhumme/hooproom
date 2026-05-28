@@ -489,13 +489,10 @@ function DraftRoomPage() {
     if (error) setError(error.message);
   };
 
-  const handleAddBot = async () => {
-    setActionBusy(true);
-    setError(null);
-    const { error } = await supabase.rpc("add_bot_seat", { _room_id: roomId });
-    setActionBusy(false);
-    if (error) setError(error.message);
-  };
+  // Bots are now added automatically when the draft starts (manually by the
+  // host or via the lobby auto-start timer). The host can still remove a bot
+  // seat before the draft starts via handleRemoveBot below.
+
 
   const handleRemoveBot = async (participantId: string) => {
     setActionBusy(true);
