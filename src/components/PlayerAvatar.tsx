@@ -50,19 +50,22 @@ export function PlayerAvatar({
   team,
   size = 36,
   nbaPlayerId,
+  shape = "circle",
 }: {
   name: string;
   team: string;
   size?: number;
   nbaPlayerId?: number | null;
+  shape?: "circle" | "square";
 }) {
   const bg = TEAM_COLORS[team.toUpperCase()] ?? "oklch(0.4 0.05 250)";
   const [imgFailed, setImgFailed] = useState(false);
   const showImg = !!nbaPlayerId && !imgFailed;
+  const radiusClass = shape === "square" ? "rounded-xl" : "rounded-full";
 
   return (
     <div
-      className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-full font-black text-white"
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden font-black text-white ${radiusClass}`}
       style={{
         width: size,
         height: size,
@@ -86,4 +89,5 @@ export function PlayerAvatar({
     </div>
   );
 }
+
 
