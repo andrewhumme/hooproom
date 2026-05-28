@@ -813,6 +813,24 @@ function NewRoomPage() {
               onChange={setFormat}
             />
 
+            <div>
+              <Label>Lobby auto-start</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                How long to wait for humans to join. When the timer expires, any open seats fill with bots and the draft starts automatically. You can always start early — empty seats become bots.
+              </p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                {LOBBY_TIMER_OPTIONS.map((opt) => (
+                  <ClockChip
+                    key={opt.value}
+                    label={opt.label}
+                    active={lobbyTimerSec === opt.value}
+                    onClick={() => setLobbyTimerSec(opt.value)}
+                  />
+                ))}
+              </div>
+            </div>
+
+
             {error && (
               <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
