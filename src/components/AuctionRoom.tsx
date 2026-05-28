@@ -940,6 +940,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           team={pl.team}
                           nbaPlayerId={pl.nbaPlayerId}
                           size={28}
+                          shape="square"
                         />
                         <div className="min-w-0 leading-tight">
                           <div className="truncate text-sm font-bold underline-offset-2 hover:underline">
