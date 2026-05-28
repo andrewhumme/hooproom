@@ -147,16 +147,17 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader className="shrink-0">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {player && (
               <PlayerAvatar
                 name={player.name}
                 team={player.team ?? ""}
                 nbaPlayerId={player.nbaPlayerId ?? null}
+                size={72}
               />
             )}
-            <div className="min-w-0">
-              <DialogTitle className="text-lg font-black">
+            <div className="min-w-0 text-left">
+              <DialogTitle className="text-xl font-black">
                 {player?.name ?? "Player"}
               </DialogTitle>
               <DialogDescription>
