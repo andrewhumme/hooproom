@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { getAuctionValuesServer } from "@/lib/auctionValues.functions";
@@ -151,6 +152,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const [openingBid, setOpeningBid] = useState<string>("");
   const [nomViewMode, setNomViewMode] = useState<"condensed" | "expanded" | "all">("expanded");
   const [nomPage, setNomPage] = useState(0);
+  const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">(
     "players"
   );
@@ -389,6 +391,27 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   // ---- player filtering ----
   const draftedIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
   const onBlockIds = useMemo(() => new Set(activeNoms.map((n) => n.player_id)), [activeNoms]);
+  const playerById = useMemo(() => {
+    const m = new Map<string, DraftablePlayer>();
+    for (const p of players) m.set(p.id, p);
+    return m;
+  }, [players]);
+  const openStatsFor = useCallback(
+    (id: string, name: string, position: string | null, team: string | null) => {
+      const found = playerById.get(id);
+      setStatsPlayer(
+        found ?? {
+          id,
+          name,
+          position: position ?? "—",
+          team: team ?? "—",
+          teamFull: team ?? "Unknown team",
+          nbaPlayerId: null,
+        },
+      );
+    },
+    [playerById],
+  );
   const filteredPlayers = useMemo(() => {
     const q = search.toLowerCase().trim();
     return players
@@ -701,9 +724,21 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           <Card key={nom.id} className={`border-2 ${cardPad}`}>
                             <div className="flex items-center gap-3">
                               <div className="min-w-0 flex-1">
-                                <div className="truncate text-sm font-black leading-tight">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openStatsFor(
+                                      nom.player_id,
+                                      nom.player_name,
+                                      nom.player_position,
+                                      nom.player_team,
+                                    )
+                                  }
+                                  className="block w-full truncate text-left text-sm font-black leading-tight underline-offset-2 hover:underline"
+                                  title="View season stats"
+                                >
                                   {nom.player_name}
-                                </div>
+                                </button>
                                 <div className="truncate text-[11px] text-muted-foreground">
                                   {nom.player_position} · {nom.player_team}
                                   {sug != null && (
@@ -894,7 +929,12 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                       key={pl.id}
                       className="flex items-center justify-between gap-2 px-3 py-1.5 hover:bg-muted/50"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setStatsPlayer(pl)}
+                        className="flex items-center gap-2 min-w-0 text-left transition hover:opacity-80"
+                        title="View season stats"
+                      >
                         <PlayerAvatar
                           name={pl.name}
                           team={pl.team}
@@ -902,12 +942,14 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           size={28}
                         />
                         <div className="min-w-0 leading-tight">
-                          <div className="truncate text-sm font-bold">{pl.name}</div>
+                          <div className="truncate text-sm font-bold underline-offset-2 hover:underline">
+                            {pl.name}
+                          </div>
                           <div className="text-[10px] text-muted-foreground">
                             {pl.position} · {pl.team}
                           </div>
                         </div>
-                      </div>
+                      </button>
                       <div className="flex items-center gap-2 shrink-0">
                         <div
                           className="text-right tabular-nums"
@@ -1083,6 +1125,22 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           </Card>
         )}
       </main>
+
+      <PlayerStatsModal
+        open={!!statsPlayer}
+        onOpenChange={(o) => !o && setStatsPlayer(null)}
+        player={
+          statsPlayer
+            ? {
+                id: statsPlayer.id,
+                name: statsPlayer.name,
+                team: statsPlayer.team,
+                position: statsPlayer.position,
+                nbaPlayerId: statsPlayer.nbaPlayerId ?? null,
+              }
+            : null
+        }
+      />
     </div>
   );
 }
