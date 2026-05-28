@@ -18,6 +18,7 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Loader2 } from "lucide-react";
 import {
   fetchPlayerStatsServer,
+  fetchPlayerNbaIdServer,
   type PlayerSeasonStats,
 } from "@/lib/playerStats.functions";
 import {
