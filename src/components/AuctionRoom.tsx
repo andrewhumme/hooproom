@@ -150,6 +150,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const [bidAmountByNom, setBidAmountByNom] = useState<Record<string, string>>({});
   const [openingBid, setOpeningBid] = useState<string>("");
   const [nomViewMode, setNomViewMode] = useState<"condensed" | "expanded" | "all">("expanded");
+  const [nomPage, setNomPage] = useState(0);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">(
     "players"
   );
@@ -620,12 +621,13 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
             )}
 
             {activeNoms.length > 0 && (() => {
+              const pageSize =
+                nomViewMode === "condensed" ? 3 : nomViewMode === "expanded" ? 6 : activeNoms.length;
+              const pageCount = Math.max(1, Math.ceil(activeNoms.length / pageSize));
+              const safePage = Math.min(nomPage, pageCount - 1);
+              const start = safePage * pageSize;
               const visibleNoms =
-                nomViewMode === "condensed"
-                  ? activeNoms.slice(0, 3)
-                  : nomViewMode === "expanded"
-                    ? activeNoms.slice(0, 6)
-                    : activeNoms;
+                nomViewMode === "all" ? activeNoms : activeNoms.slice(start, start + pageSize);
               const scrollCls =
                 nomViewMode === "condensed"
                   ? "max-h-[280px] overflow-y-auto pr-1"
@@ -641,15 +643,16 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               const cardPad = nomViewMode === "condensed" ? "p-2" : "p-3";
               return (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                       On the block
                       <span className="ml-2 text-foreground">
                         {nomViewMode === "all"
                           ? activeNoms.length
-                          : `${Math.min(visibleNoms.length, activeNoms.length)} / ${activeNoms.length}`}
+                          : `${start + 1}-${Math.min(start + pageSize, activeNoms.length)} / ${activeNoms.length}`}
                       </span>
                     </div>
+
                     <ToggleGroup
                       type="single"
                       size="sm"
@@ -670,6 +673,21 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                       </ToggleGroupItem>
                     </ToggleGroup>
                   </div>
+                  {nomViewMode !== "all" && pageCount > 1 && (
+                    <div className="flex flex-wrap items-center gap-1">
+                      {Array.from({ length: pageCount }).map((_, i) => (
+                        <Button
+                          key={i}
+                          size="sm"
+                          variant={i === safePage ? "default" : "outline"}
+                          onClick={() => setNomPage(i)}
+                          className="h-7 px-2 text-xs font-bold"
+                        >
+                          {i * pageSize + 1}-{Math.min((i + 1) * pageSize, activeNoms.length)}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                   <div className={scrollCls}>
                     <div className={`grid gap-3 ${gridCls}`}>
                       {visibleNoms.map((nom) => {
