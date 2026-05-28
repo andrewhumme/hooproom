@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -148,6 +149,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const [posFilter, setPosFilter] = useState<(typeof POSITIONS)[number]>("ALL");
   const [bidAmountByNom, setBidAmountByNom] = useState<Record<string, string>>({});
   const [openingBid, setOpeningBid] = useState<string>("");
+  const [nomViewMode, setNomViewMode] = useState<"condensed" | "expanded" | "all">("expanded");
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">(
     "players"
   );
@@ -617,120 +619,172 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               </Card>
             )}
 
-            <div
-              className={`grid gap-3 ${
-                activeNoms.length > 1 ? "md:grid-cols-2 xl:grid-cols-3" : ""
-              }`}
-            >
-            {activeNoms.map((nom) => {
-              const secondsLeft = secondsLeftByNom[nom.id] ?? 0;
-              const isMyTop = myTeamIdx === nom.current_bidder_team_idx;
-              const minNextBid = nom.current_bid + 1;
-              const bidAmount = bidAmountByNom[nom.id] ?? "";
-              const sug = valueByKey[looseKey(nom.player_id)];
-              const delta = sug != null ? sug - nom.current_bid : null;
+            {activeNoms.length > 0 && (() => {
+              const visibleNoms =
+                nomViewMode === "condensed"
+                  ? activeNoms.slice(0, 3)
+                  : nomViewMode === "expanded"
+                    ? activeNoms.slice(0, 6)
+                    : activeNoms;
+              const scrollCls =
+                nomViewMode === "condensed"
+                  ? "max-h-[280px] overflow-y-auto pr-1"
+                  : nomViewMode === "expanded"
+                    ? "max-h-[600px] overflow-y-auto pr-1"
+                    : "";
+              const gridCls =
+                nomViewMode === "condensed"
+                  ? ""
+                  : visibleNoms.length > 1
+                    ? "md:grid-cols-2 xl:grid-cols-3"
+                    : "";
+              const cardPad = nomViewMode === "condensed" ? "p-2" : "p-3";
               return (
-                <Card key={nom.id} className="border-2 p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-black leading-tight">
-                        {nom.player_name}
-                      </div>
-                      <div className="truncate text-[11px] text-muted-foreground">
-                        {nom.player_position} · {nom.player_team}
-                        {sug != null && (
-                          <span className="ml-1.5 font-bold">· Sug ${sug}</span>
-                        )}
-                        {delta != null && delta !== 0 && (
-                          <span
-                            className={`ml-1 font-bold ${
-                              delta > 0
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : "text-destructive"
-                            }`}
-                          >
-                            ({delta > 0 ? `+$${delta}` : `-$${Math.abs(delta)}`})
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end shrink-0">
-                      <span
-                        className={`text-base font-black tabular-nums leading-none ${
-                          secondsLeft <= 10 ? "text-destructive" : "text-primary"
-                        }`}
-                      >
-                        {secondsLeft >= 3600
-                          ? `${Math.floor(secondsLeft / 3600)}:${String(
-                              Math.floor((secondsLeft % 3600) / 60),
-                            ).padStart(2, "0")}:${String(secondsLeft % 60).padStart(2, "0")}`
-                          : `${Math.floor(secondsLeft / 60)}:${String(
-                              secondsLeft % 60,
-                            ).padStart(2, "0")}`}
-                      </span>
-                      <span className="mt-0.5 text-lg font-black tabular-nums text-primary leading-none">
-                        ${nom.current_bid}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">
-                        {participants.find(
-                          (p) => p.draft_position === nom.current_bidder_team_idx,
-                        )?.team_name ?? `Team ${nom.current_bidder_team_idx}`}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      On the block
+                      <span className="ml-2 text-foreground">
+                        {nomViewMode === "all"
+                          ? activeNoms.length
+                          : `${Math.min(visibleNoms.length, activeNoms.length)} / ${activeNoms.length}`}
                       </span>
                     </div>
+                    <ToggleGroup
+                      type="single"
+                      size="sm"
+                      value={nomViewMode}
+                      onValueChange={(v) => {
+                        if (v) setNomViewMode(v as typeof nomViewMode);
+                      }}
+                      className="border rounded-md"
+                    >
+                      <ToggleGroupItem value="condensed" className="h-7 px-2 text-xs font-bold">
+                        Condensed
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="expanded" className="h-7 px-2 text-xs font-bold">
+                        Expanded
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="all" className="h-7 px-2 text-xs font-bold">
+                        All
+                      </ToggleGroupItem>
+                    </ToggleGroup>
                   </div>
-
-                  {myTeamIdx && !isMyTop && myPickCount < totalSlots && (
-                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                      {[1, 2, 5, 10].map((d) => {
-                        const amt = nom.current_bid + d;
-                        const disabled = amt > myMaxAffordable || actionBusy;
+                  <div className={scrollCls}>
+                    <div className={`grid gap-3 ${gridCls}`}>
+                      {visibleNoms.map((nom) => {
+                        const secondsLeft = secondsLeftByNom[nom.id] ?? 0;
+                        const isMyTop = myTeamIdx === nom.current_bidder_team_idx;
+                        const minNextBid = nom.current_bid + 1;
+                        const bidAmount = bidAmountByNom[nom.id] ?? "";
+                        const sug = valueByKey[looseKey(nom.player_id)];
+                        const delta = sug != null ? sug - nom.current_bid : null;
                         return (
-                          <Button
-                            key={d}
-                            onClick={() => handleBid(nom.id, amt)}
-                            disabled={disabled}
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-2 font-bold text-xs"
-                          >
-                            +${d}
-                          </Button>
+                          <Card key={nom.id} className={`border-2 ${cardPad}`}>
+                            <div className="flex items-center gap-3">
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate text-sm font-black leading-tight">
+                                  {nom.player_name}
+                                </div>
+                                <div className="truncate text-[11px] text-muted-foreground">
+                                  {nom.player_position} · {nom.player_team}
+                                  {sug != null && (
+                                    <span className="ml-1.5 font-bold">· Sug ${sug}</span>
+                                  )}
+                                  {delta != null && delta !== 0 && (
+                                    <span
+                                      className={`ml-1 font-bold ${
+                                        delta > 0
+                                          ? "text-emerald-600 dark:text-emerald-400"
+                                          : "text-destructive"
+                                      }`}
+                                    >
+                                      ({delta > 0 ? `+$${delta}` : `-$${Math.abs(delta)}`})
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end shrink-0">
+                                <span
+                                  className={`text-base font-black tabular-nums leading-none ${
+                                    secondsLeft <= 10 ? "text-destructive" : "text-primary"
+                                  }`}
+                                >
+                                  {secondsLeft >= 3600
+                                    ? `${Math.floor(secondsLeft / 3600)}:${String(
+                                        Math.floor((secondsLeft % 3600) / 60),
+                                      ).padStart(2, "0")}:${String(secondsLeft % 60).padStart(2, "0")}`
+                                    : `${Math.floor(secondsLeft / 60)}:${String(
+                                        secondsLeft % 60,
+                                      ).padStart(2, "0")}`}
+                                </span>
+                                <span className="mt-0.5 text-lg font-black tabular-nums text-primary leading-none">
+                                  ${nom.current_bid}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">
+                                  {participants.find(
+                                    (p) => p.draft_position === nom.current_bidder_team_idx,
+                                  )?.team_name ?? `Team ${nom.current_bidder_team_idx}`}
+                                </span>
+                              </div>
+                            </div>
+
+                            {myTeamIdx && !isMyTop && myPickCount < totalSlots && (
+                              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                {[1, 2, 5, 10].map((d) => {
+                                  const amt = nom.current_bid + d;
+                                  const disabled = amt > myMaxAffordable || actionBusy;
+                                  return (
+                                    <Button
+                                      key={d}
+                                      onClick={() => handleBid(nom.id, amt)}
+                                      disabled={disabled}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 px-2 font-bold text-xs"
+                                    >
+                                      +${d}
+                                    </Button>
+                                  );
+                                })}
+                                <Input
+                                  type="number"
+                                  placeholder={`$${minNextBid}`}
+                                  value={bidAmount}
+                                  onChange={(e) =>
+                                    setBidAmountByNom((prev) => ({ ...prev, [nom.id]: e.target.value }))
+                                  }
+                                  className="h-7 w-20 text-xs"
+                                  min={minNextBid}
+                                  max={myMaxAffordable}
+                                />
+                                <Button
+                                  onClick={() => {
+                                    const a = parseInt(bidAmount, 10);
+                                    if (!isNaN(a)) handleBid(nom.id, a);
+                                  }}
+                                  disabled={actionBusy || !bidAmount}
+                                  size="sm"
+                                  className="h-7 px-2 font-bold text-xs"
+                                >
+                                  Bid
+                                </Button>
+                              </div>
+                            )}
+                            {isMyTop && (
+                              <Badge className="mt-2 font-bold">
+                                <Zap className="mr-1 inline h-3 w-3" />
+                                You hold the high bid
+                              </Badge>
+                            )}
+                          </Card>
                         );
                       })}
-                      <Input
-                        type="number"
-                        placeholder={`$${minNextBid}`}
-                        value={bidAmount}
-                        onChange={(e) =>
-                          setBidAmountByNom((prev) => ({ ...prev, [nom.id]: e.target.value }))
-                        }
-                        className="h-7 w-20 text-xs"
-                        min={minNextBid}
-                        max={myMaxAffordable}
-                      />
-                      <Button
-                        onClick={() => {
-                          const a = parseInt(bidAmount, 10);
-                          if (!isNaN(a)) handleBid(nom.id, a);
-                        }}
-                        disabled={actionBusy || !bidAmount}
-                        size="sm"
-                        className="h-7 px-2 font-bold text-xs"
-                      >
-                        Bid
-                      </Button>
                     </div>
-                  )}
-                  {isMyTop && (
-                    <Badge className="mt-2 font-bold">
-                      <Zap className="mr-1 inline h-3 w-3" />
-                      You hold the high bid
-                    </Badge>
-                  )}
-                </Card>
+                  </div>
+                </div>
               );
-            })}
-            </div>
+            })()}
 
             {/* "Nominate next" hint when concurrency allows it */}
             {activeNoms.length > 0 && isMyNomination && (
