@@ -632,11 +632,6 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               return (
                 <Card key={nom.id} className="border-2 p-3">
                   <div className="flex items-center gap-3">
-                    <PlayerAvatar
-                      name={nom.player_name}
-                      team={nom.player_team ?? ""}
-                      size={44}
-                    />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-black leading-tight">
                         {nom.player_name}
