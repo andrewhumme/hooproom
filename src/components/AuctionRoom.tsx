@@ -1013,9 +1013,46 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
             )}
           </div>
 
-          {/* Right rail: budgets + my team */}
+          {/* Right rail: my team + budgets */}
           <div className={mobileTab !== "players" ? "lg:h-full lg:overflow-y-auto lg:pr-1" : "hidden lg:block lg:h-full lg:overflow-y-auto lg:pr-1"}>
-            <Card className="border-2 p-4">
+            {myTeamIdx && (
+              <Card className="border-2 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    My roster
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground">
+                    {myPickCount}/{totalSlots}
+                  </span>
+                </div>
+                {myPicks.length === 0 ? (
+                  <div className="text-sm italic text-muted-foreground">
+                    No picks yet
+                  </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {myPicks.map((p) => (
+                      <li
+                        key={p.id}
+                        className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1.5 text-sm"
+                      >
+                        <div className="min-w-0">
+                          <div className="truncate font-bold">{p.player_name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {p.player_position} · {p.player_team}
+                          </div>
+                        </div>
+                        <span className="font-black tabular-nums text-primary">
+                          ${p.auction_price ?? 0}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            )}
+
+            <Card className={`border-2 p-4 ${myTeamIdx ? "mt-4" : ""}`}>
               <div className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Team budgets
               </div>
@@ -1075,43 +1112,6 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                 })}
               </ul>
             </Card>
-
-            {myTeamIdx && (
-              <Card className="mt-4 border-2 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                    My roster
-                  </div>
-                  <span className="text-xs font-bold text-muted-foreground">
-                    {myPickCount}/{totalSlots}
-                  </span>
-                </div>
-                {myPicks.length === 0 ? (
-                  <div className="text-sm italic text-muted-foreground">
-                    No picks yet
-                  </div>
-                ) : (
-                  <ul className="space-y-1">
-                    {myPicks.map((p) => (
-                      <li
-                        key={p.id}
-                        className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1.5 text-sm"
-                      >
-                        <div className="min-w-0">
-                          <div className="truncate font-bold">{p.player_name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {p.player_position} · {p.player_team}
-                          </div>
-                        </div>
-                        <span className="font-black tabular-nums text-primary">
-                          ${p.auction_price ?? 0}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Card>
-            )}
           </div>
         </div>
 
