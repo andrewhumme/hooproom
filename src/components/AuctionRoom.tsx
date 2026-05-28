@@ -391,6 +391,27 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   // ---- player filtering ----
   const draftedIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
   const onBlockIds = useMemo(() => new Set(activeNoms.map((n) => n.player_id)), [activeNoms]);
+  const playerById = useMemo(() => {
+    const m = new Map<string, DraftablePlayer>();
+    for (const p of players) m.set(p.id, p);
+    return m;
+  }, [players]);
+  const openStatsFor = useCallback(
+    (id: string, name: string, position: string | null, team: string | null) => {
+      const found = playerById.get(id);
+      setStatsPlayer(
+        found ?? {
+          id,
+          name,
+          position: position ?? "—",
+          team: team ?? "—",
+          teamFull: team ?? "Unknown team",
+          nbaPlayerId: null,
+        },
+      );
+    },
+    [playerById],
+  );
   const filteredPlayers = useMemo(() => {
     const q = search.toLowerCase().trim();
     return players
