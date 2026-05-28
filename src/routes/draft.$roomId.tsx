@@ -97,6 +97,7 @@ type Room = {
   slots_flx: number;
   slots_bn: number;
   reversal_rounds: number[] | null;
+  auto_start_at: string | null;
 };
 
 type Participant = {
@@ -488,13 +489,10 @@ function DraftRoomPage() {
     if (error) setError(error.message);
   };
 
-  const handleAddBot = async () => {
-    setActionBusy(true);
-    setError(null);
-    const { error } = await supabase.rpc("add_bot_seat", { _room_id: roomId });
-    setActionBusy(false);
-    if (error) setError(error.message);
-  };
+  // Bots are now added automatically when the draft starts (manually by the
+  // host or via the lobby auto-start timer). The host can still remove a bot
+  // seat before the draft starts via handleRemoveBot below.
+
 
   const handleRemoveBot = async (participantId: string) => {
     setActionBusy(true);
@@ -507,10 +505,8 @@ function DraftRoomPage() {
   const handleStart = async () => {
     setActionBusy(true);
     setError(null);
-    const isAuction =
-      room?.draft_format === "auction" || room?.draft_format === "auction_slow";
-    const rpcName = isAuction ? "auction_start" : "start_draft";
-    const { error } = await supabase.rpc(rpcName, { _room_id: roomId });
+    // Fills any empty seats with bots and starts the draft (snake or auction).
+    const { error } = await supabase.rpc("host_start_with_bots", { _room_id: roomId });
     setActionBusy(false);
     if (error) setError(error.message);
   };
@@ -669,6 +665,10 @@ function DraftRoomPage() {
             </div>
           </Card>
 
+          {room.auto_start_at && (
+            <LobbyCountdown deadline={room.auto_start_at} />
+          )}
+
           <Card className="mt-6 border-2 p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
@@ -677,11 +677,12 @@ function DraftRoomPage() {
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   {room.team_count - participants.length > 0
-                    ? `${room.team_count - participants.length} open seat${room.team_count - participants.length === 1 ? "" : "s"} — empty seats will autodraft when the host starts.`
+                    ? `${room.team_count - participants.length} open seat${room.team_count - participants.length === 1 ? "" : "s"} — empty seats will fill with bots when the draft starts.`
                     : "Room is full."}
                 </p>
               </div>
             </div>
+
 
             <ul className="divide-y divide-border">
               {Array.from({ length: room.team_count }).map((_, i) => {
@@ -767,16 +768,7 @@ function DraftRoomPage() {
                     {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
                     Start draft
                   </Button>
-                  <Button
-                    onClick={handleAddBot}
-                    variant="outline"
-                    size="lg"
-                    className="font-bold"
-                    disabled={actionBusy || participants.length >= room.team_count}
-                    title="Fill an empty seat with a bot (nominates & autopicks)"
-                  >
-                    + Add bot
-                  </Button>
+                  {/* Empty seats auto-fill with bots when the host starts or the lobby timer expires. */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -1567,5 +1559,45 @@ function RosterSlotList({
         </li>
       ))}
     </ul>
+  );
+}
+
+
+function LobbyCountdown({ deadline }: { deadline: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const ms = new Date(deadline).getTime() - now;
+  const expired = ms <= 0;
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const label = d > 0
+    ? `${d}d ${h}h ${m}m`
+    : h > 0
+      ? `${h}h ${m}m ${s}s`
+      : `${m}m ${s}s`;
+  return (
+    <Card className="mt-6 border-2 border-primary/40 bg-primary/5 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-xs font-black uppercase tracking-widest text-primary">
+            Lobby auto-start
+          </div>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {expired
+              ? "Starting any moment — empty seats are being filled with bots."
+              : "When this timer hits zero, any open seats fill with bots and the draft begins."}
+          </p>
+        </div>
+        <div className="font-mono text-xl font-black text-primary tabular-nums">
+          {expired ? "Starting…" : label}
+        </div>
+      </div>
+    </Card>
   );
 }

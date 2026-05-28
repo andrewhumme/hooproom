@@ -50,6 +50,7 @@ const SCHEMA = z.object({
   slots_flx: z.number().int().min(0).max(10),
   slots_bn: z.number().int().min(0).max(15),
   reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
+  auto_start_at: z.string().nullable(),
 });
 
 const TEAM_OPTIONS = [6, 8, 10, 12, 14] as const;
@@ -87,6 +88,16 @@ const AUCTION_SLOW_CLOCK_OPTIONS = [
   { label: "24h", value: 24 * 3600 },
 ] as const;
 
+// Lobby fill timer — when to auto-fill empty seats with bots and start.
+const LOBBY_TIMER_OPTIONS = [
+  { label: "Off", value: 0, hint: "No auto-start" },
+  { label: "5 min", value: 5 * 60 },
+  { label: "10 min", value: 10 * 60 },
+  { label: "30 min", value: 30 * 60 },
+  { label: "1 hr", value: 60 * 60 },
+  { label: "24 hr", value: 24 * 60 * 60 },
+] as const;
+
 function formatClock(sec: number): string {
   return formatDuration(sec);
 }
@@ -113,6 +124,7 @@ function NewRoomPage() {
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
+  const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(10 * 60);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,6 +184,10 @@ function NewRoomPage() {
       slots_flx: slots.FLX,
       slots_bn: slots.BN,
       reversal_rounds: reversalsEnabled ? reversalRounds : [],
+      auto_start_at:
+        lobbyTimerSec > 0
+          ? new Date(Date.now() + lobbyTimerSec * 1000).toISOString()
+          : null,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
@@ -796,6 +812,24 @@ function NewRoomPage() {
               value={format}
               onChange={setFormat}
             />
+
+            <div>
+              <Label>Lobby auto-start</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                How long to wait for humans to join. When the timer expires, any open seats fill with bots and the draft starts automatically. You can always start early — empty seats become bots.
+              </p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                {LOBBY_TIMER_OPTIONS.map((opt) => (
+                  <ClockChip
+                    key={opt.value}
+                    label={opt.label}
+                    active={lobbyTimerSec === opt.value}
+                    onClick={() => setLobbyTimerSec(opt.value)}
+                  />
+                ))}
+              </div>
+            </div>
+
 
             {error && (
               <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

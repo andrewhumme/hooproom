@@ -272,6 +272,7 @@ export type Database = {
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
+          auto_start_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
@@ -308,6 +309,7 @@ export type Database = {
           auction_max_concurrent_nominations?: number
           auction_min_bid?: number
           auction_nominations_per_team?: number | null
+          auto_start_at?: string | null
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
@@ -344,6 +346,7 @@ export type Database = {
           auction_max_concurrent_nominations?: number
           auction_min_bid?: number
           auction_nominations_per_team?: number | null
+          auto_start_at?: string | null
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
@@ -644,6 +647,7 @@ export type Database = {
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
+          auto_start_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
@@ -683,6 +687,9 @@ export type Database = {
         Args: { _room: Database["public"]["Tables"]["draft_rooms"]["Row"] }
         Returns: number
       }
+      auto_fill_and_start: { Args: { _room_id: string }; Returns: undefined }
+      host_start_with_bots: { Args: { _room_id: string }; Returns: undefined }
+      lobby_autostart_due: { Args: never; Returns: number }
       make_pick: {
         Args: {
           _autopick?: boolean
@@ -724,6 +731,7 @@ export type Database = {
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
+          auto_start_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
@@ -770,6 +778,7 @@ export type Database = {
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
+          auto_start_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
@@ -816,6 +825,7 @@ export type Database = {
           auction_max_concurrent_nominations: number
           auction_min_bid: number
           auction_nominations_per_team: number | null
+          auto_start_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
