@@ -299,6 +299,25 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     });
   }, [secondsLeftByNom, activeNoms, room.id, isPaused]);
 
+  // ---- drive bot nominations + bids every few seconds so bots act in real time ----
+  useEffect(() => {
+    if (isPaused) return;
+    if (room.status !== "drafting") return;
+    let cancelled = false;
+    const runBots = async () => {
+      if (cancelled) return;
+      await supabase.rpc("auction_bot_nominate_due");
+      if (cancelled) return;
+      await supabase.rpc("auction_bot_bid_due");
+    };
+    runBots();
+    const interval = setInterval(runBots, 3000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [room.id, room.status, isPaused]);
+
   // ---- per-team budgets / rosters ----
   const teamSpent = useMemo(() => {
     const m = new Map<number, number>();
