@@ -149,6 +149,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const [posFilter, setPosFilter] = useState<(typeof POSITIONS)[number]>("ALL");
   const [bidAmountByNom, setBidAmountByNom] = useState<Record<string, string>>({});
   const [openingBid, setOpeningBid] = useState<string>("");
+  const [nomViewMode, setNomViewMode] = useState<"condensed" | "expanded" | "all">("expanded");
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">(
     "players"
   );
