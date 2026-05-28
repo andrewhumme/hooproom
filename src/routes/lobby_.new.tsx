@@ -88,6 +88,16 @@ const AUCTION_SLOW_CLOCK_OPTIONS = [
   { label: "24h", value: 24 * 3600 },
 ] as const;
 
+// Lobby fill timer — when to auto-fill empty seats with bots and start.
+const LOBBY_TIMER_OPTIONS = [
+  { label: "Off", value: 0, hint: "No auto-start" },
+  { label: "5 min", value: 5 * 60 },
+  { label: "10 min", value: 10 * 60 },
+  { label: "30 min", value: 30 * 60 },
+  { label: "1 hr", value: 60 * 60 },
+  { label: "24 hr", value: 24 * 60 * 60 },
+] as const;
+
 function formatClock(sec: number): string {
   return formatDuration(sec);
 }
