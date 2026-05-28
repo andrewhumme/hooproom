@@ -215,10 +215,12 @@ export const fetchPlayerStatsServer = createServerFn({ method: "GET" })
 export const fetchPlayerNbaIdServer = createServerFn({ method: "GET" })
   .inputValidator((data: { playerKey: string }) => data)
   .handler(async ({ data }): Promise<number | null> => {
+    const targetLooseKey = looseKey(data.playerKey);
+
     const { data: row } = await supabaseAdmin
       .from("players")
-      .select("nba_player_id")
-      .eq("player_key", data.playerKey)
+      .select("nba_player_id, player_key, loose_key")
+      .or(`player_key.eq.${data.playerKey},loose_key.eq.${targetLooseKey}`)
       .maybeSingle();
     return (row?.nba_player_id as number | null) ?? null;
   });
