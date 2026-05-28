@@ -167,8 +167,10 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
                 team={player.team ?? ""}
                 nbaPlayerId={effectiveNbaId}
                 size={72}
+                shape="square"
               />
             )}
+
             <div className="min-w-0 text-left">
               <DialogTitle className="text-xl font-black">
                 {player?.name ?? "Player"}
