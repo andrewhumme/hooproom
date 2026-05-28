@@ -18,6 +18,7 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Loader2 } from "lucide-react";
 import {
   fetchPlayerStatsServer,
+  fetchPlayerNbaIdServer,
   type PlayerSeasonStats,
 } from "@/lib/playerStats.functions";
 import {
@@ -99,6 +100,8 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
   const [err, setErr] = useState<string | null>(null);
   const [trendStat, setTrendStat] = useState<StatKey>("pts");
 
+  const propNbaId = player?.nbaPlayerId ?? null;
+  const [resolvedNbaId, setResolvedNbaId] = useState<number | null>(null);
   const playerKey = player?.id ?? null;
   useEffect(() => {
     if (!open || !playerKey) return;
@@ -106,6 +109,7 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
     setLoading(true);
     setErr(null);
     setStats(null);
+    setResolvedNbaId(null);
     fetchPlayerStatsServer({ data: { playerKey } })
       .then((rows) => {
         if (!cancelled) setStats(rows);
@@ -116,10 +120,19 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+    if (propNbaId == null) {
+      fetchPlayerNbaIdServer({ data: { playerKey } })
+        .then((id) => {
+          if (!cancelled) setResolvedNbaId(id);
+        })
+        .catch(() => {});
+    }
     return () => {
       cancelled = true;
     };
-  }, [open, playerKey]);
+  }, [open, playerKey, propNbaId]);
+
+  const effectiveNbaId = propNbaId ?? resolvedNbaId;
 
   const trendMeta = useMemo(
     () => STAT_OPTIONS.find((s) => s.key === trendStat) ?? STAT_OPTIONS[0],
@@ -152,7 +165,7 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
               <PlayerAvatar
                 name={player.name}
                 team={player.team ?? ""}
-                nbaPlayerId={player.nbaPlayerId ?? null}
+                nbaPlayerId={effectiveNbaId}
                 size={72}
               />
             )}

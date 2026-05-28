@@ -212,6 +212,17 @@ export const fetchPlayerStatsServer = createServerFn({ method: "GET" })
     return (rows ?? []) as PlayerSeasonStats[];
   });
 
+export const fetchPlayerNbaIdServer = createServerFn({ method: "GET" })
+  .inputValidator((data: { playerKey: string }) => data)
+  .handler(async ({ data }): Promise<number | null> => {
+    const { data: row } = await supabaseAdmin
+      .from("players")
+      .select("nba_player_id")
+      .eq("player_key", data.playerKey)
+      .maybeSingle();
+    return (row?.nba_player_id as number | null) ?? null;
+  });
+
 export const fetchLatestStatsForPlayersServer = createServerFn({ method: "POST" })
   .inputValidator((data: { playerKeys: string[] }) => data)
   .handler(
