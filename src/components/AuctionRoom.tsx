@@ -1125,6 +1125,22 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           </Card>
         )}
       </main>
+
+      <PlayerStatsModal
+        open={!!statsPlayer}
+        onOpenChange={(o) => !o && setStatsPlayer(null)}
+        player={
+          statsPlayer
+            ? {
+                id: statsPlayer.id,
+                name: statsPlayer.name,
+                team: statsPlayer.team,
+                position: statsPlayer.position,
+                nbaPlayerId: statsPlayer.nbaPlayerId ?? null,
+              }
+            : null
+        }
+      />
     </div>
   );
 }
