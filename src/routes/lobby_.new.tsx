@@ -184,6 +184,10 @@ function NewRoomPage() {
       slots_flx: slots.FLX,
       slots_bn: slots.BN,
       reversal_rounds: reversalsEnabled ? reversalRounds : [],
+      auto_start_at:
+        lobbyTimerSec > 0
+          ? new Date(Date.now() + lobbyTimerSec * 1000).toISOString()
+          : null,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
