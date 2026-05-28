@@ -724,9 +724,21 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           <Card key={nom.id} className={`border-2 ${cardPad}`}>
                             <div className="flex items-center gap-3">
                               <div className="min-w-0 flex-1">
-                                <div className="truncate text-sm font-black leading-tight">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openStatsFor(
+                                      nom.player_id,
+                                      nom.player_name,
+                                      nom.player_position,
+                                      nom.player_team,
+                                    )
+                                  }
+                                  className="block w-full truncate text-left text-sm font-black leading-tight underline-offset-2 hover:underline"
+                                  title="View season stats"
+                                >
                                   {nom.player_name}
-                                </div>
+                                </button>
                                 <div className="truncate text-[11px] text-muted-foreground">
                                   {nom.player_position} · {nom.player_team}
                                   {sug != null && (
