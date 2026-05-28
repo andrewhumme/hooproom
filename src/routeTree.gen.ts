@@ -16,6 +16,7 @@ import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
 import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
 import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
+import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
 import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
 
 const LobbyRoute = LobbyRouteImport.update({
@@ -53,6 +54,11 @@ const ApiPublicSeedStatsRoute = ApiPublicSeedStatsRouteImport.update({
   path: '/api/public/seed-stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLobbyTickRoute = ApiPublicLobbyTickRouteImport.update({
+  id: '/api/public/lobby-tick',
+  path: '/api/public/lobby-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAuctionTickRoute = ApiPublicAuctionTickRouteImport.update({
   id: '/api/public/auction-tick',
   path: '/api/public/auction-tick',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
+  '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
+  '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby_/new': typeof LobbyNewRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
+  '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/draft/$roomId'
     | '/lobby/new'
     | '/api/public/auction-tick'
+    | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/draft/$roomId'
     | '/lobby/new'
     | '/api/public/auction-tick'
+    | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/draft/$roomId'
     | '/lobby_/new'
     | '/api/public/auction-tick'
+    | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   DraftRoomIdRoute: typeof DraftRoomIdRoute
   LobbyNewRoute: typeof LobbyNewRoute
   ApiPublicAuctionTickRoute: typeof ApiPublicAuctionTickRoute
+  ApiPublicLobbyTickRoute: typeof ApiPublicLobbyTickRoute
   ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
   ApiPublicSnakeTickRoute: typeof ApiPublicSnakeTickRoute
 }
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSeedStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/lobby-tick': {
+      id: '/api/public/lobby-tick'
+      path: '/api/public/lobby-tick'
+      fullPath: '/api/public/lobby-tick'
+      preLoaderRoute: typeof ApiPublicLobbyTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/auction-tick': {
       id: '/api/public/auction-tick'
       path: '/api/public/auction-tick'
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   DraftRoomIdRoute: DraftRoomIdRoute,
   LobbyNewRoute: LobbyNewRoute,
   ApiPublicAuctionTickRoute: ApiPublicAuctionTickRoute,
+  ApiPublicLobbyTickRoute: ApiPublicLobbyTickRoute,
   ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,
   ApiPublicSnakeTickRoute: ApiPublicSnakeTickRoute,
 }
