@@ -25,7 +25,18 @@ export const Route = createFileRoute("/api/public/auction-tick")({
           if (nomErr) {
             console.error("auction_bot_nominate_due error", nomErr);
           }
-          return Response.json({ ok: true, awarded: awarded ?? 0, nominated: nominated ?? 0 });
+          const { data: botBids, error: bidErr } = await supabaseAdmin.rpc(
+            "auction_bot_bid_due",
+          );
+          if (bidErr) {
+            console.error("auction_bot_bid_due error", bidErr);
+          }
+          return Response.json({
+            ok: true,
+            awarded: awarded ?? 0,
+            nominated: nominated ?? 0,
+            botBids: botBids ?? 0,
+          });
         } catch (e) {
           console.error("auction-tick crashed", e);
           return new Response(
