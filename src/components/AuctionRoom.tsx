@@ -819,37 +819,34 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <ul className="max-h-[60vh] lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto divide-y divide-border">
+                <ul className="max-h-[55vh] lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto divide-y divide-border">
                   {filteredPlayers.map((pl) => {
                     const sug = valueByKey[looseKey(pl.id)];
                     return (
                     <li
                       key={pl.id}
-                      className="flex items-center justify-between gap-3 px-4 py-2 hover:bg-muted/50"
+                      className="flex items-center justify-between gap-2 px-3 py-1.5 hover:bg-muted/50"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         <PlayerAvatar
                           name={pl.name}
                           team={pl.team}
                           nbaPlayerId={pl.nbaPlayerId}
-                          size={36}
+                          size={28}
                         />
-                        <div className="min-w-0">
-                          <div className="truncate font-bold">{pl.name}</div>
-                          <div className="text-xs text-muted-foreground">
+                        <div className="min-w-0 leading-tight">
+                          <div className="truncate text-sm font-bold">{pl.name}</div>
+                          <div className="text-[10px] text-muted-foreground">
                             {pl.position} · {pl.team}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         <div
                           className="text-right tabular-nums"
                           title="Suggested auction value (z-score, last season)"
                         >
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            Sug
-                          </div>
-                          <div className="text-sm font-black text-primary">
+                          <div className="text-sm font-black text-primary leading-none">
                             {sug != null ? `$${sug}` : "—"}
                           </div>
                         </div>
@@ -858,7 +855,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                             onClick={() => handleNominate(pl)}
                             size="sm"
                             disabled={actionBusy}
-                            className="font-bold"
+                            className="h-7 px-2 font-bold text-xs"
                           >
                             <Gavel className="h-3 w-3" /> Nominate
                           </Button>
