@@ -819,7 +819,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <ul className="max-h-[55vh] lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto divide-y divide-border">
+                <ul className="max-h-[380px] lg:max-h-[520px] overflow-y-auto divide-y divide-border">
                   {filteredPlayers.map((pl) => {
                     const sug = valueByKey[looseKey(pl.id)];
                     return (
