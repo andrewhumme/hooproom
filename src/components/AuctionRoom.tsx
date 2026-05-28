@@ -917,7 +917,12 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                       key={pl.id}
                       className="flex items-center justify-between gap-2 px-3 py-1.5 hover:bg-muted/50"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setStatsPlayer(pl)}
+                        className="flex items-center gap-2 min-w-0 text-left transition hover:opacity-80"
+                        title="View season stats"
+                      >
                         <PlayerAvatar
                           name={pl.name}
                           team={pl.team}
@@ -925,12 +930,14 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           size={28}
                         />
                         <div className="min-w-0 leading-tight">
-                          <div className="truncate text-sm font-bold">{pl.name}</div>
+                          <div className="truncate text-sm font-bold underline-offset-2 hover:underline">
+                            {pl.name}
+                          </div>
                           <div className="text-[10px] text-muted-foreground">
                             {pl.position} · {pl.team}
                           </div>
                         </div>
-                      </div>
+                      </button>
                       <div className="flex items-center gap-2 shrink-0">
                         <div
                           className="text-right tabular-nums"
