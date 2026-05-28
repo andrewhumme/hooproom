@@ -124,6 +124,7 @@ function NewRoomPage() {
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
+  const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(10 * 60);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
