@@ -316,9 +316,10 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                         tickLine={false}
-                        domain={["auto", "auto"]}
+                        domain={yDomain}
+                        ticks={yTicks}
                         tickFormatter={(v) =>
-                          trendMeta.isPct ? `${v}%` : String(v)
+                          trendMeta.isPct ? `${v}%` : Number(v).toFixed(1)
                         }
                       />
                       <Tooltip
@@ -335,14 +336,16 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
                         ]}
                       />
                       <Line
-                        type="monotone"
+                        type="linear"
                         dataKey="value"
                         stroke="hsl(var(--primary))"
                         strokeWidth={3}
-                        dot={{ r: 5, fill: "hsl(var(--primary))" }}
+                        dot={{ r: 5, fill: "hsl(var(--primary))", stroke: "hsl(var(--primary))" }}
                         activeDot={{ r: 7 }}
+                        isAnimationActive={false}
                         connectNulls
                       />
+
                     </LineChart>
                   </ResponsiveContainer>
                 )}
