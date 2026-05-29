@@ -156,6 +156,25 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
       });
   }, [stats, trendStat, trendMeta]);
 
+  // Y-axis ticks at full + half increments (e.g. 0, 0.5, 1, 1.5 ...).
+  // For percentages, step every 5%.
+  const { yDomain, yTicks } = useMemo(() => {
+    const nums = chartData
+      .map((d) => d.value)
+      .filter((v): v is number => v != null);
+    if (nums.length === 0) return { yDomain: [0, 1] as [number, number], yTicks: [0, 0.5, 1] };
+    const step = trendMeta.isPct ? 5 : 0.5;
+    const rawMin = Math.min(...nums);
+    const rawMax = Math.max(...nums);
+    const min = Math.max(0, Math.floor(rawMin / step) * step);
+    const max = Math.ceil((rawMax + step * 0.001) / step) * step;
+    const ticks: number[] = [];
+    for (let v = min; v <= max + 1e-9; v += step) {
+      ticks.push(Number(v.toFixed(2)));
+    }
+    return { yDomain: [min, max] as [number, number], yTicks: ticks };
+  }, [chartData, trendMeta]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
@@ -297,9 +316,10 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                         tickLine={false}
-                        domain={["auto", "auto"]}
+                        domain={yDomain}
+                        ticks={yTicks}
                         tickFormatter={(v) =>
-                          trendMeta.isPct ? `${v}%` : String(v)
+                          trendMeta.isPct ? `${v}%` : Number(v).toFixed(1)
                         }
                       />
                       <Tooltip
@@ -316,14 +336,16 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
                         ]}
                       />
                       <Line
-                        type="monotone"
+                        type="linear"
                         dataKey="value"
                         stroke="hsl(var(--primary))"
                         strokeWidth={3}
-                        dot={{ r: 5, fill: "hsl(var(--primary))" }}
+                        dot={{ r: 5, fill: "hsl(var(--primary))", stroke: "hsl(var(--primary))" }}
                         activeDot={{ r: 7 }}
+                        isAnimationActive={false}
                         connectNulls
                       />
+
                     </LineChart>
                   </ResponsiveContainer>
                 )}
