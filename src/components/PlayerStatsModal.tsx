@@ -156,6 +156,25 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
       });
   }, [stats, trendStat, trendMeta]);
 
+  // Y-axis ticks at full + half increments (e.g. 0, 0.5, 1, 1.5 ...).
+  // For percentages, step every 5%.
+  const { yDomain, yTicks } = useMemo(() => {
+    const nums = chartData
+      .map((d) => d.value)
+      .filter((v): v is number => v != null);
+    if (nums.length === 0) return { yDomain: [0, 1] as [number, number], yTicks: [0, 0.5, 1] };
+    const step = trendMeta.isPct ? 5 : 0.5;
+    const rawMin = Math.min(...nums);
+    const rawMax = Math.max(...nums);
+    const min = Math.max(0, Math.floor(rawMin / step) * step);
+    const max = Math.ceil((rawMax + step * 0.001) / step) * step;
+    const ticks: number[] = [];
+    for (let v = min; v <= max + 1e-9; v += step) {
+      ticks.push(Number(v.toFixed(2)));
+    }
+    return { yDomain: [min, max] as [number, number], yTicks: ticks };
+  }, [chartData, trendMeta]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
