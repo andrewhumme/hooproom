@@ -276,7 +276,7 @@ function KeepersPanel({
       _player_name: player.name,
       _player_position: player.position ?? null,
       _player_team: player.team ?? null,
-      _keeper_round: keeperRound,
+      _keeper_round: keeperRound as number,
     });
     if (error) onError(error.message);
   };
