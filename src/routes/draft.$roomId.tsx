@@ -13,6 +13,7 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
 import { DraftQueuePanel } from "@/components/DraftQueuePanel";
+import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
 import { useDraftQueue } from "@/hooks/useDraftQueue";
 import {
   Dialog,
