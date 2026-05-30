@@ -349,7 +349,8 @@ function KeepersPanel({
                                 name: k.player_name,
                                 position: k.player_position ?? "",
                                 team: k.player_team ?? "",
-                              } as DraftablePlayer,
+                                teamFull: k.player_team ?? "",
+                              },
                               round,
                             );
                           }}
