@@ -229,7 +229,7 @@ function DraftRoomPage() {
   // ------- Load player pool when draft starts -------
   const playersFetchedRef = useRef(false);
   useEffect(() => {
-    if (!room || room.status === "waiting") return;
+    if (!room) return;
     if (playersFetchedRef.current) return;
     playersFetchedRef.current = true;
     setPlayersLoading(true);
