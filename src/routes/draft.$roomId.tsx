@@ -803,6 +803,22 @@ function DraftRoomPage() {
               )}
             </div>
           </Card>
+
+          {isHost && (
+            <RoomCommissionerTools
+              roomId={roomId}
+              teamCount={room.team_count}
+              rounds={room.rounds}
+              reversalRounds={room.reversal_rounds ?? []}
+              draftFormat={room.draft_format}
+              participants={participants.map((p) => ({
+                id: p.id,
+                team_name: p.team_name,
+                is_bot: p.is_bot,
+              }))}
+              players={players}
+            />
+          )}
         </main>
       </div>
     );
