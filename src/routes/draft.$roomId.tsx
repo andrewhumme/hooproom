@@ -13,6 +13,7 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
 import { DraftQueuePanel } from "@/components/DraftQueuePanel";
+import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
 import { useDraftQueue } from "@/hooks/useDraftQueue";
 import {
   Dialog,
@@ -229,7 +230,7 @@ function DraftRoomPage() {
   // ------- Load player pool when draft starts -------
   const playersFetchedRef = useRef(false);
   useEffect(() => {
-    if (!room || room.status === "waiting") return;
+    if (!room) return;
     if (playersFetchedRef.current) return;
     playersFetchedRef.current = true;
     setPlayersLoading(true);
@@ -802,6 +803,22 @@ function DraftRoomPage() {
               )}
             </div>
           </Card>
+
+          {isHost && (
+            <RoomCommissionerTools
+              roomId={roomId}
+              teamCount={room.team_count}
+              rounds={room.rounds}
+              reversalRounds={room.reversal_rounds ?? []}
+              draftFormat={room.draft_format}
+              participants={participants.map((p) => ({
+                id: p.id,
+                team_name: p.team_name,
+                is_bot: p.is_bot,
+              }))}
+              players={players}
+            />
+          )}
         </main>
       </div>
     );
