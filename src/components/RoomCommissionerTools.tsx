@@ -231,6 +231,7 @@ function KeepersPanel({
   participants,
   players,
   onError,
+  onChanged,
 }: {
   roomId: string;
   teamCount: number;
@@ -239,6 +240,7 @@ function KeepersPanel({
   participants: Participant[];
   players: DraftablePlayer[];
   onError: (msg: string | null) => void;
+  onChanged: () => void | Promise<void>;
 }) {
   const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
   const [search, setSearch] = useState("");
