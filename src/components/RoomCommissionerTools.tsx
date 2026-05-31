@@ -174,6 +174,7 @@ export function RoomCommissionerTools({
             participants={participants}
             players={players}
             onError={setError}
+            onChanged={load}
           />
         )}
       </Card>
