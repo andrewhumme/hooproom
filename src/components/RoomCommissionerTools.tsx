@@ -280,7 +280,8 @@ function KeepersPanel({
       _player_team: player.team ?? null,
       _keeper_round: keeperRound as number,
     });
-    if (error) onError(error.message);
+    if (error) { onError(error.message); return; }
+    await onChanged();
   };
 
   const remove = async (playerId: string) => {
@@ -289,7 +290,8 @@ function KeepersPanel({
       _room_id: roomId,
       _player_id: playerId,
     });
-    if (error) onError(error.message);
+    if (error) { onError(error.message); return; }
+    await onChanged();
   };
 
   return (
