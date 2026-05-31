@@ -83,26 +83,24 @@ export function RoomCommissionerTools({
 
   const isSnake = draftFormat === "snake";
 
-  // Load + subscribe
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      const [k, a] = await Promise.all([
-        supabase.from("room_keepers").select("*").eq("room_id", roomId),
-        supabase.from("draft_pick_assignments").select("*").eq("room_id", roomId),
-      ]);
-      if (!mounted) return;
-      if (k.data) setKeepers(k.data as Keeper[]);
-      if (a.data) setAssignments(a.data as PickAssignment[]);
-    };
-    load();
+  // Load (also called after each mutation for instant feedback)
+  const load = async () => {
+    const [k, a] = await Promise.all([
+      supabase.from("room_keepers").select("*").eq("room_id", roomId),
+      supabase.from("draft_pick_assignments").select("*").eq("room_id", roomId),
+    ]);
+    if (k.data) setKeepers(k.data as Keeper[]);
+    if (a.data) setAssignments(a.data as PickAssignment[]);
+  };
 
+  useEffect(() => {
+    load();
     const ch = supabase
       .channel(`commish-${roomId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "room_keepers", filter: `room_id=eq.${roomId}` },
-        load,
+        () => load(),
       )
       .on(
         "postgres_changes",
@@ -112,13 +110,13 @@ export function RoomCommissionerTools({
           table: "draft_pick_assignments",
           filter: `room_id=eq.${roomId}`,
         },
-        load,
+        () => load(),
       )
       .subscribe();
     return () => {
-      mounted = false;
       supabase.removeChannel(ch);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   const teamName = (idx: number) =>
