@@ -83,26 +83,24 @@ export function RoomCommissionerTools({
 
   const isSnake = draftFormat === "snake";
 
-  // Load + subscribe
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      const [k, a] = await Promise.all([
-        supabase.from("room_keepers").select("*").eq("room_id", roomId),
-        supabase.from("draft_pick_assignments").select("*").eq("room_id", roomId),
-      ]);
-      if (!mounted) return;
-      if (k.data) setKeepers(k.data as Keeper[]);
-      if (a.data) setAssignments(a.data as PickAssignment[]);
-    };
-    load();
+  // Load (also called after each mutation for instant feedback)
+  const load = async () => {
+    const [k, a] = await Promise.all([
+      supabase.from("room_keepers").select("*").eq("room_id", roomId),
+      supabase.from("draft_pick_assignments").select("*").eq("room_id", roomId),
+    ]);
+    if (k.data) setKeepers(k.data as Keeper[]);
+    if (a.data) setAssignments(a.data as PickAssignment[]);
+  };
 
+  useEffect(() => {
+    load();
     const ch = supabase
       .channel(`commish-${roomId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "room_keepers", filter: `room_id=eq.${roomId}` },
-        load,
+        () => load(),
       )
       .on(
         "postgres_changes",
@@ -112,13 +110,13 @@ export function RoomCommissionerTools({
           table: "draft_pick_assignments",
           filter: `room_id=eq.${roomId}`,
         },
-        load,
+        () => load(),
       )
       .subscribe();
     return () => {
-      mounted = false;
       supabase.removeChannel(ch);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   const teamName = (idx: number) =>
@@ -176,6 +174,7 @@ export function RoomCommissionerTools({
             participants={participants}
             players={players}
             onError={setError}
+            onChanged={load}
           />
         )}
       </Card>
@@ -215,6 +214,7 @@ export function RoomCommissionerTools({
             assignments={assignments}
             teamName={teamName}
             onError={setError}
+            onChanged={load}
           />
         )}
       </Card>
@@ -231,6 +231,7 @@ function KeepersPanel({
   participants,
   players,
   onError,
+  onChanged,
 }: {
   roomId: string;
   teamCount: number;
@@ -239,6 +240,7 @@ function KeepersPanel({
   participants: Participant[];
   players: DraftablePlayer[];
   onError: (msg: string | null) => void;
+  onChanged: () => void | Promise<void>;
 }) {
   const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
   const [search, setSearch] = useState("");
@@ -278,7 +280,8 @@ function KeepersPanel({
       _player_team: player.team ?? null,
       _keeper_round: keeperRound as number,
     });
-    if (error) onError(error.message);
+    if (error) { onError(error.message); return; }
+    await onChanged();
   };
 
   const remove = async (playerId: string) => {
@@ -287,7 +290,8 @@ function KeepersPanel({
       _room_id: roomId,
       _player_id: playerId,
     });
-    if (error) onError(error.message);
+    if (error) { onError(error.message); return; }
+    await onChanged();
   };
 
   return (
@@ -455,6 +459,7 @@ function CustomPicksPanel({
   assignments,
   teamName,
   onError,
+  onChanged,
 }: {
   roomId: string;
   teamCount: number;
@@ -463,6 +468,7 @@ function CustomPicksPanel({
   assignments: PickAssignment[];
   teamName: (idx: number) => string;
   onError: (msg: string | null) => void;
+  onChanged: () => void | Promise<void>;
 }) {
   const assignmentMap = useMemo(() => {
     const m = new Map<number, number>();
@@ -477,7 +483,8 @@ function CustomPicksPanel({
       _pick_number: pickNumber,
       _team_idx: teamIdx,
     });
-    if (error) onError(error.message);
+    if (error) { onError(error.message); return; }
+    await onChanged();
   };
 
   const resetPick = async (pickNumber: number) => {
@@ -486,7 +493,8 @@ function CustomPicksPanel({
       _room_id: roomId,
       _pick_number: pickNumber,
     });
-    if (error) onError(error.message);
+    if (error) { onError(error.message); return; }
+    await onChanged();
   };
 
   return (
