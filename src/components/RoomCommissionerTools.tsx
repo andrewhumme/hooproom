@@ -459,6 +459,7 @@ function CustomPicksPanel({
   assignments,
   teamName,
   onError,
+  onChanged,
 }: {
   roomId: string;
   teamCount: number;
@@ -467,6 +468,7 @@ function CustomPicksPanel({
   assignments: PickAssignment[];
   teamName: (idx: number) => string;
   onError: (msg: string | null) => void;
+  onChanged: () => void | Promise<void>;
 }) {
   const assignmentMap = useMemo(() => {
     const m = new Map<number, number>();
@@ -481,7 +483,8 @@ function CustomPicksPanel({
       _pick_number: pickNumber,
       _team_idx: teamIdx,
     });
-    if (error) onError(error.message);
+    if (error) { onError(error.message); return; }
+    await onChanged();
   };
 
   const resetPick = async (pickNumber: number) => {
@@ -490,7 +493,8 @@ function CustomPicksPanel({
       _room_id: roomId,
       _pick_number: pickNumber,
     });
-    if (error) onError(error.message);
+    if (error) { onError(error.message); return; }
+    await onChanged();
   };
 
   return (
