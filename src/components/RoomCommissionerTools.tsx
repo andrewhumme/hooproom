@@ -214,6 +214,7 @@ export function RoomCommissionerTools({
             assignments={assignments}
             teamName={teamName}
             onError={setError}
+            onChanged={load}
           />
         )}
       </Card>
