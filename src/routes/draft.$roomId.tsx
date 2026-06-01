@@ -731,7 +731,9 @@ function DraftRoomPage() {
                       onDragStart: (e: React.DragEvent) => {
                         e.dataTransfer.setData("text/plain", p.id);
                         e.dataTransfer.effectAllowed = "move";
+                        setDragOverSlot(null);
                       },
+                      onDragEnd: () => setDragOverSlot(null),
                     }
                   : {};
                 const dropProps = isHost
@@ -739,21 +741,27 @@ function DraftRoomPage() {
                       onDragOver: (e: React.DragEvent) => {
                         e.preventDefault();
                         e.dataTransfer.dropEffect = "move";
+                        setDragOverSlot(slot);
                       },
                       onDrop: (e: React.DragEvent) => {
                         e.preventDefault();
                         const id = e.dataTransfer.getData("text/plain");
+                        setDragOverSlot(null);
                         if (id) handleClaimSlot(id, slot);
                       },
                     }
                   : {};
+                const isDropTarget = dragOverSlot === slot;
                 return (
                   <li
                     key={slot}
-                    className={`flex items-center justify-between py-3 px-2 -mx-2 rounded-md ${isHost && p ? "cursor-grab active:cursor-grabbing" : ""} ${isHost ? "hover:bg-muted/40" : ""}`}
+                    className={`relative flex items-center justify-between py-3 px-2 -mx-2 rounded-md ${isHost && p ? "cursor-grab active:cursor-grabbing" : ""} ${isHost ? "hover:bg-muted/40" : ""}`}
                     {...dragProps}
                     {...dropProps}
                   >
+                    {isDropTarget && (
+                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary" />
+                    )}
                     <div className="flex items-center gap-3">
                       <span className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-xs font-black">
                         {slot}
