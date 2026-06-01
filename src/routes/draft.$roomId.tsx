@@ -503,6 +503,26 @@ function DraftRoomPage() {
     if (error) setError(error.message);
   };
 
+  const handleClaimSlot = async (participantId: string, slot: number) => {
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase.rpc("claim_draft_position", {
+      _participant_id: participantId,
+      _new_position: slot,
+    });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
+  const handleRandomizeOrder = async () => {
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase.rpc("host_randomize_positions", { _room_id: roomId });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
+
   const handleStart = async () => {
     setActionBusy(true);
     setError(null);
