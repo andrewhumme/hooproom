@@ -503,6 +503,26 @@ function DraftRoomPage() {
     if (error) setError(error.message);
   };
 
+  const handleClaimSlot = async (participantId: string, slot: number) => {
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase.rpc("claim_draft_position", {
+      _participant_id: participantId,
+      _new_position: slot,
+    });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
+  const handleRandomizeOrder = async () => {
+    setActionBusy(true);
+    setError(null);
+    const { error } = await supabase.rpc("host_randomize_positions", { _room_id: roomId });
+    setActionBusy(false);
+    if (error) setError(error.message);
+  };
+
+
   const handleStart = async () => {
     setActionBusy(true);
     setError(null);
@@ -685,14 +705,57 @@ function DraftRoomPage() {
             </div>
 
 
+            {isHost && (
+              <div className="mb-3 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="font-bold"
+                  disabled={actionBusy || participants.length === 0}
+                  onClick={handleRandomizeOrder}
+                >
+                  <Zap className="h-4 w-4" /> Randomize order
+                </Button>
+              </div>
+            )}
+
             <ul className="divide-y divide-border">
               {Array.from({ length: room.team_count }).map((_, i) => {
-                const p = participants[i];
+                const slot = (i + 1) as number;
+                const p = participants.find((x) => x.draft_position === slot);
+                const isMe = p?.user_id === user?.id;
+                const dragProps = isHost && p
+                  ? {
+                      draggable: true,
+                      onDragStart: (e: React.DragEvent) => {
+                        e.dataTransfer.setData("text/plain", p.id);
+                        e.dataTransfer.effectAllowed = "move";
+                      },
+                    }
+                  : {};
+                const dropProps = isHost
+                  ? {
+                      onDragOver: (e: React.DragEvent) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                      },
+                      onDrop: (e: React.DragEvent) => {
+                        e.preventDefault();
+                        const id = e.dataTransfer.getData("text/plain");
+                        if (id) handleClaimSlot(id, slot);
+                      },
+                    }
+                  : {};
                 return (
-                  <li key={i} className="flex items-center justify-between py-3">
+                  <li
+                    key={slot}
+                    className={`flex items-center justify-between py-3 px-2 -mx-2 rounded-md ${isHost && p ? "cursor-grab active:cursor-grabbing" : ""} ${isHost ? "hover:bg-muted/40" : ""}`}
+                    {...dragProps}
+                    {...dropProps}
+                  >
                     <div className="flex items-center gap-3">
                       <span className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-xs font-black">
-                        {i + 1}
+                        {slot}
                       </span>
                       {p ? (
                         <span className="font-bold">{p.team_name}</span>
@@ -704,11 +767,22 @@ function DraftRoomPage() {
                       {p && p.user_id === room.host_user_id && (
                         <Badge variant="secondary" className="font-bold">Host</Badge>
                       )}
-                      {p && p.user_id === user?.id && p.user_id !== room.host_user_id && (
+                      {p && isMe && p.user_id !== room.host_user_id && (
                         <Badge className="font-bold">You</Badge>
                       )}
                       {p?.is_bot && (
                         <Badge variant="outline" className="font-bold">Bot</Badge>
+                      )}
+                      {!p && isJoined && meParticipant && meParticipant.draft_position !== slot && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs font-bold"
+                          disabled={actionBusy}
+                          onClick={() => handleClaimSlot(meParticipant.id, slot)}
+                        >
+                          Move here
+                        </Button>
                       )}
                       {p?.is_bot && isHost && (
                         <Button
@@ -726,6 +800,12 @@ function DraftRoomPage() {
                 );
               })}
             </ul>
+            {isHost && participants.length > 1 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Drag any team to a different slot to reorder the draft. Joiners can claim open seats themselves.
+              </p>
+            )}
+
 
             {error && (
               <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
