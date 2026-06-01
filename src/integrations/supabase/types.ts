@@ -758,6 +758,14 @@ export type Database = {
         Returns: number
       }
       auto_fill_and_start: { Args: { _room_id: string }; Returns: undefined }
+      claim_draft_position: {
+        Args: { _new_position: number; _participant_id: string }
+        Returns: undefined
+      }
+      host_randomize_positions: {
+        Args: { _room_id: string }
+        Returns: undefined
+      }
       host_start_with_bots: { Args: { _room_id: string }; Returns: undefined }
       insert_room_keepers: { Args: { _room_id: string }; Returns: undefined }
       keeper_remove: {
