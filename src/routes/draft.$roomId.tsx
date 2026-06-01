@@ -161,6 +161,7 @@ function DraftRoomPage() {
   const [statsShade, setStatsShade] = useState<"stats" | "zebra" | "heatmap">("zebra");
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
