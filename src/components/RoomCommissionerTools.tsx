@@ -62,7 +62,8 @@ function defaultSnakeTeam(
   const reversals = new Set(reversalRounds);
   let reverse = false;
   for (let r = 1; r < round; r++) {
-    if (!reversals.has(r)) reverse = !reverse;
+    // Skip the flip going INTO round (r + 1) if that round is a reversal round.
+    if (!reversals.has(r + 1)) reverse = !reverse;
   }
   return reverse ? teamCount - pickInRound + 1 : pickInRound;
 }
