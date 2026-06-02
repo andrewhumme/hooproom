@@ -904,6 +904,7 @@ function DraftRoomPage() {
                 id: p.id,
                 team_name: p.team_name,
                 is_bot: p.is_bot,
+                draft_position: p.draft_position,
               }))}
               players={players}
             />

@@ -36,6 +36,7 @@ type Participant = {
   id: string;
   team_name: string;
   is_bot?: boolean;
+  draft_position?: number | null;
 };
 
 type Props = {
@@ -79,9 +80,19 @@ export function RoomCommissionerTools({
   const [assignments, setAssignments] = useState<PickAssignment[]>([]);
   const [keepersOpen, setKeepersOpen] = useState(false);
   const [picksOpen, setPicksOpen] = useState(false);
+  const [orderFinalized, setOrderFinalized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isSnake = draftFormat === "snake";
+
+  // Map slot (1..N) → participant; falls back to "Team N" when unfilled
+  const participantBySlot = useMemo(() => {
+    const m = new Map<number, Participant>();
+    for (const p of participants) {
+      if (p.draft_position) m.set(p.draft_position, p);
+    }
+    return m;
+  }, [participants]);
 
   // Load (also called after each mutation for instant feedback)
   const load = async () => {
@@ -120,7 +131,20 @@ export function RoomCommissionerTools({
   }, [roomId]);
 
   const teamName = (idx: number) =>
-    participants[idx - 1]?.team_name ?? `Team ${idx}`;
+    participantBySlot.get(idx)?.team_name ?? `Team ${idx}`;
+
+  // Snapshot of the current draft order, used to detect changes after lock
+  const orderSignature = useMemo(
+    () =>
+      Array.from({ length: teamCount }, (_, i) => {
+        const p = participantBySlot.get(i + 1);
+        return p ? `${i + 1}:${p.id}` : `${i + 1}:_`;
+      }).join("|"),
+    [participantBySlot, teamCount],
+  );
+  const [lockedSignature, setLockedSignature] = useState<string | null>(null);
+  const orderChangedSinceLock =
+    orderFinalized && lockedSignature !== null && lockedSignature !== orderSignature;
 
   if (!isSnake) {
     return (
@@ -173,6 +197,7 @@ export function RoomCommissionerTools({
             keepers={keepers}
             participants={participants}
             players={players}
+            teamName={teamName}
             onError={setError}
             onChanged={load}
           />
@@ -205,17 +230,71 @@ export function RoomCommissionerTools({
             <ChevronRight className="h-4 w-4" />
           )}
         </button>
-        {picksOpen && (
-          <CustomPicksPanel
-            roomId={roomId}
-            teamCount={teamCount}
-            rounds={rounds}
-            reversalRounds={reversalRounds}
-            assignments={assignments}
-            teamName={teamName}
-            onError={setError}
-            onChanged={load}
-          />
+        {picksOpen && !orderFinalized && (
+          <div className="space-y-3 p-4 text-sm">
+            <p className="font-bold">Lock the draft order first.</p>
+            <p className="text-[12px] text-muted-foreground">
+              Custom pick assignments depend on which team is in each slot. Finalize the draft order in the lobby above (drag to reorder, randomize, or let teams claim their seats), then confirm below to start reassigning picks.
+            </p>
+            <div className="rounded-md border border-border bg-muted/30 p-2 text-[11px]">
+              <div className="mb-1 font-black uppercase tracking-widest text-muted-foreground">
+                Current order
+              </div>
+              <ol className="grid grid-cols-2 gap-x-3 gap-y-0.5 sm:grid-cols-3">
+                {Array.from({ length: teamCount }).map((_, i) => (
+                  <li key={i} className="truncate">
+                    <span className="font-black">{i + 1}.</span> {teamName(i + 1)}
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                setLockedSignature(orderSignature);
+                setOrderFinalized(true);
+              }}
+              className="font-bold"
+            >
+              Draft order is final — show pick assignments
+            </Button>
+          </div>
+        )}
+        {picksOpen && orderFinalized && (
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/20 px-4 py-2 text-[11px]">
+              {orderChangedSinceLock ? (
+                <span className="font-bold text-destructive">
+                  Draft order changed since lock — review assignments and re-lock.
+                </span>
+              ) : (
+                <span className="text-muted-foreground">
+                  Order locked. Reassign any picks below.
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[11px] font-bold"
+                onClick={() => {
+                  setOrderFinalized(false);
+                  setLockedSignature(null);
+                }}
+              >
+                Edit draft order
+              </Button>
+            </div>
+            <CustomPicksPanel
+              roomId={roomId}
+              teamCount={teamCount}
+              rounds={rounds}
+              reversalRounds={reversalRounds}
+              assignments={assignments}
+              teamName={teamName}
+              onError={setError}
+              onChanged={load}
+            />
+          </div>
         )}
       </Card>
     </div>
@@ -230,6 +309,7 @@ function KeepersPanel({
   keepers,
   participants,
   players,
+  teamName,
   onError,
   onChanged,
 }: {
@@ -239,6 +319,7 @@ function KeepersPanel({
   keepers: Keeper[];
   participants: Participant[];
   players: DraftablePlayer[];
+  teamName: (idx: number) => string;
   onError: (msg: string | null) => void;
   onChanged: () => void | Promise<void>;
 }) {
@@ -298,7 +379,7 @@ function KeepersPanel({
     <div className="divide-y divide-border">
       {Array.from({ length: teamCount }).map((_, i) => {
         const teamIdx = i + 1;
-        const name = participants[i]?.team_name ?? `Team ${teamIdx}`;
+        const name = teamName(teamIdx);
         const teamKeepers = keepersByTeam.get(teamIdx) ?? [];
         const isOpen = expandedTeam === teamIdx;
         return (
