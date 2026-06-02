@@ -131,7 +131,20 @@ export function RoomCommissionerTools({
   }, [roomId]);
 
   const teamName = (idx: number) =>
-    participants[idx - 1]?.team_name ?? `Team ${idx}`;
+    participantBySlot.get(idx)?.team_name ?? `Team ${idx}`;
+
+  // Snapshot of the current draft order, used to detect changes after lock
+  const orderSignature = useMemo(
+    () =>
+      Array.from({ length: teamCount }, (_, i) => {
+        const p = participantBySlot.get(i + 1);
+        return p ? `${i + 1}:${p.id}` : `${i + 1}:_`;
+      }).join("|"),
+    [participantBySlot, teamCount],
+  );
+  const [lockedSignature, setLockedSignature] = useState<string | null>(null);
+  const orderChangedSinceLock =
+    orderFinalized && lockedSignature !== null && lockedSignature !== orderSignature;
 
   if (!isSnake) {
     return (
