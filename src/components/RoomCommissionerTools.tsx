@@ -197,6 +197,7 @@ export function RoomCommissionerTools({
             keepers={keepers}
             participants={participants}
             players={players}
+            teamName={teamName}
             onError={setError}
             onChanged={load}
           />
