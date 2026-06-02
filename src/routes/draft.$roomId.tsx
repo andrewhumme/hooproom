@@ -304,9 +304,9 @@ function DraftRoomPage() {
     // Walk rounds 1..r-1 to determine direction at round r
     let reverse = false;
     for (let i = 1; i < r; i++) {
-      // If round i is a reversal, next round keeps SAME direction (double pick).
-      // Otherwise normal snake flip.
-      if (!reversals.has(i)) reverse = !reverse;
+      // Skip the flip going INTO round (i + 1) if that round is a reversal
+      // round (the "double pick" turn keeps direction the same as the prior round).
+      if (!reversals.has(i + 1)) reverse = !reverse;
     }
     const t = reverse ? room.team_count - idxInRound : idxInRound + 1;
     return { currentRound: r, currentTeamIdx: t, currentReverse: reverse };
