@@ -50,14 +50,14 @@ type Props = {
 };
 
 /**
- * Snake math: which team owns this (round, pickInRound)?
- * Mirrors snake_default_team() in the DB.
+ * Snake math: what pick_number does (round, team) own by default?
+ * Mirrors team_pick_number() in the DB.
  */
-function defaultSnakeTeam(
+function teamPickNumber(
   teamCount: number,
   reversalRounds: number[],
   round: number,
-  pickInRound: number,
+  teamIdx: number,
 ): number {
   const reversals = new Set(reversalRounds);
   let reverse = false;
@@ -65,7 +65,8 @@ function defaultSnakeTeam(
     // Skip the flip going INTO round (r + 1) if that round is a reversal round.
     if (!reversals.has(r + 1)) reverse = !reverse;
   }
-  return reverse ? teamCount - pickInRound + 1 : pickInRound;
+  const pickInRound = reverse ? teamCount - teamIdx + 1 : teamIdx;
+  return (round - 1) * teamCount + pickInRound;
 }
 
 export function RoomCommissionerTools({
@@ -582,7 +583,9 @@ function CustomPicksPanel({
   return (
     <div className="space-y-2 p-4">
       <p className="text-[11px] text-muted-foreground">
-        Click a pick to reassign it. Reassigned picks show in{" "}
+        Rows are rounds, columns are team slots. Each cell shows the pick number
+        that team owns by default — change the dropdown to reassign that pick to
+        another team. Reassigned picks show in{" "}
         <span className="font-bold text-primary">primary color</span>.
       </p>
       <div className="overflow-x-auto">
@@ -595,9 +598,9 @@ function CustomPicksPanel({
               {Array.from({ length: teamCount }).map((_, i) => (
                 <th
                   key={i}
-                  className="border border-border bg-muted/40 px-2 py-1 text-center font-black"
+                  className="border border-border bg-muted/40 px-2 py-1 text-center font-black uppercase tracking-widest"
                 >
-                  {i + 1}
+                  T{i + 1}
                 </th>
               ))}
             </tr>
@@ -610,21 +613,20 @@ function CustomPicksPanel({
                   <td className="border border-border bg-muted/40 px-2 py-1 text-center font-black">
                     {round}
                   </td>
-                  {Array.from({ length: teamCount }).map((_, ci) => {
-                    const pickInRound = ci + 1;
-                    const pickNumber = ri * teamCount + pickInRound;
-                    const defaultTeam = defaultSnakeTeam(
+                  {Array.from({ length: teamCount }).map((_, ti) => {
+                    const teamIdx = ti + 1;
+                    const pickNumber = teamPickNumber(
                       teamCount,
                       reversalRounds,
                       round,
-                      pickInRound,
+                      teamIdx,
                     );
                     const override = assignmentMap.get(pickNumber);
-                    const owner = override ?? defaultTeam;
+                    const owner = override ?? teamIdx;
                     const isOverridden = override !== undefined;
                     return (
                       <td
-                        key={pickInRound}
+                        key={teamIdx}
                         className={`border border-border p-0 ${
                           isOverridden ? "bg-primary/10" : ""
                         }`}
@@ -633,7 +635,7 @@ function CustomPicksPanel({
                           value={String(owner)}
                           onValueChange={(v) => {
                             const t = Number(v);
-                            if (t === defaultTeam && isOverridden) {
+                            if (t === teamIdx && isOverridden) {
                               resetPick(pickNumber);
                             } else if (t !== owner) {
                               setPick(pickNumber, t);
@@ -647,17 +649,20 @@ function CustomPicksPanel({
                           >
                             <SelectValue>
                               <span className="block truncate">
+                                <span className="mr-1 font-mono text-muted-foreground">
+                                  #{pickNumber}
+                                </span>
                                 {teamName(owner)}
                               </span>
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            {Array.from({ length: teamCount }).map((_, ti) => {
-                              const t = ti + 1;
+                            {Array.from({ length: teamCount }).map((_, oi) => {
+                              const t = oi + 1;
                               return (
                                 <SelectItem key={t} value={String(t)}>
                                   {teamName(t)}
-                                  {t === defaultTeam && " (default)"}
+                                  {t === teamIdx && " (default)"}
                                 </SelectItem>
                               );
                             })}
