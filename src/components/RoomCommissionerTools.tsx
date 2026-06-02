@@ -379,7 +379,7 @@ function KeepersPanel({
     <div className="divide-y divide-border">
       {Array.from({ length: teamCount }).map((_, i) => {
         const teamIdx = i + 1;
-        const name = participants[i]?.team_name ?? `Team ${teamIdx}`;
+        const name = teamName(teamIdx);
         const teamKeepers = keepersByTeam.get(teamIdx) ?? [];
         const isOpen = expandedTeam === teamIdx;
         return (
