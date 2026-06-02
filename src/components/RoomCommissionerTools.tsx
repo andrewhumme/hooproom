@@ -80,9 +80,19 @@ export function RoomCommissionerTools({
   const [assignments, setAssignments] = useState<PickAssignment[]>([]);
   const [keepersOpen, setKeepersOpen] = useState(false);
   const [picksOpen, setPicksOpen] = useState(false);
+  const [orderFinalized, setOrderFinalized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isSnake = draftFormat === "snake";
+
+  // Map slot (1..N) → participant; falls back to "Team N" when unfilled
+  const participantBySlot = useMemo(() => {
+    const m = new Map<number, Participant>();
+    for (const p of participants) {
+      if (p.draft_position) m.set(p.draft_position, p);
+    }
+    return m;
+  }, [participants]);
 
   // Load (also called after each mutation for instant feedback)
   const load = async () => {
