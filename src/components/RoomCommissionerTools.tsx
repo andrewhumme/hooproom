@@ -583,7 +583,9 @@ function CustomPicksPanel({
   return (
     <div className="space-y-2 p-4">
       <p className="text-[11px] text-muted-foreground">
-        Click a pick to reassign it. Reassigned picks show in{" "}
+        Rows are rounds, columns are team slots. Each cell shows the pick number
+        that team owns by default — change the dropdown to reassign that pick to
+        another team. Reassigned picks show in{" "}
         <span className="font-bold text-primary">primary color</span>.
       </p>
       <div className="overflow-x-auto">
@@ -596,9 +598,9 @@ function CustomPicksPanel({
               {Array.from({ length: teamCount }).map((_, i) => (
                 <th
                   key={i}
-                  className="border border-border bg-muted/40 px-2 py-1 text-center font-black"
+                  className="border border-border bg-muted/40 px-2 py-1 text-center font-black uppercase tracking-widest"
                 >
-                  {i + 1}
+                  T{i + 1}
                 </th>
               ))}
             </tr>
