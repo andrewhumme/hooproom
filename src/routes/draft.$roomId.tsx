@@ -846,50 +846,6 @@ function DraftRoomPage() {
                   </Button>
                 )
               )}
-
-              {isHost && (
-                <>
-                  <Button
-                    onClick={handleStart}
-                    size="lg"
-                    className="font-bold shadow-[var(--shadow-glow)]"
-                    disabled={actionBusy || participants.length === 0}
-                  >
-                    {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
-                    Start draft
-                  </Button>
-                  {/* Empty seats auto-fill with bots when the host starts or the lobby timer expires. */}
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="font-bold border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        disabled={actionBusy}
-                      >
-                        <XCircle /> End draft
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>End this draft?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This closes the room and removes it from the active lobby. Since the draft hasn't started, no picks will be recorded. This can't be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleEndDraft}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          End draft
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </>
-              )}
             </div>
           </Card>
 
@@ -908,6 +864,58 @@ function DraftRoomPage() {
               }))}
               players={players}
             />
+          )}
+
+          {isHost && (
+            <Card className="mt-6 border-2 p-6">
+              <div className="mb-3">
+                <h2 className="text-lg font-black">Start the draft</h2>
+                <p className="text-sm text-muted-foreground">
+                  When you're ready, kick off the draft. Empty seats will fill
+                  with bots automatically.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  onClick={handleStart}
+                  size="lg"
+                  className="font-bold shadow-[var(--shadow-glow)]"
+                  disabled={actionBusy || participants.length === 0}
+                >
+                  {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
+                  Start draft
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="font-bold border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      disabled={actionBusy}
+                    >
+                      <XCircle /> End draft
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>End this draft?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This closes the room and removes it from the active lobby. Since the draft hasn't started, no picks will be recorded. This can't be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleEndDraft}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        End draft
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </Card>
           )}
         </main>
       </div>
