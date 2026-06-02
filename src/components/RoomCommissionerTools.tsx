@@ -309,6 +309,7 @@ function KeepersPanel({
   keepers,
   participants,
   players,
+  teamName,
   onError,
   onChanged,
 }: {
@@ -318,6 +319,7 @@ function KeepersPanel({
   keepers: Keeper[];
   participants: Participant[];
   players: DraftablePlayer[];
+  teamName: (idx: number) => string;
   onError: (msg: string | null) => void;
   onChanged: () => void | Promise<void>;
 }) {
