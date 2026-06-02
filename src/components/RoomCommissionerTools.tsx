@@ -611,21 +611,20 @@ function CustomPicksPanel({
                   <td className="border border-border bg-muted/40 px-2 py-1 text-center font-black">
                     {round}
                   </td>
-                  {Array.from({ length: teamCount }).map((_, ci) => {
-                    const pickInRound = ci + 1;
-                    const pickNumber = ri * teamCount + pickInRound;
-                    const defaultTeam = defaultSnakeTeam(
+                  {Array.from({ length: teamCount }).map((_, ti) => {
+                    const teamIdx = ti + 1;
+                    const pickNumber = teamPickNumber(
                       teamCount,
                       reversalRounds,
                       round,
-                      pickInRound,
+                      teamIdx,
                     );
                     const override = assignmentMap.get(pickNumber);
-                    const owner = override ?? defaultTeam;
+                    const owner = override ?? teamIdx;
                     const isOverridden = override !== undefined;
                     return (
                       <td
-                        key={pickInRound}
+                        key={teamIdx}
                         className={`border border-border p-0 ${
                           isOverridden ? "bg-primary/10" : ""
                         }`}
@@ -634,7 +633,7 @@ function CustomPicksPanel({
                           value={String(owner)}
                           onValueChange={(v) => {
                             const t = Number(v);
-                            if (t === defaultTeam && isOverridden) {
+                            if (t === teamIdx && isOverridden) {
                               resetPick(pickNumber);
                             } else if (t !== owner) {
                               setPick(pickNumber, t);
@@ -648,17 +647,20 @@ function CustomPicksPanel({
                           >
                             <SelectValue>
                               <span className="block truncate">
+                                <span className="mr-1 font-mono text-muted-foreground">
+                                  #{pickNumber}
+                                </span>
                                 {teamName(owner)}
                               </span>
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            {Array.from({ length: teamCount }).map((_, ti) => {
-                              const t = ti + 1;
+                            {Array.from({ length: teamCount }).map((_, oi) => {
+                              const t = oi + 1;
                               return (
                                 <SelectItem key={t} value={String(t)}>
                                   {teamName(t)}
-                                  {t === defaultTeam && " (default)"}
+                                  {t === teamIdx && " (default)"}
                                 </SelectItem>
                               );
                             })}
