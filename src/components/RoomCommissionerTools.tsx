@@ -50,14 +50,14 @@ type Props = {
 };
 
 /**
- * Snake math: which team owns this (round, pickInRound)?
- * Mirrors snake_default_team() in the DB.
+ * Snake math: what pick_number does (round, team) own by default?
+ * Mirrors team_pick_number() in the DB.
  */
-function defaultSnakeTeam(
+function teamPickNumber(
   teamCount: number,
   reversalRounds: number[],
   round: number,
-  pickInRound: number,
+  teamIdx: number,
 ): number {
   const reversals = new Set(reversalRounds);
   let reverse = false;
@@ -65,7 +65,8 @@ function defaultSnakeTeam(
     // Skip the flip going INTO round (r + 1) if that round is a reversal round.
     if (!reversals.has(r + 1)) reverse = !reverse;
   }
-  return reverse ? teamCount - pickInRound + 1 : pickInRound;
+  const pickInRound = reverse ? teamCount - teamIdx + 1 : teamIdx;
+  return (round - 1) * teamCount + pickInRound;
 }
 
 export function RoomCommissionerTools({
