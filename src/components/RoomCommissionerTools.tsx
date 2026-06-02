@@ -36,6 +36,7 @@ type Participant = {
   id: string;
   team_name: string;
   is_bot?: boolean;
+  draft_position?: number | null;
 };
 
 type Props = {
