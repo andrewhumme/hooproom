@@ -1,0 +1,1 @@
+ALTER TABLE public.draft_picks DROP CONSTRAINT IF EXISTS draft_picks_user_id_fkey;
