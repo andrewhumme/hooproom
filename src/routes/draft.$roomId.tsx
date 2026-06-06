@@ -41,6 +41,7 @@ import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
 import { assignPicksToSlots, buildSlotSpots, type SlotConfig } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 import {
+  ArrowDown,
   ArrowLeft,
   Check,
   Clock,
