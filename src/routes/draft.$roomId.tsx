@@ -953,8 +953,7 @@ function DraftRoomPage() {
                   <span
                     className={`text-2xl font-black tabular-nums ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
                   >
-                    {String(Math.floor(secondsLeft / 60)).padStart(1, "0")}:
-                    {String(secondsLeft % 60).padStart(2, "0")}
+                    {formatDuration(secondsLeft)}
                   </span>
                 </div>
                 <div
