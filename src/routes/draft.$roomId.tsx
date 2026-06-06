@@ -1232,7 +1232,7 @@ function DraftRoomPage() {
                         >
                           <span>{col.label}</span>
                           <span className="text-[9px] leading-none">
-                            {active ? (sortDir === "asc" ? "▲" : "▼") : "↕"}
+                            {active ? <ArrowDown className="h-3 w-3" /> : <ArrowDown className="h-3 w-3 opacity-20" />}
                           </span>
                         </button>
                       );
