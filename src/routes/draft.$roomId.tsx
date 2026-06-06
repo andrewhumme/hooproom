@@ -1206,7 +1206,7 @@ function DraftRoomPage() {
                       sortKey === "rank" ? "text-primary" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    Player {sortKey === "rank" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                    Player {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3" /> : ""}
                   </button>
                   <div className="flex shrink-0 items-center gap-1">
                     {STAT_COLUMNS.map((col) => {
