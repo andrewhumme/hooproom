@@ -24,6 +24,14 @@ export function AppHeader({ active }: { active?: "home" | "lobby" }) {
           </Link>
         </nav>
         <div className="flex items-center gap-3">
+          <div className="hidden items-center gap-2 md:flex">
+            <Button asChild size="sm" variant="outline" className="font-bold">
+              <Link to="/lobby">Browse Drafts</Link>
+            </Button>
+            <Button asChild size="sm" className="font-bold">
+              <Link to="/lobby/new">Start a Draft</Link>
+            </Button>
+          </div>
           {loading ? (
             <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
           ) : user ? (
