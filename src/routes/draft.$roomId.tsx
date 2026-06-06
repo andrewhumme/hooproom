@@ -1238,7 +1238,7 @@ function DraftRoomPage() {
                       );
                     })}
                   </div>
-                  <div className="w-[68px] shrink-0" />
+                  <div className="w-[104px] shrink-0" />
                 </div>
                 <ul className="divide-y divide-border">
                 {availablePlayers.map((p, idx) => {
