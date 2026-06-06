@@ -953,8 +953,7 @@ function DraftRoomPage() {
                   <span
                     className={`text-2xl font-black tabular-nums ${secondsLeft <= 10 ? "text-destructive" : "text-primary"}`}
                   >
-                    {String(Math.floor(secondsLeft / 60)).padStart(1, "0")}:
-                    {String(secondsLeft % 60).padStart(2, "0")}
+                    {formatDuration(secondsLeft)}
                   </span>
                 </div>
                 <div
@@ -1687,15 +1686,7 @@ function LobbyCountdown({ deadline }: { deadline: string }) {
   const ms = new Date(deadline).getTime() - now;
   const expired = ms <= 0;
   const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const d = Math.floor(totalSec / 86400);
-  const h = Math.floor((totalSec % 86400) / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  const label = d > 0
-    ? `${d}d ${h}h ${m}m`
-    : h > 0
-      ? `${h}h ${m}m ${s}s`
-      : `${m}m ${s}s`;
+  const label = formatDuration(totalSec);
   return (
     <Card className="mt-6 border-2 border-primary/40 bg-primary/5 p-4">
       <div className="flex items-center justify-between gap-3">
