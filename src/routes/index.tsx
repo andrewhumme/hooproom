@@ -61,9 +61,14 @@ function Landing() {
             <Link to="/lobby" className="hover:text-primary">Lobby</Link>
             <a href="#waitlist" className="hover:text-primary">Early Access</a>
           </nav>
-          <Button asChild size="sm" className="font-bold">
-            <Link to="/lobby">Browse Drafts</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="outline" className="font-bold">
+              <Link to="/lobby">Browse Drafts</Link>
+            </Button>
+            <Button asChild size="sm" className="font-bold">
+              <Link to="/lobby/new">Start a Draft</Link>
+            </Button>
+          </div>
         </div>
       </header>
 
