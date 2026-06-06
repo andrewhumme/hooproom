@@ -41,6 +41,7 @@ import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
 import { assignPicksToSlots, buildSlotSpots, type SlotConfig } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 import {
+  ArrowDown,
   ArrowLeft,
   Check,
   Clock,
@@ -1205,7 +1206,7 @@ function DraftRoomPage() {
                       sortKey === "rank" ? "text-primary" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    Player {sortKey === "rank" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                    Player {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3" /> : ""}
                   </button>
                   <div className="flex shrink-0 items-center gap-1">
                     {STAT_COLUMNS.map((col) => {
@@ -1231,7 +1232,7 @@ function DraftRoomPage() {
                         >
                           <span>{col.label}</span>
                           <span className="text-[9px] leading-none">
-                            {active ? (sortDir === "asc" ? "▲" : "▼") : "↕"}
+                            {active ? <ArrowDown className="h-3 w-3" /> : <ArrowDown className="h-3 w-3 opacity-20" />}
                           </span>
                         </button>
                       );
