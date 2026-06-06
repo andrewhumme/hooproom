@@ -1280,7 +1280,7 @@ function DraftRoomPage() {
                         ))}
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-1">
+                      <div className="flex w-[104px] shrink-0 items-center justify-end gap-1">
                         {isJoined && (
                           <Button
                             size="icon"
