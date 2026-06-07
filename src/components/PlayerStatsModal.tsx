@@ -7,6 +7,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus, Star } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -41,6 +43,12 @@ type Props = {
     position: string | null;
     nbaPlayerId?: number | null;
   } | null;
+  canDraft?: boolean;
+  draftBusy?: boolean;
+  isQueued?: boolean;
+  showQueue?: boolean;
+  onDraft?: () => void;
+  onToggleQueue?: () => void;
 };
 
 const SEASON_LABEL: Record<number, string> = {
@@ -94,7 +102,17 @@ const fmtPct = (n: number | null | undefined) =>
 const fmtBy = (meta: StatMeta, n: number | null | undefined) =>
   meta.isPct ? fmtPct(n) : fmt(n, meta.digits ?? 1);
 
-export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
+export function PlayerStatsModal({
+  open,
+  onOpenChange,
+  player,
+  canDraft,
+  draftBusy,
+  isQueued,
+  showQueue,
+  onDraft,
+  onToggleQueue,
+}: Props) {
   const [stats, setStats] = useState<PlayerSeasonStats[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -190,7 +208,7 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
               />
             )}
 
-            <div className="min-w-0 text-left">
+            <div className="min-w-0 flex-1 text-left">
               <DialogTitle className="text-xl font-black">
                 {player?.name ?? "Player"}
               </DialogTitle>
@@ -198,6 +216,38 @@ export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
                 {player?.team ?? "—"} · {player?.position ?? "—"}
               </DialogDescription>
             </div>
+
+            {(onDraft || (showQueue && onToggleQueue)) && (
+              <div className="ml-auto flex shrink-0 items-center gap-2 pr-6">
+                {showQueue && onToggleQueue && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={onToggleQueue}
+                    className="font-bold"
+                    title={isQueued ? "Remove from queue" : "Add to queue"}
+                  >
+                    {isQueued ? (
+                      <Star className="h-4 w-4 fill-primary text-primary" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                    Queue
+                  </Button>
+                )}
+                {onDraft && (
+                  <Button
+                    size="sm"
+                    onClick={onDraft}
+                    disabled={!canDraft || draftBusy}
+                    variant={canDraft ? "default" : "outline"}
+                    className="font-bold"
+                  >
+                    Draft
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </DialogHeader>
 

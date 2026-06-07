@@ -1247,20 +1247,20 @@ function DraftRoomPage() {
                   return (
                     <li
                       key={p.id}
-                      className={`flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/60 ${zebra}`}
+                      className={`flex items-center justify-between gap-3 px-4 py-1 hover:bg-muted/60 ${zebra}`}
                     >
                       <button
                         type="button"
                         onClick={() => setStatsPlayer(p)}
-                        className="flex min-w-0 flex-1 items-center gap-3 text-left transition hover:opacity-80"
+                        className="flex min-w-0 flex-1 items-center gap-2 text-left transition hover:opacity-80"
                         title="View season stats"
                       >
-                        <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} shape="square" />
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-bold underline-offset-2 hover:underline">
+                        <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} shape="square" size={26} />
+                        <div className="min-w-0 leading-tight">
+                          <div className="truncate text-xs font-bold underline-offset-2 hover:underline">
                             {p.name}
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-[10px] text-muted-foreground">
                             {p.team} · {p.position}
                           </div>
                         </div>
@@ -1285,7 +1285,7 @@ function DraftRoomPage() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            className="h-7 w-7"
                             onClick={() =>
                               queuedIds.has(p.id)
                                 ? queueApi.remove(p.id)
@@ -1309,7 +1309,7 @@ function DraftRoomPage() {
                           size="sm"
                           onClick={() => handlePick(p)}
                           disabled={!isMyTurn || actionBusy}
-                          className="font-bold"
+                          className="h-7 px-2.5 text-xs font-bold"
                           variant={isMyTurn ? "default" : "outline"}
                         >
                           Draft
@@ -1376,7 +1376,7 @@ function DraftRoomPage() {
             </div>
           )}
 
-          <Card className="border-2 lg:block">
+          <Card className={`border-2 lg:block ${mobileTab === "teams" ? "block" : "hidden"}`}>
             <div className="border-b-2 border-border bg-muted/40 p-4">
               <h3 className="text-sm font-black uppercase tracking-widest">Recent picks</h3>
             </div>
@@ -1506,6 +1506,34 @@ function DraftRoomPage() {
                 nbaPlayerId: statsPlayer.nbaPlayerId ?? null,
               }
             : null
+        }
+        canDraft={isMyTurn && !!statsPlayer && !takenIds.has(statsPlayer.id)}
+        draftBusy={actionBusy}
+        showQueue={isJoined}
+        isQueued={!!statsPlayer && queuedIds.has(statsPlayer.id)}
+        onDraft={
+          statsPlayer
+            ? () => {
+                handlePick(statsPlayer);
+                setStatsPlayer(null);
+              }
+            : undefined
+        }
+        onToggleQueue={
+          statsPlayer
+            ? () => {
+                if (queuedIds.has(statsPlayer.id)) {
+                  queueApi.remove(statsPlayer.id);
+                } else {
+                  queueApi.add({
+                    id: statsPlayer.id,
+                    name: statsPlayer.name,
+                    position: statsPlayer.position,
+                    team: statsPlayer.team,
+                  });
+                }
+              }
+            : undefined
         }
       />
 
