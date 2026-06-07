@@ -1184,7 +1184,7 @@ function DraftRoomPage() {
             </div>
           </div>
 
-          <div className="min-h-[60vh] flex-1 overflow-y-auto">
+          <div className="h-[45vh] overflow-y-auto lg:h-auto lg:max-h-none lg:min-h-0 lg:flex-1">
             {playersLoading && players.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -1335,7 +1335,7 @@ function DraftRoomPage() {
             mobileTab === "players" ? "hidden" : "flex"
           }`}
         >
-          {meParticipant && slotCfg && (
+          {slotCfg && (
             <Card
               className={`border-2 border-primary/40 lg:block ${
                 mobileTab === "myteam" ? "block" : "hidden"
@@ -1343,21 +1343,28 @@ function DraftRoomPage() {
             >
               <div className="border-b-2 border-border bg-primary/10 p-4">
                 <h3 className="text-sm font-black uppercase tracking-widest text-primary">
-                  Your Team — {meParticipant.team_name}
+                  Your Team{meParticipant ? ` — ${meParticipant.team_name}` : ""}
                 </h3>
                 <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-                  {picks.filter((p) => p.user_id === user?.id).length}/{room.rounds} slots filled
+                  {meParticipant
+                    ? `${picks.filter((p) => p.user_id === user?.id).length}/${room.rounds} slots filled`
+                    : "Spectating — join a seat to draft players"}
                 </p>
               </div>
               <RosterSlotList
-                picks={picks
-                  .filter((p) => p.user_id === user?.id)
-                  .sort((a, b) => a.pick_number - b.pick_number)}
+                picks={
+                  meParticipant
+                    ? picks
+                        .filter((p) => p.user_id === user?.id)
+                        .sort((a, b) => a.pick_number - b.pick_number)
+                    : []
+                }
                 cfg={slotCfg}
                 teamCount={room.team_count}
               />
             </Card>
           )}
+
 
           {isJoined && (
             <div
