@@ -102,7 +102,17 @@ const fmtPct = (n: number | null | undefined) =>
 const fmtBy = (meta: StatMeta, n: number | null | undefined) =>
   meta.isPct ? fmtPct(n) : fmt(n, meta.digits ?? 1);
 
-export function PlayerStatsModal({ open, onOpenChange, player }: Props) {
+export function PlayerStatsModal({
+  open,
+  onOpenChange,
+  player,
+  canDraft,
+  draftBusy,
+  isQueued,
+  showQueue,
+  onDraft,
+  onToggleQueue,
+}: Props) {
   const [stats, setStats] = useState<PlayerSeasonStats[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
