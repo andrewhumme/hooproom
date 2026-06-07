@@ -1507,6 +1507,34 @@ function DraftRoomPage() {
               }
             : null
         }
+        canDraft={isMyTurn && !!statsPlayer && !takenIds.has(statsPlayer.id)}
+        draftBusy={actionBusy}
+        showQueue={isJoined}
+        isQueued={!!statsPlayer && queuedIds.has(statsPlayer.id)}
+        onDraft={
+          statsPlayer
+            ? () => {
+                handlePick(statsPlayer);
+                setStatsPlayer(null);
+              }
+            : undefined
+        }
+        onToggleQueue={
+          statsPlayer
+            ? () => {
+                if (queuedIds.has(statsPlayer.id)) {
+                  queueApi.remove(statsPlayer.id);
+                } else {
+                  queueApi.add({
+                    id: statsPlayer.id,
+                    name: statsPlayer.name,
+                    position: statsPlayer.position,
+                    team: statsPlayer.team,
+                  });
+                }
+              }
+            : undefined
+        }
       />
 
       <Dialog open={viewingTeamIdx !== null} onOpenChange={(o) => !o && setViewingTeamIdx(null)}>
