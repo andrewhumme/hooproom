@@ -278,7 +278,7 @@ export function PlayerStatsModal({
               <div className="mb-1 shrink-0 text-[10px] text-muted-foreground sm:hidden">
                 ← swipe to see more stats →
               </div>
-              <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border">
+              <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-border overscroll-x-contain">
                 <table className="w-full min-w-[760px] text-sm">
                   <thead className="bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     <tr>
