@@ -1376,7 +1376,7 @@ function DraftRoomPage() {
             </div>
           )}
 
-          <Card className="border-2 lg:block">
+          <Card className={`border-2 lg:block ${mobileTab === "teams" ? "block" : "hidden"}`}>
             <div className="border-b-2 border-border bg-muted/40 p-4">
               <h3 className="text-sm font-black uppercase tracking-widest">Recent picks</h3>
             </div>
