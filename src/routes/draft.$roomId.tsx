@@ -1054,9 +1054,10 @@ function DraftRoomPage() {
             )}
           </div>
           <div
-            className="grid gap-1.5 pb-1"
+            className="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6 snap-x snap-mandatory lg:mx-0 lg:px-0 lg:grid lg:gap-1.5 lg:pb-1 lg:overflow-visible lg:snap-none"
             style={{
-              gridTemplateColumns: `repeat(${room.team_count}, minmax(0, 1fr))`,
+              ["--lg-cols" as string]: `repeat(${room.team_count}, minmax(0, 1fr))`,
+              gridTemplateColumns: `var(--lg-cols)`,
             }}
           >
             {Array.from({ length: room.team_count }).map((_, i) => {
@@ -1070,7 +1071,7 @@ function DraftRoomPage() {
                   key={idx}
                   type="button"
                   onClick={() => setViewingTeamIdx(idx)}
-                  className={`flex min-w-0 flex-col items-start gap-0.5 rounded-md border-2 px-1.5 py-1.5 text-left transition hover:-translate-y-0.5 ${
+                  className={`flex w-[110px] shrink-0 snap-start flex-col items-start gap-1 rounded-md border-2 px-2 py-2 text-left transition hover:-translate-y-0.5 lg:w-auto lg:min-w-0 lg:shrink lg:px-1.5 lg:py-1.5 lg:gap-0.5 ${
                     onClock
                       ? "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-glow)]"
                       : isMe
@@ -1080,28 +1081,28 @@ function DraftRoomPage() {
                 >
                   <div className="flex w-full items-center justify-between gap-1">
                     <span
-                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded text-[9px] font-black ${
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-black lg:h-4 lg:w-4 lg:text-[9px] ${
                         onClock ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-foreground"
                       }`}
                     >
                       {idx}
                     </span>
                     {onClock && (
-                      <span className="truncate text-[8px] font-black uppercase tracking-wider">
+                      <span className="truncate text-[9px] font-black uppercase tracking-wider lg:text-[8px]">
                         On clock
                       </span>
                     )}
                     {!onClock && isMe && (
-                      <span className="text-[8px] font-black uppercase tracking-wider text-primary">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-primary lg:text-[8px]">
                         You
                       </span>
                     )}
                   </div>
-                  <div className="w-full truncate text-[11px] font-black leading-tight">
+                  <div className="w-full truncate text-[12px] font-black leading-tight lg:text-[11px]">
                     {team?.team_name ?? <span className="italic opacity-70">Auto</span>}
                   </div>
                   <div
-                    className={`text-[9px] font-bold ${
+                    className={`text-[10px] font-bold lg:text-[9px] ${
                       onClock ? "text-primary-foreground/80" : "text-muted-foreground"
                     }`}
                   >
@@ -1111,6 +1112,7 @@ function DraftRoomPage() {
               );
             })}
           </div>
+
         </div>
       </div>
 
