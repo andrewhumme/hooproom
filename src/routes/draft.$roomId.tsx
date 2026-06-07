@@ -1285,7 +1285,7 @@ function DraftRoomPage() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            className="h-7 w-7"
                             onClick={() =>
                               queuedIds.has(p.id)
                                 ? queueApi.remove(p.id)
@@ -1309,7 +1309,7 @@ function DraftRoomPage() {
                           size="sm"
                           onClick={() => handlePick(p)}
                           disabled={!isMyTurn || actionBusy}
-                          className="font-bold"
+                          className="h-7 px-2.5 text-xs font-bold"
                           variant={isMyTurn ? "default" : "outline"}
                         >
                           Draft
