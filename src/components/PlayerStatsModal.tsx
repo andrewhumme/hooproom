@@ -43,6 +43,12 @@ type Props = {
     position: string | null;
     nbaPlayerId?: number | null;
   } | null;
+  canDraft?: boolean;
+  draftBusy?: boolean;
+  isQueued?: boolean;
+  showQueue?: boolean;
+  onDraft?: () => void;
+  onToggleQueue?: () => void;
 };
 
 const SEASON_LABEL: Record<number, string> = {
