@@ -1184,7 +1184,7 @@ function DraftRoomPage() {
             </div>
           </div>
 
-          <div className="min-h-[60vh] flex-1 overflow-y-auto">
+          <div className="h-[45vh] overflow-y-auto lg:h-auto lg:max-h-none lg:min-h-0 lg:flex-1">
             {playersLoading && players.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
