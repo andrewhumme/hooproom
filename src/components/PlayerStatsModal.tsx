@@ -208,7 +208,7 @@ export function PlayerStatsModal({
               />
             )}
 
-            <div className="min-w-0 text-left">
+            <div className="min-w-0 flex-1 text-left">
               <DialogTitle className="text-xl font-black">
                 {player?.name ?? "Player"}
               </DialogTitle>
@@ -216,6 +216,38 @@ export function PlayerStatsModal({
                 {player?.team ?? "—"} · {player?.position ?? "—"}
               </DialogDescription>
             </div>
+
+            {(onDraft || (showQueue && onToggleQueue)) && (
+              <div className="ml-auto flex shrink-0 items-center gap-2 pr-6">
+                {showQueue && onToggleQueue && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={onToggleQueue}
+                    className="font-bold"
+                    title={isQueued ? "Remove from queue" : "Add to queue"}
+                  >
+                    {isQueued ? (
+                      <Star className="h-4 w-4 fill-primary text-primary" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                    Queue
+                  </Button>
+                )}
+                {onDraft && (
+                  <Button
+                    size="sm"
+                    onClick={onDraft}
+                    disabled={!canDraft || draftBusy}
+                    variant={canDraft ? "default" : "outline"}
+                    className="font-bold"
+                  >
+                    Draft
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </DialogHeader>
 
