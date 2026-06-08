@@ -1132,7 +1132,7 @@ function DraftRoomPage() {
 
         {/* LEFT — player pool */}
         <Card
-          className={`flex-col overflow-hidden border-2 lg:flex lg:h-full ${
+          className={`flex-col overflow-hidden border-2 lg:flex lg:h-[calc(100vh-12rem)] lg:max-h-[calc(100vh-12rem)] lg:sticky lg:top-4 ${
             mobileTab === "players" ? "flex" : "hidden"
           }`}
         >
