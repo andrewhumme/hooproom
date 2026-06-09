@@ -38,7 +38,7 @@ import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
-import { assignPicksToSlots, buildSlotSpots, type SlotConfig } from "@/lib/rosterSlots";
+import { assignPicksToSlots, buildSlotSpots, totalSlots, type SlotConfig } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 import {
   ArrowDown,
@@ -291,7 +291,6 @@ function DraftRoomPage() {
   const isHost = room?.host_user_id === user?.id;
   const isJoined = !!meParticipant;
 
-  const totalPicks = room ? room.team_count * room.rounds : 0;
   const currentPickNumber = room?.current_pick_number ?? 0;
   const isComplete = room?.status === "complete";
   const isDrafting = room?.status === "drafting";
@@ -335,6 +334,11 @@ function DraftRoomPage() {
       BN: room.slots_bn,
     };
   }, [room]);
+  const rosterSlotCount = useMemo(
+    () => (slotCfg ? totalSlots(slotCfg) : room?.rounds ?? 0),
+    [slotCfg, room?.rounds],
+  );
+  const totalPicks = room ? room.team_count * rosterSlotCount : 0;
 
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
@@ -1106,7 +1110,7 @@ function DraftRoomPage() {
                       onClock ? "text-primary-foreground/80" : "text-muted-foreground"
                     }`}
                   >
-                    {teamPicks}/{room.rounds}
+                    {teamPicks}/{rosterSlotCount}
                   </div>
                 </button>
               );
@@ -1352,7 +1356,7 @@ function DraftRoomPage() {
                 </h3>
                 <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
                   {meParticipant
-                    ? `${picks.filter((p) => p.user_id === user?.id).length}/${room.rounds} slots filled`
+                    ? `${picks.filter((p) => p.user_id === user?.id).length}/${rosterSlotCount} slots filled`
                     : "Spectating — join a seat to draft players"}
                 </p>
               </div>
@@ -1475,7 +1479,7 @@ function DraftRoomPage() {
                         )}
                       </div>
                       <span className="text-xs font-bold text-muted-foreground">
-                        {teamPicks}/{room.rounds}
+                        {teamPicks}/{rosterSlotCount}
                       </span>
                     </button>
                   </li>
@@ -1561,7 +1565,7 @@ function DraftRoomPage() {
                     {team?.team_name ?? `Team ${viewingTeamIdx} (Auto)`}
                   </DialogTitle>
                   <DialogDescription>
-                    Slot #{viewingTeamIdx} · {teamPicks.length}/{room.rounds} picks
+                    Slot #{viewingTeamIdx} · {teamPicks.length}/{rosterSlotCount} picks
                   </DialogDescription>
                 </DialogHeader>
                 <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border">
