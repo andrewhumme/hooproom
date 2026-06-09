@@ -70,7 +70,7 @@ export function useDraftQueue(roomId: string | null, userId: string | null) {
       if (!roomId || !userId) return;
       if (queue.some((q) => q.player_id === player.id)) return;
       const nextRank = (queue[queue.length - 1]?.rank ?? 0) + 1;
-      await supabase.from("draft_queues").insert({
+      const { error } = await supabase.from("draft_queues").insert({
         room_id: roomId,
         user_id: userId,
         player_id: player.id,
@@ -79,6 +79,13 @@ export function useDraftQueue(roomId: string | null, userId: string | null) {
         player_team: player.team,
         rank: nextRank,
       });
+      if (error) {
+        console.error("[queue] add failed", error);
+        toast.error(`Couldn't queue ${player.name}: ${error.message}`);
+      } else {
+        toast.success(`Queued ${player.name}`);
+        reload();
+      }
     },
     [roomId, userId, queue],
   );
