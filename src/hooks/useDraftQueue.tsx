@@ -93,14 +93,20 @@ export function useDraftQueue(roomId: string | null, userId: string | null) {
   const remove = useCallback(
     async (playerId: string) => {
       if (!roomId || !userId) return;
-      await supabase
+      const { error } = await supabase
         .from("draft_queues")
         .delete()
         .eq("room_id", roomId)
         .eq("user_id", userId)
         .eq("player_id", playerId);
+      if (error) {
+        console.error("[queue] remove failed", error);
+        toast.error(`Couldn't remove from queue: ${error.message}`);
+      } else {
+        reload();
+      }
     },
-    [roomId, userId],
+    [roomId, userId, reload],
   );
 
   const swap = useCallback(
