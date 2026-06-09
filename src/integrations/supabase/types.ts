@@ -74,6 +74,7 @@ export type Database = {
           nomination_number: number
           nominator_team_idx: number
           opening_bid: number
+          paused_remaining_ms: number | null
           player_id: string
           player_name: string
           player_position: string | null
@@ -92,6 +93,7 @@ export type Database = {
           nomination_number: number
           nominator_team_idx: number
           opening_bid: number
+          paused_remaining_ms?: number | null
           player_id: string
           player_name: string
           player_position?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           nomination_number?: number
           nominator_team_idx?: number
           opening_bid?: number
+          paused_remaining_ms?: number | null
           player_id?: string
           player_name?: string
           player_position?: string | null
@@ -312,6 +315,7 @@ export type Database = {
           league_id: string | null
           name: string
           paused_at: string | null
+          paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
@@ -349,6 +353,7 @@ export type Database = {
           league_id?: string | null
           name: string
           paused_at?: string | null
+          paused_remaining_ms?: number | null
           pick_clock_sec: number
           pick_deadline?: string | null
           reversal_rounds?: number[]
@@ -386,6 +391,7 @@ export type Database = {
           league_id?: string | null
           name?: string
           paused_at?: string | null
+          paused_remaining_ms?: number | null
           pick_clock_sec?: number
           pick_deadline?: string | null
           reversal_rounds?: number[]
@@ -656,6 +662,7 @@ export type Database = {
           nomination_number: number
           nominator_team_idx: number
           opening_bid: number
+          paused_remaining_ms: number | null
           player_id: string
           player_name: string
           player_position: string | null
@@ -693,6 +700,7 @@ export type Database = {
           nomination_number: number
           nominator_team_idx: number
           opening_bid: number
+          paused_remaining_ms: number | null
           player_id: string
           player_name: string
           player_position: string | null
@@ -727,6 +735,7 @@ export type Database = {
           league_id: string | null
           name: string
           paused_at: string | null
+          paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
@@ -854,6 +863,7 @@ export type Database = {
           league_id: string | null
           name: string
           paused_at: string | null
+          paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
@@ -929,6 +939,7 @@ export type Database = {
           league_id: string | null
           name: string
           paused_at: string | null
+          paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
@@ -984,6 +995,7 @@ export type Database = {
           league_id: string | null
           name: string
           paused_at: string | null
+          paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
