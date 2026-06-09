@@ -279,7 +279,7 @@ export function PlayerStatsModal({
                 ← swipe to see more stats →
               </div>
               <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-border overscroll-x-contain">
-                <table className="w-full min-w-[760px] text-sm">
+                <table className="w-full min-w-[760px] text-sm [&_tr>*:last-child]:border-r-0">
                   <thead className="bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     <tr>
                       <Th>Season</Th>
@@ -429,7 +429,7 @@ export function PlayerStatsModal({
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className="px-3 py-2 text-left whitespace-nowrap">{children}</th>;
+  return <th className="px-3 py-2 text-left whitespace-nowrap border-r border-border">{children}</th>;
 }
 function Td({
   children,
@@ -438,5 +438,5 @@ function Td({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <td className={`px-3 py-2 whitespace-nowrap ${className}`}>{children}</td>;
+  return <td className={`px-3 py-2 whitespace-nowrap border-r border-border ${className}`}>{children}</td>;
 }
