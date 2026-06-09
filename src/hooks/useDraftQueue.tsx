@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export type QueueItem = {
@@ -69,7 +70,7 @@ export function useDraftQueue(roomId: string | null, userId: string | null) {
       if (!roomId || !userId) return;
       if (queue.some((q) => q.player_id === player.id)) return;
       const nextRank = (queue[queue.length - 1]?.rank ?? 0) + 1;
-      await supabase.from("draft_queues").insert({
+      const { error } = await supabase.from("draft_queues").insert({
         room_id: roomId,
         user_id: userId,
         player_id: player.id,
@@ -78,21 +79,34 @@ export function useDraftQueue(roomId: string | null, userId: string | null) {
         player_team: player.team,
         rank: nextRank,
       });
+      if (error) {
+        console.error("[queue] add failed", error);
+        toast.error(`Couldn't queue ${player.name}: ${error.message}`);
+      } else {
+        toast.success(`Queued ${player.name}`);
+        reload();
+      }
     },
-    [roomId, userId, queue],
+    [roomId, userId, queue, reload],
   );
 
   const remove = useCallback(
     async (playerId: string) => {
       if (!roomId || !userId) return;
-      await supabase
+      const { error } = await supabase
         .from("draft_queues")
         .delete()
         .eq("room_id", roomId)
         .eq("user_id", userId)
         .eq("player_id", playerId);
+      if (error) {
+        console.error("[queue] remove failed", error);
+        toast.error(`Couldn't remove from queue: ${error.message}`);
+      } else {
+        reload();
+      }
     },
-    [roomId, userId],
+    [roomId, userId, reload],
   );
 
   const swap = useCallback(
