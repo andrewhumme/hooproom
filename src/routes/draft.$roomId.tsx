@@ -1210,8 +1210,8 @@ function DraftRoomPage() {
                   >
                     Player {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3 text-orange-500" /> : ""}
                   </button>
-                  <div className="flex shrink-0 items-center gap-1">
-                    {STAT_COLUMNS.map((col) => {
+                  <div className="flex shrink-0 items-stretch rounded-md border border-border/70 bg-muted/20">
+                    {STAT_COLUMNS.map((col, idx) => {
                       const active = sortKey === col.key;
                       return (
                         <button
@@ -1225,7 +1225,9 @@ function DraftRoomPage() {
                               setSortDir("desc");
                             }
                           }}
-                          className={`flex w-11 flex-col items-center rounded-md px-1 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                          className={`flex w-11 flex-col items-center px-1 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                            idx === 0 ? "" : "border-l border-border/70"
+                          } ${
                             active
                               ? "bg-primary/15 text-primary"
                               : "text-muted-foreground hover:text-foreground"
@@ -1268,8 +1270,8 @@ function DraftRoomPage() {
                         </div>
                       </button>
 
-                      <div className="hidden shrink-0 items-center gap-1 text-[11px] font-bold tabular-nums sm:flex">
-                        {STAT_COLUMNS.map((col) => (
+                      <div className="hidden shrink-0 items-stretch rounded-md border border-border/70 bg-background/70 text-[11px] font-bold tabular-nums sm:flex">
+                        {STAT_COLUMNS.map((col, idx) => (
                           <Stat
                             key={col.key}
                             label={col.label}
@@ -1278,6 +1280,7 @@ function DraftRoomPage() {
                             mode={statsShade}
                             decimals={col.decimals}
                             active={sortKey === col.key}
+                            divider={idx !== 0}
                           />
                         ))}
                       </div>
@@ -1590,6 +1593,7 @@ function Stat({
   mode,
   decimals = 1,
   active = false,
+  divider = false,
 }: {
   label: string;
   value: number | null | undefined;
@@ -1597,6 +1601,7 @@ function Stat({
   mode?: "stats" | "zebra" | "heatmap";
   decimals?: number;
   active?: boolean;
+  divider?: boolean;
 }) {
   // Heatmap: shade cell background based on value/max ratio.
   let style: React.CSSProperties | undefined;
@@ -1615,7 +1620,9 @@ function Stat({
         : Number(value).toFixed(decimals);
   return (
     <div
-      className={`flex w-11 flex-col items-center rounded-md px-1 py-0.5 leading-tight ${
+      className={`flex w-11 flex-col items-center px-1 py-0.5 leading-tight ${
+        divider ? "border-l border-border/70" : ""
+      } ${
         active && mode !== "heatmap" ? "ring-1 ring-primary/40" : ""
       }`}
       style={style}
