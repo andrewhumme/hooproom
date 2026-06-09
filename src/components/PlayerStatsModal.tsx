@@ -429,7 +429,7 @@ export function PlayerStatsModal({
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className="px-3 py-2 text-left whitespace-nowrap border-r border-border">{children}</th>;
+  return <th className="px-3 py-2 text-left whitespace-nowrap border-r border-solid border-border">{children}</th>;
 }
 function Td({
   children,
@@ -438,5 +438,5 @@ function Td({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <td className={`px-3 py-2 whitespace-nowrap border-r border-border ${className}`}>{children}</td>;
+  return <td className={`px-3 py-2 whitespace-nowrap border-r border-solid border-border ${className}`}>{children}</td>;
 }
