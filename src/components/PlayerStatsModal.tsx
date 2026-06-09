@@ -279,10 +279,10 @@ export function PlayerStatsModal({
                 ← swipe to see more stats →
               </div>
               <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-border overscroll-x-contain">
-                <table className="w-full min-w-[760px] border-collapse text-sm [&_tr>*+*]:border-l [&_tr>*+*]:border-border [&_tr>*+*]:border-solid">
+                <table className="w-full min-w-[760px] border-separate border-spacing-0 text-sm">
                   <thead className="bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     <tr>
-                      <Th>Season</Th>
+                      <Th divider={false}>Season</Th>
                       <Th>Team</Th>
                       <Th>GP</Th>
                       <Th>MIN</Th>
@@ -301,7 +301,9 @@ export function PlayerStatsModal({
                   <tbody className="divide-y divide-border">
                     {stats.map((s) => (
                       <tr key={s.season} className="font-medium">
-                        <Td className="font-black">{SEASON_LABEL[s.season] ?? s.season}</Td>
+                        <Td divider={false} className="font-black">
+                          {SEASON_LABEL[s.season] ?? s.season}
+                        </Td>
                         <Td>{s.team ?? "—"}</Td>
                         <Td>{s.games_played ?? "—"}</Td>
                         <Td>{fmt(s.minutes_per_game)}</Td>
@@ -428,15 +430,37 @@ export function PlayerStatsModal({
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="bg-muted/40 px-3 py-2 text-left whitespace-nowrap">{children}</th>;
+function Th({
+  children,
+  divider = true,
+}: {
+  children: React.ReactNode;
+  divider?: boolean;
+}) {
+  return (
+    <th
+      className="bg-muted/40 px-3 py-2 text-left whitespace-nowrap"
+      style={divider ? { borderLeft: "1px solid color-mix(in oklch, var(--muted-foreground) 20%, var(--border))" } : undefined}
+    >
+      {children}
+    </th>
+  );
 }
 function Td({
   children,
   className = "",
+  divider = true,
 }: {
   children: React.ReactNode;
   className?: string;
+  divider?: boolean;
 }) {
-  return <td className={`px-3 py-2 whitespace-nowrap ${className}`}>{children}</td>;
+  return (
+    <td
+      className={`px-3 py-2 whitespace-nowrap ${className}`}
+      style={divider ? { borderLeft: "1px solid color-mix(in oklch, var(--muted-foreground) 20%, var(--border))" } : undefined}
+    >
+      {children}
+    </td>
+  );
 }
