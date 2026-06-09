@@ -111,18 +111,24 @@ export function useDraftQueue(roomId: string | null, userId: string | null) {
 
   const swap = useCallback(
     async (a: QueueItem, b: QueueItem) => {
-      // Two-step swap to dodge UNIQUE(room,user,player) — ranks have no unique
-      // constraint, so we can simply update both rows.
-      await supabase
+      // Ranks have no unique constraint so we can update both rows directly.
+      const r1 = await supabase
         .from("draft_queues")
         .update({ rank: b.rank })
         .eq("id", a.id);
-      await supabase
+      const r2 = await supabase
         .from("draft_queues")
         .update({ rank: a.rank })
         .eq("id", b.id);
+      if (r1.error || r2.error) {
+        console.error("[queue] swap failed", r1.error, r2.error);
+        toast.error(
+          `Couldn't reorder queue: ${(r1.error ?? r2.error)?.message}`,
+        );
+      }
+      await reload();
     },
-    [],
+    [reload],
   );
 
   const moveUp = useCallback(
