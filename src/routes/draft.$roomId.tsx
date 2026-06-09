@@ -38,7 +38,7 @@ import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
 import { compareByRank } from "@/lib/playerRankings";
 import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
-import { assignPicksToSlots, buildSlotSpots, type SlotConfig } from "@/lib/rosterSlots";
+import { assignPicksToSlots, buildSlotSpots, totalSlots, type SlotConfig } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 import {
   ArrowDown,
@@ -291,7 +291,6 @@ function DraftRoomPage() {
   const isHost = room?.host_user_id === user?.id;
   const isJoined = !!meParticipant;
 
-  const totalPicks = room ? room.team_count * room.rounds : 0;
   const currentPickNumber = room?.current_pick_number ?? 0;
   const isComplete = room?.status === "complete";
   const isDrafting = room?.status === "drafting";
@@ -335,6 +334,11 @@ function DraftRoomPage() {
       BN: room.slots_bn,
     };
   }, [room]);
+  const rosterSlotCount = useMemo(
+    () => (slotCfg ? totalSlots(slotCfg) : room?.rounds ?? 0),
+    [slotCfg, room?.rounds],
+  );
+  const totalPicks = room ? room.team_count * rosterSlotCount : 0;
 
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
