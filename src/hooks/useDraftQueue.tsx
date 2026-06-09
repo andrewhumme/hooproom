@@ -87,7 +87,7 @@ export function useDraftQueue(roomId: string | null, userId: string | null) {
         reload();
       }
     },
-    [roomId, userId, queue],
+    [roomId, userId, queue, reload],
   );
 
   const remove = useCallback(
