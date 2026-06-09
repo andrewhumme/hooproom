@@ -159,7 +159,7 @@ function DraftRoomPage() {
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
-  const [statsShade, setStatsShade] = useState<"stats" | "zebra" | "heatmap">("zebra");
+  const [statsShade, setStatsShade] = useState<"zebra" | "heatmap">("zebra");
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
@@ -1168,7 +1168,7 @@ function DraftRoomPage() {
                   : `${availablePlayers.length} available · sorted by ranking`}
               </div>
               <div className="flex items-center gap-1 rounded-md border-2 border-border bg-card p-1">
-                {(["stats", "zebra", "heatmap"] as const).map((m) => (
+                {(["zebra", "heatmap"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
@@ -1598,7 +1598,7 @@ function Stat({
   label: string;
   value: number | null | undefined;
   max?: number;
-  mode?: "stats" | "zebra" | "heatmap";
+  mode?: "zebra" | "heatmap";
   decimals?: number;
   active?: boolean;
   divider?: boolean;
