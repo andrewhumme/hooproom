@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 
-export function AppHeader({ active }: { active?: "home" | "lobby" }) {
-  const { user, loading, signOut } = useAuth();
+export function AppHeader({ active }: { active?: "home" | "lobby" | "me" }) {
+  const { user, loading, isGuest, signOut } = useAuth();
+  const isReal = !!user && !isGuest;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
@@ -22,6 +23,11 @@ export function AppHeader({ active }: { active?: "home" | "lobby" }) {
           <Link to="/lobby" className={active === "lobby" ? "text-primary" : "hover:text-primary"}>
             Lobby
           </Link>
+          {isReal && (
+            <Link to="/me" className={active === "me" ? "text-primary" : "hover:text-primary"}>
+              My Drafts
+            </Link>
+          )}
         </nav>
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-2 md:flex">
@@ -34,11 +40,15 @@ export function AppHeader({ active }: { active?: "home" | "lobby" }) {
           </div>
           {loading ? (
             <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
-          ) : user ? (
+          ) : isReal ? (
             <>
-              <span className="hidden text-sm font-semibold sm:inline">
+              <Link
+                to="/me"
+                className="hidden items-center gap-1.5 text-sm font-semibold hover:text-primary sm:inline-flex"
+              >
+                <UserIcon className="h-4 w-4" />
                 {user.user_metadata?.display_name ?? user.email}
-              </span>
+              </Link>
               <Button size="sm" variant="outline" onClick={signOut} className="font-bold">
                 <LogOut /> Sign out
               </Button>
