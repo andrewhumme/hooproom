@@ -202,10 +202,9 @@ function NewRoomPage() {
 
     setBusy(true);
     try {
-      await ensureGuestSession();
       const { data: sessionData } = await supabase.auth.getSession();
       const currentUser = sessionData.session?.user ?? user;
-      if (!currentUser) throw new Error("Could not start guest session");
+      if (!currentUser) throw new Error("You must be signed in to host a draft");
 
       const { data: room, error: roomErr } = await supabase
         .from("draft_rooms")
