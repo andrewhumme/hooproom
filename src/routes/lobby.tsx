@@ -115,8 +115,7 @@ function LobbyPage() {
     };
   }, []);
 
-  const handleCreate = async () => {
-    await ensureGuestSession();
+  const handleCreate = () => {
     navigate({ to: "/lobby/new" });
   };
 
