@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { lovable } from "@/integrations/lovable";
+import { useAuth, clearGuestMarker } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 const authSearchSchema = z.object({
