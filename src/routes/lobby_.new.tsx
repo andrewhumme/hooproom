@@ -154,11 +154,6 @@ function NewRoomPage() {
     );
   };
 
-  // Make sure a guest session exists as soon as the form mounts so the host
-  // can submit immediately. (Testing mode — replace with real auth later.)
-  useEffect(() => {
-    ensureGuestSession().catch((e) => console.error("guest session failed", e));
-  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
