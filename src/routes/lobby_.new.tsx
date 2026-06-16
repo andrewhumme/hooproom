@@ -102,8 +102,16 @@ function formatClock(sec: number): string {
 }
 
 function NewRoomPage() {
-  const { user } = useAuth();
+  const { user, isGuest, loading: authLoading } = useAuth();
+  const isReal = !!user && !isGuest;
   const navigate = useNavigate();
+
+  // Gate: only real signed-in users can host a draft.
+  useEffect(() => {
+    if (!authLoading && !isReal) {
+      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
+    }
+  }, [authLoading, isReal, navigate]);
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
