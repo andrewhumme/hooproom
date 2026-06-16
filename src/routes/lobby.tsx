@@ -41,16 +41,24 @@ type Room = {
 };
 
 function LobbyPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isGuest, loading: authLoading } = useAuth();
+  const isReal = !!user && !isGuest;
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Require a real account to browse the lobby.
   useEffect(() => {
+    if (!authLoading && !isReal) {
+      navigate({ to: "/auth", search: { redirect: "/lobby" } });
+    }
+  }, [authLoading, isReal, navigate]);
+
+  useEffect(() => {
+    if (!isReal) return;
     let mounted = true;
 
     const load = async () => {
-      await ensureGuestSession();
       const { data: roomData, error } = await supabase
         .from("draft_rooms")
         .select("*")
