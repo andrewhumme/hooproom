@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LobbyRouteImport } from './routes/lobby'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
+import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
 import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
 import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
 import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
@@ -27,6 +29,10 @@ const LobbyRoute = LobbyRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +49,11 @@ const DraftRoomIdRoute = DraftRoomIdRouteImport.update({
   id: '/draft/$roomId',
   path: '/draft/$roomId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMeRoute = AuthenticatedMeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiPublicSnakeTickRoute = ApiPublicSnakeTickRouteImport.update({
   id: '/api/public/snake-tick',
@@ -69,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
+  '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
@@ -80,6 +92,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
+  '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
@@ -90,8 +103,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
+  '/_authenticated/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby_/new': typeof LobbyNewRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
@@ -105,6 +120,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/lobby'
+    | '/me'
     | '/draft/$roomId'
     | '/lobby/new'
     | '/api/public/auction-tick'
@@ -116,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/lobby'
+    | '/me'
     | '/draft/$roomId'
     | '/lobby/new'
     | '/api/public/auction-tick'
@@ -125,8 +142,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/auth'
     | '/lobby'
+    | '/_authenticated/me'
     | '/draft/$roomId'
     | '/lobby_/new'
     | '/api/public/auction-tick'
@@ -137,6 +156,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   LobbyRoute: typeof LobbyRoute
   DraftRoomIdRoute: typeof DraftRoomIdRoute
@@ -163,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -183,6 +210,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/draft/$roomId'
       preLoaderRoute: typeof DraftRoomIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/me': {
+      id: '/_authenticated/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof AuthenticatedMeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/snake-tick': {
       id: '/api/public/snake-tick'
@@ -215,8 +249,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedMeRoute: typeof AuthenticatedMeRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedMeRoute: AuthenticatedMeRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   LobbyRoute: LobbyRoute,
   DraftRoomIdRoute: DraftRoomIdRoute,
