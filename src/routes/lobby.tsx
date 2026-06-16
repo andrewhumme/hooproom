@@ -5,9 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
-import { ArrowRight, Clock, Plus, Trophy, Users, Zap } from "lucide-react";
+import { ArrowRight, Clock, Lock, Plus, Trophy, Users, Zap } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby")({
@@ -42,16 +41,24 @@ type Room = {
 };
 
 function LobbyPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isGuest, loading: authLoading } = useAuth();
+  const isReal = !!user && !isGuest;
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Require a real account to browse the lobby.
   useEffect(() => {
+    if (!authLoading && !isReal) {
+      navigate({ to: "/auth", search: { redirect: "/lobby" } });
+    }
+  }, [authLoading, isReal, navigate]);
+
+  useEffect(() => {
+    if (!isReal) return;
     let mounted = true;
 
     const load = async () => {
-      await ensureGuestSession();
       const { data: roomData, error } = await supabase
         .from("draft_rooms")
         .select("*")
@@ -108,8 +115,7 @@ function LobbyPage() {
     };
   }, []);
 
-  const handleCreate = async () => {
-    await ensureGuestSession();
+  const handleCreate = () => {
     navigate({ to: "/lobby/new" });
   };
 
@@ -181,9 +187,11 @@ function LobbyPage() {
           </div>
         )}
 
-        {!user && !authLoading && (
+        {!isReal && !authLoading && (
           <Card className="mt-10 border-2 border-dashed border-primary/40 bg-primary/5 p-4 text-center text-sm text-muted-foreground">
-            <span className="font-bold text-foreground">Testing mode:</span> jump into any room — we'll spin up a guest identity for you. No signup needed.
+            <Lock className="mx-auto mb-2 h-4 w-4 text-primary" />
+            <span className="font-bold text-foreground">Sign in to host or join a draft.</span>{" "}
+            Anyone can spectate a live draft via its share link.
           </Card>
         )}
       </section>
@@ -196,8 +204,7 @@ function RoomCard({ room }: { room: Room }) {
   const filling = (room.participant_count ?? 0) / room.team_count >= 0.75;
   const isLive = room.status === "drafting";
 
-  const handleOpen = async () => {
-    await ensureGuestSession();
+  const handleOpen = () => {
     navigate({ to: "/draft/$roomId", params: { roomId: room.id } });
   };
 

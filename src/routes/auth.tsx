@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { lovable } from "@/integrations/lovable";
+import { useAuth, clearGuestMarker } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 const authSearchSchema = z.object({
@@ -46,6 +47,13 @@ function AuthPage() {
     setError(null);
     setBusy(true);
     try {
+      // Sign out any existing guest session so the real account takes over cleanly.
+      const { data: existing } = await supabase.auth.getSession();
+      if (existing.session) {
+        await supabase.auth.signOut();
+      }
+      clearGuestMarker();
+
       if (tab === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
@@ -76,11 +84,25 @@ function AuthPage() {
 
   const handleGoogle = async () => {
     setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}${redirect}` },
-    });
-    if (error) setError(error.message);
+    setBusy(true);
+    try {
+      const { data: existing } = await supabase.auth.getSession();
+      if (existing.session) {
+        await supabase.auth.signOut();
+      }
+      clearGuestMarker();
+
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}${redirect}`,
+      });
+      if (result.error) {
+        setError(result.error instanceof Error ? result.error.message : String(result.error));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

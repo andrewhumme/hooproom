@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ensureGuestSession } from "@/lib/guestSession";
 import { AppHeader } from "@/components/AppHeader";
 import { Loader2 } from "lucide-react";
 import { DEFAULT_SLOTS, SLOT_KEYS, type SlotConfig, totalSlots } from "@/lib/rosterSlots";
@@ -103,8 +102,16 @@ function formatClock(sec: number): string {
 }
 
 function NewRoomPage() {
-  const { user } = useAuth();
+  const { user, isGuest, loading: authLoading } = useAuth();
+  const isReal = !!user && !isGuest;
   const navigate = useNavigate();
+
+  // Gate: only real signed-in users can host a draft.
+  useEffect(() => {
+    if (!authLoading && !isReal) {
+      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
+    }
+  }, [authLoading, isReal, navigate]);
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
@@ -147,11 +154,6 @@ function NewRoomPage() {
     );
   };
 
-  // Make sure a guest session exists as soon as the form mounts so the host
-  // can submit immediately. (Testing mode — replace with real auth later.)
-  useEffect(() => {
-    ensureGuestSession().catch((e) => console.error("guest session failed", e));
-  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,10 +202,9 @@ function NewRoomPage() {
 
     setBusy(true);
     try {
-      await ensureGuestSession();
       const { data: sessionData } = await supabase.auth.getSession();
       const currentUser = sessionData.session?.user ?? user;
-      if (!currentUser) throw new Error("Could not start guest session");
+      if (!currentUser) throw new Error("You must be signed in to host a draft");
 
       const { data: room, error: roomErr } = await supabase
         .from("draft_rooms")
