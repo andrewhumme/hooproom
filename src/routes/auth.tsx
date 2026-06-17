@@ -118,20 +118,6 @@ function AuthPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-black">
-              H
-            </div>
-            <span className="text-lg font-black tracking-tight">HoopRoom</span>
-          </Link>
-          <Link to="/lobby" className="text-sm font-semibold text-muted-foreground hover:text-foreground">
-            Browse drafts →
-          </Link>
-        </div>
-      </header>
-
       <main className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
