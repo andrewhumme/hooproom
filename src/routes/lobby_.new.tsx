@@ -266,6 +266,38 @@ function NewRoomPage() {
             </div>
 
             <div>
+              <Label>Visibility</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Public rooms show up in the lobby for anyone to browse (sign-in still required to join). Private rooms are link-only.
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {(["public", "private"] as const).map((v) => {
+                  const active = visibility === v;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setVisibility(v)}
+                      className={`rounded-md border-2 p-3 text-left transition ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="text-sm font-black capitalize">{v}</div>
+                      <div className="mt-1 text-[11px] font-medium text-muted-foreground">
+                        {v === "public"
+                          ? "Listed in the public lobby"
+                          : "Hidden — share the link directly"}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+
+            <div>
               <Label>Draft format</Label>
               <p className="mt-1 text-xs text-muted-foreground">
                 Snake = sequential picks. Auction = nominations + bidding. Both run live or slow based on the clocks you choose below.
