@@ -36,7 +36,7 @@ type Room = {
   pick_clock_sec: number;
   scoring_format: string;
   status: "waiting" | "drafting" | "paused" | "complete";
-  visibility: "public" | "private";
+  visibility: "public" | "spectate" | "private";
   created_at: string;
   participant_count?: number;
 };
