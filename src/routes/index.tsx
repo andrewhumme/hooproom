@@ -46,32 +46,6 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <a href="#top" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-black">
-              H
-            </div>
-            <span className="text-lg font-black tracking-tight">HoopRoom</span>
-          </a>
-          <nav className="hidden items-center gap-8 text-sm font-semibold md:flex">
-            <a href="#features" className="hover:text-primary">Features</a>
-            <a href="#compare" className="hover:text-primary">Why HoopRoom</a>
-            <Link to="/lobby" className="hover:text-primary">Lobby</Link>
-            <a href="#waitlist" className="hover:text-primary">Early Access</a>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button asChild size="sm" variant="outline" className="font-bold">
-              <Link to="/lobby">Browse Drafts</Link>
-            </Button>
-            <Button asChild size="sm" className="font-bold">
-              <Link to="/lobby/new">Start a Draft</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
       {/* Hero */}
       <section id="top" className="relative overflow-hidden">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-2 lg:py-24">

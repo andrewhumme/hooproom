@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/useAuth";
+import { Header } from "@/components/Header";
 
 function NotFoundComponent() {
   return (
@@ -30,14 +31,14 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "HoopRoom — Real-time NBA Mock Drafts" },
+      { name: "description", content: "Live NBA fantasy mock drafts with real-time picks, smart rankings, and AI draft grades." },
+      { name: "author", content: "HoopRoom" },
+      { property: "og:title", content: "HoopRoom — Real-time NBA Mock Drafts" },
+      { property: "og:description", content: "Live NBA fantasy mock drafts with real-time picks, smart rankings, and AI draft grades." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@HoopRoom" },
     ],
     links: [
       {
@@ -68,7 +69,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <AuthProvider>
-      <Outlet />
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <Outlet />
+      </div>
     </AuthProvider>
   );
 }
+
