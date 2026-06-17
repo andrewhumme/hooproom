@@ -50,7 +50,7 @@ const SCHEMA = z.object({
   slots_bn: z.number().int().min(0).max(15),
   reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
   auto_start_at: z.string().nullable(),
-  visibility: z.enum(["public", "private"]),
+  visibility: z.enum(["public", "spectate", "private"]),
 });
 
 const TEAM_OPTIONS = [6, 8, 10, 12, 14] as const;
@@ -133,7 +133,7 @@ function NewRoomPage() {
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
   const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(10 * 60);
-  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [visibility, setVisibility] = useState<"public" | "spectate" | "private">("public");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -266,12 +266,18 @@ function NewRoomPage() {
             </div>
 
             <div>
-              <Label>Visibility</Label>
+              <Label>Privacy</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Public rooms show up in the lobby for anyone to browse (sign-in still required to join). Private rooms are link-only.
+                Control who can find this room and whether non-invited users can grab a seat.
               </p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {(["public", "private"] as const).map((v) => {
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {(
+                  [
+                    { v: "public", label: "Public", hint: "Listed in the lobby — anyone signed in can join" },
+                    { v: "spectate", label: "Spectate only", hint: "Listed in the lobby — viewers can watch, no joining" },
+                    { v: "private", label: "Private", hint: "Hidden — share the link to invite players" },
+                  ] as const
+                ).map(({ v, label, hint }) => {
                   const active = visibility === v;
                   return (
                     <button
@@ -284,17 +290,16 @@ function NewRoomPage() {
                           : "border-border bg-card hover:border-primary/40"
                       }`}
                     >
-                      <div className="text-sm font-black capitalize">{v}</div>
+                      <div className="text-sm font-black">{label}</div>
                       <div className="mt-1 text-[11px] font-medium text-muted-foreground">
-                        {v === "public"
-                          ? "Listed in the public lobby"
-                          : "Hidden — share the link directly"}
+                        {hint}
                       </div>
                     </button>
                   );
                 })}
               </div>
             </div>
+
 
 
             <div>
