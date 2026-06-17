@@ -133,7 +133,7 @@ function NewRoomPage() {
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
   const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(10 * 60);
-  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [visibility, setVisibility] = useState<"public" | "spectate" | "private">("public");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
