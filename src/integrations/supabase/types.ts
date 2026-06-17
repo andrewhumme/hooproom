@@ -334,6 +334,7 @@ export type Database = {
           status: string
           team_count: number
           updated_at: string
+          visibility: string
         }
         Insert: {
           auction_antisnipe_threshold_sec?: number | null
@@ -372,6 +373,7 @@ export type Database = {
           status?: string
           team_count: number
           updated_at?: string
+          visibility?: string
         }
         Update: {
           auction_antisnipe_threshold_sec?: number | null
@@ -410,6 +412,7 @@ export type Database = {
           status?: string
           team_count?: number
           updated_at?: string
+          visibility?: string
         }
         Relationships: []
       }
@@ -754,6 +757,7 @@ export type Database = {
           status: string
           team_count: number
           updated_at: string
+          visibility: string
         }
         SetofOptions: {
           from: "*"
@@ -882,6 +886,7 @@ export type Database = {
           status: string
           team_count: number
           updated_at: string
+          visibility: string
         }
         SetofOptions: {
           from: "*"
@@ -958,6 +963,7 @@ export type Database = {
           status: string
           team_count: number
           updated_at: string
+          visibility: string
         }
         SetofOptions: {
           from: "*"
@@ -1014,6 +1020,7 @@ export type Database = {
           status: string
           team_count: number
           updated_at: string
+          visibility: string
         }
         SetofOptions: {
           from: "*"

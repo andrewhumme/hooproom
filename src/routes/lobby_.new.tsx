@@ -50,6 +50,7 @@ const SCHEMA = z.object({
   slots_bn: z.number().int().min(0).max(15),
   reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
   auto_start_at: z.string().nullable(),
+  visibility: z.enum(["public", "private"]),
 });
 
 const TEAM_OPTIONS = [6, 8, 10, 12, 14] as const;
@@ -132,6 +133,7 @@ function NewRoomPage() {
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
   const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(10 * 60);
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -190,6 +192,7 @@ function NewRoomPage() {
         lobbyTimerSec > 0
           ? new Date(Date.now() + lobbyTimerSec * 1000).toISOString()
           : null,
+      visibility,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
@@ -261,6 +264,38 @@ function NewRoomPage() {
                 className="mt-1.5"
               />
             </div>
+
+            <div>
+              <Label>Visibility</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Public rooms show up in the lobby for anyone to browse (sign-in still required to join). Private rooms are link-only.
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {(["public", "private"] as const).map((v) => {
+                  const active = visibility === v;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setVisibility(v)}
+                      className={`rounded-md border-2 p-3 text-left transition ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="text-sm font-black capitalize">{v}</div>
+                      <div className="mt-1 text-[11px] font-medium text-muted-foreground">
+                        {v === "public"
+                          ? "Listed in the public lobby"
+                          : "Hidden — share the link directly"}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
 
             <div>
               <Label>Draft format</Label>
