@@ -107,9 +107,13 @@ function LobbyPage() {
       mounted = false;
       supabase.removeChannel(channel);
     };
-  }, [isReal]);
+  }, [authLoading]);
 
   const handleCreate = () => {
+    if (!isReal) {
+      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
+      return;
+    }
     navigate({ to: "/lobby/new" });
   };
 
