@@ -266,12 +266,18 @@ function NewRoomPage() {
             </div>
 
             <div>
-              <Label>Visibility</Label>
+              <Label>Privacy</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Public rooms show up in the lobby for anyone to browse (sign-in still required to join). Private rooms are link-only.
+                Control who can find this room and whether non-invited users can grab a seat.
               </p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {(["public", "private"] as const).map((v) => {
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {(
+                  [
+                    { v: "public", label: "Public", hint: "Listed in the lobby — anyone signed in can join" },
+                    { v: "spectate", label: "Spectate only", hint: "Listed in the lobby — viewers can watch, no joining" },
+                    { v: "private", label: "Private", hint: "Hidden — share the link to invite players" },
+                  ] as const
+                ).map(({ v, label, hint }) => {
                   const active = visibility === v;
                   return (
                     <button
@@ -284,17 +290,16 @@ function NewRoomPage() {
                           : "border-border bg-card hover:border-primary/40"
                       }`}
                     >
-                      <div className="text-sm font-black capitalize">{v}</div>
+                      <div className="text-sm font-black">{label}</div>
                       <div className="mt-1 text-[11px] font-medium text-muted-foreground">
-                        {v === "public"
-                          ? "Listed in the public lobby"
-                          : "Hidden — share the link directly"}
+                        {hint}
                       </div>
                     </button>
                   );
                 })}
               </div>
             </div>
+
 
 
             <div>
