@@ -28,7 +28,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
-  const { session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading, isGuest } = useAuth();
   const [tab, setTab] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,11 +36,22 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // If a guest session is active when the user lands here, sign it out so the
+  // sign-in form takes over cleanly (otherwise the guest session immediately
+  // redirects to /lobby, which bounces back to /auth — a freeze loop).
   useEffect(() => {
-    if (!authLoading && session) {
+    if (authLoading) return;
+    if (session && isGuest) {
+      try {
+        localStorage.removeItem("hoopRoom.guestCreds.v1");
+      } catch {}
+      supabase.auth.signOut();
+      return;
+    }
+    if (session && !isGuest) {
       navigate({ to: redirect as "/lobby" });
     }
-  }, [authLoading, session, navigate, redirect]);
+  }, [authLoading, session, isGuest, navigate, redirect]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
