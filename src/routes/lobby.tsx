@@ -36,6 +36,7 @@ type Room = {
   pick_clock_sec: number;
   scoring_format: string;
   status: "waiting" | "drafting" | "paused" | "complete";
+  visibility: "public" | "private";
   created_at: string;
   participant_count?: number;
 };
@@ -47,15 +48,8 @@ function LobbyPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Require a real account to browse the lobby.
   useEffect(() => {
-    if (!authLoading && !isReal) {
-      navigate({ to: "/auth", search: { redirect: "/lobby" } });
-    }
-  }, [authLoading, isReal, navigate]);
-
-  useEffect(() => {
-    if (!isReal) return;
+    if (authLoading) return;
     let mounted = true;
 
     const load = async () => {
