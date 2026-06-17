@@ -209,20 +209,27 @@ function RoomCard({ room }: { room: Room }) {
   return (
     <Card className="flex flex-col overflow-hidden border-2 transition hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--shadow-bold)]">
       <div className="border-b-2 border-border bg-muted/40 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Badge variant="outline" className="font-bold">
             {room.scoring_format}
           </Badge>
-          {isLive ? (
-            <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-primary">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-              Live
-            </span>
-          ) : (
-            <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-muted-foreground">
-              Open
-            </span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {room.visibility === "spectate" && (
+              <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-accent-foreground">
+                Spectate
+              </span>
+            )}
+            {isLive ? (
+              <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-primary">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                Live
+              </span>
+            ) : (
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-muted-foreground">
+                Open
+              </span>
+            )}
+          </div>
         </div>
         <h3 className="mt-3 text-lg font-black leading-tight">{room.name}</h3>
       </div>
