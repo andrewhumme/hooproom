@@ -50,6 +50,7 @@ const SCHEMA = z.object({
   slots_bn: z.number().int().min(0).max(15),
   reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
   auto_start_at: z.string().nullable(),
+  visibility: z.enum(["public", "private"]),
 });
 
 const TEAM_OPTIONS = [6, 8, 10, 12, 14] as const;
