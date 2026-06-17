@@ -192,6 +192,7 @@ function NewRoomPage() {
         lobbyTimerSec > 0
           ? new Date(Date.now() + lobbyTimerSec * 1000).toISOString()
           : null,
+      visibility,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
