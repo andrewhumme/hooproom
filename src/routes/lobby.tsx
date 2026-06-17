@@ -113,7 +113,7 @@ function LobbyPage() {
       mounted = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [isReal]);
 
   const handleCreate = () => {
     navigate({ to: "/lobby/new" });
