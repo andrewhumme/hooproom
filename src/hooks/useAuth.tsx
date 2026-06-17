@@ -36,21 +36,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
-    console.log("[useAuth] mount, subscribing");
-    const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log("[useAuth] event", event, !!newSession);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setIsGuest(readIsGuest());
       setLoading(false);
     });
 
     supabase.auth.getSession().then(({ data }) => {
-      console.log("[useAuth] getSession", !!data.session);
       setSession(data.session);
       setIsGuest(readIsGuest());
-      setLoading(false);
-    }).catch((e) => {
-      console.error("[useAuth] getSession failed", e);
       setLoading(false);
     });
 
