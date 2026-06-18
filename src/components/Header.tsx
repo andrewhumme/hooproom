@@ -25,7 +25,7 @@ function NavLink({
   const className = "group relative flex flex-col items-center";
 
   const linkClass =
-    "relative z-10 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground";
+    "relative z-10 px-3 py-2 text-[15px] font-medium text-muted-foreground transition-colors hover:text-primary";
 
   const underlineClass =
     "h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center";
@@ -72,15 +72,15 @@ export function Header() {
         {/* Desktop nav */}
         <nav className="hidden items-center md:flex">
           <div className="flex items-center gap-1">
-            <NavLink to="/lobby">Browse Drafts</NavLink>
+            <NavLink to="/lobby">Browse drafts</NavLink>
             <div className="mx-1 h-4 w-px bg-border" />
-            <NavLink to="/lobby/new">Start a Draft</NavLink>
+            <NavLink to="/lobby/new">Start a draft</NavLink>
             <div className="mx-1 h-4 w-px bg-border" />
             {isHome ? (
               <NavLink href="#features">Features</NavLink>
             ) : (
               <Link to="/" hash="features" className="group relative flex flex-col items-center">
-                <span className="relative z-10 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground">
+                <span className="relative z-10 px-3 py-2 text-[15px] font-medium text-muted-foreground transition-colors hover:text-primary">
                   Features
                 </span>
                 <span className="h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
@@ -137,22 +137,22 @@ export function Header() {
             <Link
               to="/lobby"
               onClick={() => setMobileOpen(false)}
-              className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              className="text-[15px] font-medium text-muted-foreground hover:text-primary"
             >
-              Browse Drafts
+              Browse drafts
             </Link>
             <Link
               to="/lobby/new"
               onClick={() => setMobileOpen(false)}
-              className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              className="text-[15px] font-medium text-muted-foreground hover:text-primary"
             >
-              Start a Draft
+              Start a draft
             </Link>
             {isHome ? (
               <a
                 href="#features"
                 onClick={() => setMobileOpen(false)}
-                className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                className="text-[15px] font-medium text-muted-foreground hover:text-primary"
               >
                 Features
               </a>
@@ -161,7 +161,7 @@ export function Header() {
                 to="/"
                 hash="features"
                 onClick={() => setMobileOpen(false)}
-                className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                className="text-[15px] font-medium text-muted-foreground hover:text-primary"
               >
                 Features
               </Link>
@@ -172,7 +172,7 @@ export function Header() {
                   <Link
                     to="/me"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                    className="flex items-center gap-2 text-[15px] font-medium text-muted-foreground hover:text-primary"
                   >
                     <User className="h-4 w-4" /> Dashboard
                   </Link>
@@ -181,7 +181,7 @@ export function Header() {
                       setMobileOpen(false);
                       signOut();
                     }}
-                    className="mt-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-destructive"
+                    className="mt-3 flex items-center gap-2 text-[15px] font-medium text-destructive"
                   >
                     <LogOut className="h-4 w-4" /> Sign out
                   </button>
