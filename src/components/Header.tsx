@@ -28,7 +28,7 @@ function NavLink({
     "relative z-10 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground";
 
   const underlineClass =
-    "h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left";
+    "h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center";
 
   const content = (
     <>
