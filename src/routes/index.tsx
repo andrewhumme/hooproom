@@ -81,7 +81,7 @@ function Landing() {
               </Button>
             </div>
             <div className="mt-10 flex items-center gap-6 text-sm">
-              <Stat number="Snake + Auction" label="Two formats, your rules" />
+              <Stat number="Live or Slow" label="Snake or auction, your call" />
               <div className="h-10 w-px bg-border" />
               <Stat number="450+" label="Active NBA players" />
               <div className="h-10 w-px bg-border" />
