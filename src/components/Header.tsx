@@ -117,7 +117,7 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild size="sm" variant="outline" className="font-bold">
+            <Button asChild size="sm" variant="outline" className="font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
               <Link to="/auth">Sign In</Link>
             </Button>
           )}
