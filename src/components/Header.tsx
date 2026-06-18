@@ -137,22 +137,22 @@ export function Header() {
             <Link
               to="/lobby"
               onClick={() => setMobileOpen(false)}
-              className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              className="text-[15px] font-medium text-muted-foreground hover:text-primary"
             >
-              Browse Drafts
+              Browse drafts
             </Link>
             <Link
               to="/lobby/new"
               onClick={() => setMobileOpen(false)}
-              className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              className="text-[15px] font-medium text-muted-foreground hover:text-primary"
             >
-              Start a Draft
+              Start a draft
             </Link>
             {isHome ? (
               <a
                 href="#features"
                 onClick={() => setMobileOpen(false)}
-                className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                className="text-[15px] font-medium text-muted-foreground hover:text-primary"
               >
                 Features
               </a>
@@ -161,7 +161,7 @@ export function Header() {
                 to="/"
                 hash="features"
                 onClick={() => setMobileOpen(false)}
-                className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                className="text-[15px] font-medium text-muted-foreground hover:text-primary"
               >
                 Features
               </Link>
