@@ -22,22 +22,18 @@ function NavLink({
   children: React.ReactNode;
   onClick?: () => void;
 }) {
-  const className = "group relative flex items-center";
+  const className = "group relative flex flex-col items-center";
 
   const linkClass =
     "relative z-10 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground";
 
-  const bracketClass =
-    "text-primary/0 group-hover:text-primary transition-all duration-300 font-mono text-sm translate-x-1 group-hover:translate-x-0";
-
-  const bracketEndClass =
-    "text-primary/0 group-hover:text-primary transition-all duration-300 font-mono text-sm -translate-x-1 group-hover:translate-x-0";
+  const underlineClass =
+    "h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left";
 
   const content = (
     <>
-      <span className={bracketClass}>[</span>
       <span className={linkClass}>{children}</span>
-      <span className={bracketEndClass}>]</span>
+      <span className={underlineClass} />
     </>
   );
 
@@ -83,12 +79,11 @@ export function Header() {
             {isHome ? (
               <NavLink href="#features">Features</NavLink>
             ) : (
-              <Link to="/" hash="features" className="group relative flex items-center">
-                <span className="text-primary/0 group-hover:text-primary transition-all duration-300 font-mono text-sm translate-x-1 group-hover:translate-x-0">[</span>
+              <Link to="/" hash="features" className="group relative flex flex-col items-center">
                 <span className="relative z-10 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground">
                   Features
                 </span>
-                <span className="text-primary/0 group-hover:text-primary transition-all duration-300 font-mono text-sm -translate-x-1 group-hover:translate-x-0">]</span>
+                <span className="h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </Link>
             )}
           </div>
