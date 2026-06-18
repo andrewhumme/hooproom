@@ -84,9 +84,10 @@ export function Header() {
             <Link
               to="/"
               hash="features"
-              className="px-5 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200"
+              className="group relative flex flex-col items-center gap-0.5 px-5 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200"
             >
-              Features
+              <span>Features</span>
+              <span className="h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center rounded-full" />
             </Link>
           )}
         </nav>
