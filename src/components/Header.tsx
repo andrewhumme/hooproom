@@ -53,7 +53,7 @@ export function Header() {
   const isHome = pathname === "/";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur">
+    <header className="sticky top-0 z-50 bg-background/50 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
@@ -63,24 +63,25 @@ export function Header() {
           <span className="text-lg font-black tracking-tight">HoopRoom</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center md:flex">
-          <div className="flex items-center gap-1">
-            <NavLink to="/lobby">Browse drafts</NavLink>
-            <div className="mx-1 h-4 w-px bg-border" />
-            <NavLink to="/lobby/new">Start a draft</NavLink>
-            <div className="mx-1 h-4 w-px bg-border" />
-            {isHome ? (
-              <NavLink href="#features">Features</NavLink>
-            ) : (
-              <Link to="/" hash="features" className="group relative flex flex-col items-center">
-                <span className="relative z-10 px-3 py-2 text-[15px] font-medium text-muted-foreground transition-colors hover:text-primary">
-                  Features
-                </span>
-                <span className="h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
-              </Link>
-            )}
-          </div>
+        {/* Desktop nav — glass pill */}
+        <nav className="hidden items-center md:flex rounded-full border border-foreground/10 bg-white/40 backdrop-blur-md px-1.5 py-1.5 shadow-sm">
+          <PillNavLink to="/lobby" isActive={pathname === "/lobby"}>
+            Browse drafts
+          </PillNavLink>
+          <PillNavLink to="/lobby/new" isActive={pathname === "/lobby/new"}>
+            Start a draft
+          </PillNavLink>
+          {isHome ? (
+            <PillNavLink href="#features">Features</PillNavLink>
+          ) : (
+            <Link
+              to="/"
+              hash="features"
+              className="px-5 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200"
+            >
+              Features
+            </Link>
+          )}
         </nav>
 
         {/* Right side — auth */}
