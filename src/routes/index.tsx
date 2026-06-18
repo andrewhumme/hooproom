@@ -62,8 +62,8 @@ function Landing() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground md:text-xl">
-              Snake or auction. Live, slow, or offline. Custom rules, custom clocks,
-              custom rosters. Draft anywhere — then export your results straight into
+              Snake or auction. Live, slow, or offline. You set the rules, the clock,
+              the rosters — we handle the board. When you're done, export straight to
               ESPN, Yahoo, Sleeper, or any platform you play on.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -81,11 +81,11 @@ function Landing() {
               </Button>
             </div>
             <div className="mt-10 flex items-center gap-6 text-sm">
-              <Stat number="2" label="Draft formats" />
+              <Stat number="Snake + Auction" label="Two formats, your rules" />
               <div className="h-10 w-px bg-border" />
-              <Stat number="450+" label="NBA players" />
+              <Stat number="450+" label="Active NBA players" />
               <div className="h-10 w-px bg-border" />
-              <Stat number="1-click" label="Export to CSV" />
+              <Stat number="1-Click" label="Export to any platform" />
             </div>
           </div>
           <div className="relative">
