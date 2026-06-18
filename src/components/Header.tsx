@@ -22,11 +22,10 @@ function NavLink({
   children: React.ReactNode;
   onClick?: () => void;
 }) {
-  const className =
-    "group relative flex items-center";
+  const className = "group relative flex items-center";
 
   const linkClass =
-    "px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground";
+    "relative z-10 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground";
 
   const bracketClass =
     "text-primary/0 group-hover:text-primary transition-all duration-300 font-mono text-sm translate-x-1 group-hover:translate-x-0";
@@ -37,7 +36,7 @@ function NavLink({
   const content = (
     <>
       <span className={bracketClass}>[</span>
-      <span className="relative z-10">{children}</span>
+      <span className={linkClass}>{children}</span>
       <span className={bracketEndClass}>]</span>
     </>
   );
