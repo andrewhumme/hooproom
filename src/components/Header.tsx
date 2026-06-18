@@ -172,7 +172,7 @@ export function Header() {
                   <Link
                     to="/me"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                    className="flex items-center gap-2 text-[15px] font-medium text-muted-foreground hover:text-primary"
                   >
                     <User className="h-4 w-4" /> Dashboard
                   </Link>
@@ -181,7 +181,7 @@ export function Header() {
                       setMobileOpen(false);
                       signOut();
                     }}
-                    className="mt-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-destructive"
+                    className="mt-3 flex items-center gap-2 text-[15px] font-medium text-destructive"
                   >
                     <LogOut className="h-4 w-4" /> Sign out
                   </button>
