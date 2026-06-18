@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { AppHeader } from "@/components/AppHeader";
 import { ArrowRight, Clock, Lock, Plus, Trophy, Users, Zap } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
@@ -119,7 +118,6 @@ function LobbyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader active="lobby" />
 
       <section className="border-b border-border bg-secondary text-secondary-foreground">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-10 lg:flex-row lg:items-center">
