@@ -272,7 +272,11 @@ function RoomRow({ room }: { room: Room }) {
             handleOpen();
           }}
         >
-          {isLive ? "Join" : "Open"} <ArrowRight />
+          {room.visibility === "spectate"
+            ? "Watch"
+            : isLive
+              ? "Join"
+              : "Open"} <ArrowRight />
         </Button>
       </TableCell>
     </TableRow>
