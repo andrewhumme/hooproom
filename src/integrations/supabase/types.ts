@@ -775,11 +775,187 @@ export type Database = {
         Args: { _new_position: number; _participant_id: string }
         Returns: undefined
       }
+      host_adjust_clock: {
+        Args: { _delta_sec: number; _room_id: string }
+        Returns: {
+          auction_antisnipe_threshold_sec: number | null
+          auction_bid_clock_sec: number
+          auction_budget: number
+          auction_concurrent_per_team: number
+          auction_max_concurrent_nominations: number
+          auction_min_bid: number
+          auction_nominations_per_team: number | null
+          auto_start_at: string | null
+          completed_at: string | null
+          created_at: string
+          current_pick_number: number
+          draft_format: string
+          host_user_id: string
+          id: string
+          league_id: string | null
+          name: string
+          paused_at: string | null
+          paused_remaining_ms: number | null
+          pick_clock_sec: number
+          pick_deadline: string | null
+          reversal_rounds: number[]
+          rounds: number
+          scoring_format: string
+          slots_bn: number
+          slots_c: number
+          slots_f: number
+          slots_flx: number
+          slots_g: number
+          slots_pf: number
+          slots_pg: number
+          slots_sf: number
+          slots_sg: number
+          started_at: string | null
+          status: string
+          team_count: number
+          updated_at: string
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_rooms"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      host_force_clock_expire: {
+        Args: { _room_id: string }
+        Returns: {
+          auction_antisnipe_threshold_sec: number | null
+          auction_bid_clock_sec: number
+          auction_budget: number
+          auction_concurrent_per_team: number
+          auction_max_concurrent_nominations: number
+          auction_min_bid: number
+          auction_nominations_per_team: number | null
+          auto_start_at: string | null
+          completed_at: string | null
+          created_at: string
+          current_pick_number: number
+          draft_format: string
+          host_user_id: string
+          id: string
+          league_id: string | null
+          name: string
+          paused_at: string | null
+          paused_remaining_ms: number | null
+          pick_clock_sec: number
+          pick_deadline: string | null
+          reversal_rounds: number[]
+          rounds: number
+          scoring_format: string
+          slots_bn: number
+          slots_c: number
+          slots_f: number
+          slots_flx: number
+          slots_g: number
+          slots_pf: number
+          slots_pg: number
+          slots_sf: number
+          slots_sg: number
+          started_at: string | null
+          status: string
+          team_count: number
+          updated_at: string
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_rooms"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       host_randomize_positions: {
         Args: { _room_id: string }
         Returns: undefined
       }
+      host_replace_pick: {
+        Args: {
+          _pick_id: string
+          _player_id: string
+          _player_name: string
+          _player_position: string
+          _player_team: string
+          _room_id: string
+        }
+        Returns: {
+          auction_price: number | null
+          id: string
+          pick_number: number
+          picked_at: string
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          room_id: string
+          round: number
+          team_idx: number
+          user_id: string | null
+          was_autopick: boolean
+          was_keeper: boolean
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_picks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       host_start_with_bots: { Args: { _room_id: string }; Returns: undefined }
+      host_undo_pick: {
+        Args: { _count?: number; _room_id: string }
+        Returns: {
+          auction_antisnipe_threshold_sec: number | null
+          auction_bid_clock_sec: number
+          auction_budget: number
+          auction_concurrent_per_team: number
+          auction_max_concurrent_nominations: number
+          auction_min_bid: number
+          auction_nominations_per_team: number | null
+          auto_start_at: string | null
+          completed_at: string | null
+          created_at: string
+          current_pick_number: number
+          draft_format: string
+          host_user_id: string
+          id: string
+          league_id: string | null
+          name: string
+          paused_at: string | null
+          paused_remaining_ms: number | null
+          pick_clock_sec: number
+          pick_deadline: string | null
+          reversal_rounds: number[]
+          rounds: number
+          scoring_format: string
+          slots_bn: number
+          slots_c: number
+          slots_f: number
+          slots_flx: number
+          slots_g: number
+          slots_pf: number
+          slots_pg: number
+          slots_sf: number
+          slots_sg: number
+          started_at: string | null
+          status: string
+          team_count: number
+          updated_at: string
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_rooms"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       insert_room_keepers: { Args: { _room_id: string }; Returns: undefined }
       keeper_remove: {
         Args: { _player_id: string; _room_id: string }
