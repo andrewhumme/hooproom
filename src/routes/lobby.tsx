@@ -313,3 +313,33 @@ function RoomProgress({ room }: { room: Room }) {
     </div>
   );
 }
+
+function RoomClock({ room }: { room: Room }) {
+  const [now, setNow] = useState(() => Date.now());
+  const isLive = room.status === "drafting" && !!room.pick_deadline;
+  useEffect(() => {
+    if (!isLive) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [isLive]);
+
+  if (room.status === "waiting") {
+    return <span>{formatDuration(room.pick_clock_sec)}</span>;
+  }
+  if (room.status === "paused") {
+    return <span className="text-xs font-bold uppercase tracking-widest">Paused</span>;
+  }
+  if (room.status === "complete") {
+    return <span>—</span>;
+  }
+  if (!room.pick_deadline) {
+    return <span>{formatDuration(room.pick_clock_sec)}</span>;
+  }
+  const remaining = Math.max(0, Math.ceil((new Date(room.pick_deadline).getTime() - now) / 1000));
+  const urgent = remaining <= 10;
+  return (
+    <span className={`font-black ${urgent ? "text-primary" : "text-foreground"}`}>
+      {formatDuration(remaining)}
+    </span>
+  );
+}
