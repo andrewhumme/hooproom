@@ -254,6 +254,9 @@ function RoomRow({ room }: { room: Room }) {
         {formatDuration(room.pick_clock_sec)}
       </TableCell>
       <TableCell className="text-center">
+        <RoomProgress room={room} />
+      </TableCell>
+      <TableCell className="text-center">
         {isLive ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-primary">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
