@@ -43,6 +43,7 @@ type Room = {
   scoring_format: string;
   status: "waiting" | "drafting" | "paused" | "complete";
   visibility: "public" | "spectate" | "private";
+  current_pick_number: number | null;
   created_at: string;
   participant_count?: number;
 };
