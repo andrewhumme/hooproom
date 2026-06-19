@@ -97,7 +97,7 @@ export function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1.5 font-semibold">
+                <Button variant="ghost" className="gap-1.5 font-semibold h-9 px-3">
                   <User className="h-4 w-4" />
                   <span className="max-w-[120px] truncate">
                     {user.user_metadata.display_name || user.email?.split("@")[0] || "Account"}
@@ -117,7 +117,7 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild size="sm" variant="outline" className="font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
+            <Button asChild variant="outline" className="h-9 px-5 rounded-full font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
               <Link to="/auth">Sign In</Link>
             </Button>
           )}
