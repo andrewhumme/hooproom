@@ -989,6 +989,25 @@ function DraftRoomPage() {
               </Button>
             )}
             {isHost && (isDrafting || isPaused) && (
+              <DraftControlPanel
+                roomId={room.id}
+                isDrafting={isDrafting}
+                isAuction={false}
+                canForceSkip={isDrafting}
+                recentPicks={[...picks]
+                  .sort((a, b) => b.pick_number - a.pick_number)
+                  .map((p) => ({
+                    id: p.id,
+                    pick_number: p.pick_number,
+                    team_idx: p.team_idx,
+                    player_name: p.player_name,
+                    team_name:
+                      slotMap.get(p.team_idx)?.team_name ?? `Team ${p.team_idx}`,
+                  }))}
+                availablePlayers={players.filter((p) => !takenIds.has(p.id))}
+              />
+            )}
+            {isHost && (isDrafting || isPaused) && (
               <Button
                 onClick={handlePauseToggle}
                 variant="secondary"
