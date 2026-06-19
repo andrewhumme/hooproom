@@ -25,7 +25,7 @@ function PillNavLink({
   onClick?: () => void;
 }) {
   const className = [
-    "group relative flex flex-col items-center gap-0.5 px-5 py-2 rounded-full text-sm font-medium transition-all duration-200",
+    "group relative flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
     isActive
       ? "bg-background text-foreground shadow-sm"
       : "text-muted-foreground hover:text-foreground",
@@ -63,15 +63,15 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-background/50 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-black">
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-lg">
             H
           </div>
-          <span className="text-lg font-black tracking-tight">HoopRoom</span>
+          <span className="text-xl font-black tracking-tight">HoopRoom</span>
         </Link>
 
         {/* Desktop nav — glass pill */}
-        <nav className="hidden items-center md:flex rounded-full border border-foreground/10 bg-white/40 backdrop-blur-md px-1.5 py-1.5 shadow-sm">
+        <nav className="hidden items-center md:flex rounded-full border border-foreground/10 bg-white/40 backdrop-blur-md px-1 py-1 shadow-sm">
           <PillNavLink to="/lobby" isActive={pathname === "/lobby"}>
             Browse drafts
           </PillNavLink>
@@ -84,7 +84,7 @@ export function Header() {
             <Link
               to="/"
               hash="features"
-              className="group relative flex flex-col items-center gap-0.5 px-5 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200"
+              className="group relative flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200"
             >
               <span>Features</span>
               <span className="h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center rounded-full" />
@@ -97,7 +97,7 @@ export function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1.5 font-semibold">
+                <Button variant="ghost" className="gap-1.5 font-semibold h-9 px-3">
                   <User className="h-4 w-4" />
                   <span className="max-w-[120px] truncate">
                     {user.user_metadata.display_name || user.email?.split("@")[0] || "Account"}
@@ -117,7 +117,7 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild size="sm" variant="outline" className="font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
+            <Button asChild variant="outline" className="h-9 px-5 rounded-full font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
               <Link to="/auth">Sign In</Link>
             </Button>
           )}
