@@ -187,12 +187,13 @@ function LobbyPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[32%]">Room</TableHead>
-                  <TableHead className="w-[14%]">Format</TableHead>
-                  <TableHead className="w-[12%] text-center">Teams</TableHead>
-                  <TableHead className="w-[10%] text-center">Rounds</TableHead>
-                  <TableHead className="w-[12%] text-center">Clock</TableHead>
-                  <TableHead className="w-[12%] text-center">Status</TableHead>
+                  <TableHead className="w-[28%]">Room</TableHead>
+                  <TableHead className="w-[12%]">Format</TableHead>
+                  <TableHead className="w-[10%] text-center">Teams</TableHead>
+                  <TableHead className="w-[8%] text-center">Rounds</TableHead>
+                  <TableHead className="w-[10%] text-center">Clock</TableHead>
+                  <TableHead className="w-[14%] text-center">Progress</TableHead>
+                  <TableHead className="w-[10%] text-center">Status</TableHead>
                   <TableHead className="w-[8%] text-right" />
                 </TableRow>
               </TableHeader>
