@@ -76,9 +76,9 @@ export function DraftControlPanel({
   const [replacePickId, setReplacePickId] = useState<string>("");
   const [replaceSearch, setReplaceSearch] = useState("");
 
-  const callRpc = async <T,>(
+  const callRpc = async (
     label: string,
-    fn: () => Promise<{ error: { message: string } | null; data?: T }>,
+    fn: () => PromiseLike<{ error: { message: string } | null }>,
   ) => {
     setBusy(label);
     setError(null);
