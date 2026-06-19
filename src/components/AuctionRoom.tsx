@@ -552,6 +552,26 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               </Button>
             )}
             {isHost && (isDrafting || isPaused) && (
+              <DraftControlPanel
+                roomId={room.id}
+                isDrafting={isDrafting}
+                isAuction={true}
+                canForceSkip={isDrafting && activeNoms.length > 0}
+                recentPicks={[...picks]
+                  .sort((a, b) => b.pick_number - a.pick_number)
+                  .map((p) => ({
+                    id: p.id,
+                    pick_number: p.pick_number,
+                    team_idx: p.team_idx,
+                    player_name: p.player_name,
+                    team_name:
+                      participants.find((x) => x.draft_position === p.team_idx)
+                        ?.team_name ?? `Team ${p.team_idx}`,
+                  }))}
+                availablePlayers={players.filter((p) => !draftedIds.has(p.id))}
+              />
+            )}
+            {isHost && (isDrafting || isPaused) && (
               <Button
                 onClick={handlePauseToggle}
                 variant="secondary"
