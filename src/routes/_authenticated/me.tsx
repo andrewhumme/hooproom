@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { AppHeader } from "@/components/AppHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,7 +92,6 @@ function MyDraftsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader active="me" />
       <section className="border-b border-border bg-secondary text-secondary-foreground">
         <div className="mx-auto max-w-7xl px-6 py-10">
           <div className="text-xs font-bold uppercase tracking-widest text-primary">

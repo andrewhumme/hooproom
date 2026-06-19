@@ -8,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
-import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
@@ -614,7 +613,6 @@ function DraftRoomPage() {
   if (authLoading || (!room && !error)) {
     return (
       <div className="min-h-screen bg-background">
-        <AppHeader active="lobby" />
         <div className="flex min-h-[60vh] items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -625,7 +623,6 @@ function DraftRoomPage() {
   if (error && !room) {
     return (
       <div className="min-h-screen bg-background">
-        <AppHeader active="lobby" />
         <Card className="mx-auto mt-20 max-w-md p-8 text-center">
           <p className="text-lg font-black">{error}</p>
           <Button asChild variant="outline" className="mt-4 font-bold">
@@ -658,7 +655,6 @@ function DraftRoomPage() {
   if (room.status === "waiting") {
     return (
       <div className="min-h-screen bg-background">
-        <AppHeader active="lobby" />
         <main className="mx-auto max-w-4xl px-6 py-10">
           <Link
             to="/lobby"
@@ -930,7 +926,6 @@ function DraftRoomPage() {
   // ------- Render: DRAFTING / COMPLETE -------
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader active="lobby" />
 
       {/* Status bar */}
       <div className="border-b-2 border-border bg-secondary text-secondary-foreground">
