@@ -13,6 +13,7 @@ import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
 import { DraftQueuePanel } from "@/components/DraftQueuePanel";
 import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
+import { DraftControlPanel } from "@/components/DraftControlPanel";
 import { useDraftQueue } from "@/hooks/useDraftQueue";
 import {
   Dialog,
