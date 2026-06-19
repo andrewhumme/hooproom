@@ -251,8 +251,8 @@ function RoomRow({ room }: { room: Room }) {
         </span>
       </TableCell>
       <TableCell className="text-center font-black">{room.rounds}</TableCell>
-      <TableCell className="text-center text-muted-foreground">
-        {formatDuration(room.pick_clock_sec)}
+      <TableCell className="text-center text-muted-foreground tabular-nums">
+        <RoomClock room={room} />
       </TableCell>
       <TableCell className="text-center">
         <RoomProgress room={room} />
