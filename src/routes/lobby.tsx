@@ -288,3 +288,27 @@ function RoomRow({ room }: { room: Room }) {
   );
 }
 
+
+function RoomProgress({ room }: { room: Room }) {
+  const totalPicks = room.team_count * room.rounds;
+  const current = room.current_pick_number ?? 0;
+  if (room.status === "waiting") {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+  if (room.status === "complete") {
+    return <span className="text-xs font-bold text-muted-foreground">Complete</span>;
+  }
+  const round = totalPicks > 0 ? Math.min(room.rounds, Math.floor((current - 1) / room.team_count) + 1) : 0;
+  const pct = totalPicks > 0 ? Math.min(100, (current / totalPicks) * 100) : 0;
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-xs font-black tabular-nums">
+        Pick {current}/{totalPicks}
+        <span className="ml-1 font-normal text-muted-foreground">R{round}</span>
+      </span>
+      <div className="h-1 w-20 overflow-hidden rounded-full bg-muted">
+        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
