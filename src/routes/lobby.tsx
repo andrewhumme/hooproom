@@ -43,6 +43,7 @@ type Room = {
   scoring_format: string;
   status: "waiting" | "drafting" | "paused" | "complete";
   visibility: "public" | "spectate" | "private";
+  current_pick_number: number | null;
   created_at: string;
   participant_count?: number;
 };
@@ -186,12 +187,13 @@ function LobbyPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[32%]">Room</TableHead>
-                  <TableHead className="w-[14%]">Format</TableHead>
-                  <TableHead className="w-[12%] text-center">Teams</TableHead>
-                  <TableHead className="w-[10%] text-center">Rounds</TableHead>
-                  <TableHead className="w-[12%] text-center">Clock</TableHead>
-                  <TableHead className="w-[12%] text-center">Status</TableHead>
+                  <TableHead className="w-[28%]">Room</TableHead>
+                  <TableHead className="w-[12%]">Format</TableHead>
+                  <TableHead className="w-[10%] text-center">Teams</TableHead>
+                  <TableHead className="w-[8%] text-center">Rounds</TableHead>
+                  <TableHead className="w-[10%] text-center">Clock</TableHead>
+                  <TableHead className="w-[14%] text-center">Progress</TableHead>
+                  <TableHead className="w-[10%] text-center">Status</TableHead>
                   <TableHead className="w-[8%] text-right" />
                 </TableRow>
               </TableHeader>
@@ -252,6 +254,9 @@ function RoomRow({ room }: { room: Room }) {
         {formatDuration(room.pick_clock_sec)}
       </TableCell>
       <TableCell className="text-center">
+        <RoomProgress room={room} />
+      </TableCell>
+      <TableCell className="text-center">
         {isLive ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-primary">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
@@ -283,3 +288,27 @@ function RoomRow({ room }: { room: Room }) {
   );
 }
 
+
+function RoomProgress({ room }: { room: Room }) {
+  const totalPicks = room.team_count * room.rounds;
+  const current = room.current_pick_number ?? 0;
+  if (room.status === "waiting") {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+  if (room.status === "complete") {
+    return <span className="text-xs font-bold text-muted-foreground">Complete</span>;
+  }
+  const round = totalPicks > 0 ? Math.min(room.rounds, Math.floor((current - 1) / room.team_count) + 1) : 0;
+  const pct = totalPicks > 0 ? Math.min(100, (current / totalPicks) * 100) : 0;
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-xs font-black tabular-nums">
+        Pick {current}/{totalPicks}
+        <span className="ml-1 font-normal text-muted-foreground">R{round}</span>
+      </span>
+      <div className="h-1 w-20 overflow-hidden rounded-full bg-muted">
+        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
