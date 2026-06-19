@@ -63,11 +63,11 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-background/50 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-black">
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-lg">
             H
           </div>
-          <span className="text-lg font-black tracking-tight">HoopRoom</span>
+          <span className="text-xl font-black tracking-tight">HoopRoom</span>
         </Link>
 
         {/* Desktop nav — glass pill */}
