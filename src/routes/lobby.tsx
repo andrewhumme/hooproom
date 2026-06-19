@@ -1,11 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, Clock, Lock, Plus, Trophy, Users, Zap } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArrowRight, Lock, Plus, Zap } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby")({
@@ -118,7 +125,6 @@ function LobbyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-
       <section className="border-b border-border bg-secondary text-secondary-foreground">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-10 lg:flex-row lg:items-center">
           <div>
@@ -145,7 +151,7 @@ function LobbyPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-black">Open rooms</h2>
             <p className="text-sm text-muted-foreground">
@@ -157,13 +163,13 @@ function LobbyPage() {
         </div>
 
         {loading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-56 animate-pulse rounded-xl bg-muted" />
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
         ) : rooms.length === 0 ? (
-          <Card className="flex flex-col items-center gap-4 p-10 text-center">
+          <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-10 text-center">
             <Zap className="h-10 w-10 text-primary" />
             <div>
               <p className="text-lg font-black">No live rooms right now.</p>
@@ -174,28 +180,43 @@ function LobbyPage() {
             <Button onClick={handleCreate} size="lg" className="font-bold">
               <Plus /> Host a draft <ArrowRight />
             </Button>
-          </Card>
+          </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {rooms.map((r) => (
-              <RoomCard key={r.id} room={r} />
-            ))}
+          <div className="overflow-hidden rounded-xl border-2 border-border shadow-[var(--shadow-bold)]">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[32%]">Room</TableHead>
+                  <TableHead className="w-[14%]">Format</TableHead>
+                  <TableHead className="w-[12%] text-center">Teams</TableHead>
+                  <TableHead className="w-[10%] text-center">Rounds</TableHead>
+                  <TableHead className="w-[12%] text-center">Clock</TableHead>
+                  <TableHead className="w-[12%] text-center">Status</TableHead>
+                  <TableHead className="w-[8%] text-right" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rooms.map((room) => (
+                  <RoomRow key={room.id} room={room} />
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 
         {!isReal && !authLoading && (
-          <Card className="mt-10 border-2 border-dashed border-primary/40 bg-primary/5 p-4 text-center text-sm text-muted-foreground">
-            <Lock className="mx-auto mb-2 h-4 w-4 text-primary" />
-            <span className="font-bold text-foreground">Sign in to host or join a draft.</span>{" "}
+          <div className="mt-10 flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-4 text-center text-sm text-muted-foreground">
+            <Lock className="h-4 w-4 text-primary" />
+            <span className="font-bold text-foreground">Sign in to host or join a draft.</span>
             Anyone can spectate a live draft via its share link.
-          </Card>
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function RoomCard({ room }: { room: Room }) {
+function RoomRow({ room }: { room: Room }) {
   const navigate = useNavigate();
   const filling = (room.participant_count ?? 0) / room.team_count >= 0.75;
   const isLive = room.status === "drafting";
@@ -205,69 +226,56 @@ function RoomCard({ room }: { room: Room }) {
   };
 
   return (
-    <Card className="flex flex-col overflow-hidden border-2 transition hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--shadow-bold)]">
-      <div className="border-b-2 border-border bg-muted/40 p-4">
-        <div className="flex items-center justify-between gap-2">
-          <Badge variant="outline" className="font-bold">
-            {room.scoring_format}
-          </Badge>
-          <div className="flex items-center gap-1.5">
-            {room.visibility === "spectate" && (
-              <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-accent-foreground">
-                Spectate
-              </span>
-            )}
-            {isLive ? (
-              <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-primary">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                Live
-              </span>
-            ) : (
-              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-muted-foreground">
-                Open
-              </span>
-            )}
-          </div>
+    <TableRow className="group cursor-pointer transition-colors" onClick={handleOpen}>
+      <TableCell>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-bold leading-tight">{room.name}</span>
+          {room.visibility === "spectate" && (
+            <span className="text-[10px] font-black uppercase tracking-widest text-accent-foreground">
+              Spectate Only
+            </span>
+          )}
         </div>
-        <h3 className="mt-3 text-lg font-black leading-tight">{room.name}</h3>
-      </div>
-      <div className="grid grid-cols-3 divide-x divide-border border-b border-border text-center">
-        <Stat
-          icon={<Users />}
-          label="Teams"
-          value={`${room.participant_count ?? 0}/${room.team_count}`}
-          highlight={filling}
-        />
-        <Stat icon={<Trophy />} label="Rounds" value={String(room.rounds)} />
-        <Stat icon={<Clock />} label="Clock" value={formatDuration(room.pick_clock_sec)} />
-      </div>
-      <div className="flex items-center justify-end gap-3 p-4">
-        <Button onClick={handleOpen} className="font-bold" size="sm">
-          {isLive ? "Watch / Join" : "Open room"} <ArrowRight />
+      </TableCell>
+      <TableCell>
+        <Badge variant="outline" className="font-bold">
+          {room.scoring_format}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-center">
+        <span className={`font-black ${filling ? "text-primary" : ""}`}>
+          {room.participant_count ?? 0}/{room.team_count}
+        </span>
+      </TableCell>
+      <TableCell className="text-center font-black">{room.rounds}</TableCell>
+      <TableCell className="text-center text-muted-foreground">
+        {formatDuration(room.pick_clock_sec)}
+      </TableCell>
+      <TableCell className="text-center">
+        {isLive ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-primary">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+            Live
+          </span>
+        ) : (
+          <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-muted-foreground">
+            Open
+          </span>
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        <Button
+          size="sm"
+          className="font-bold opacity-0 transition-opacity group-hover:opacity-100"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleOpen();
+          }}
+        >
+          {isLive ? "Join" : "Open"} <ArrowRight />
         </Button>
-      </div>
-    </Card>
+      </TableCell>
+    </TableRow>
   );
 }
 
-function Stat({
-  icon,
-  label,
-  value,
-  highlight,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="px-3 py-3">
-      <div className="flex items-center justify-center gap-1 text-muted-foreground">
-        <span className="[&_svg]:h-3.5 [&_svg]:w-3.5">{icon}</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
-      </div>
-      <div className={`mt-1 text-base font-black ${highlight ? "text-primary" : ""}`}>{value}</div>
-    </div>
-  );
-}
