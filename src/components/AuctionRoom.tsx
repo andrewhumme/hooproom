@@ -17,7 +17,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { AppHeader } from "@/components/AppHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -510,7 +509,6 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader active="lobby" />
 
       {/* Status bar */}
       <div className="border-b-2 border-border bg-secondary text-secondary-foreground">
