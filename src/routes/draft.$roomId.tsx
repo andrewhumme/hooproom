@@ -13,6 +13,7 @@ import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
 import { DraftQueuePanel } from "@/components/DraftQueuePanel";
 import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
+import { DraftControlPanel } from "@/components/DraftControlPanel";
 import { useDraftQueue } from "@/hooks/useDraftQueue";
 import {
   Dialog,
@@ -987,6 +988,25 @@ function DraftRoomPage() {
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export CSV
               </Button>
+            )}
+            {isHost && (isDrafting || isPaused) && (
+              <DraftControlPanel
+                roomId={room.id}
+                isDrafting={isDrafting}
+                isAuction={false}
+                canForceSkip={isDrafting}
+                recentPicks={[...picks]
+                  .sort((a, b) => b.pick_number - a.pick_number)
+                  .map((p) => ({
+                    id: p.id,
+                    pick_number: p.pick_number,
+                    team_idx: p.team_idx,
+                    player_name: p.player_name,
+                    team_name:
+                      slotMap.get(p.team_idx)?.team_name ?? `Team ${p.team_idx}`,
+                  }))}
+                availablePlayers={players.filter((p) => !takenIds.has(p.id))}
+              />
             )}
             {isHost && (isDrafting || isPaused) && (
               <Button

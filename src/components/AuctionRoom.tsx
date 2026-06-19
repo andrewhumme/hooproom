@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { DraftControlPanel } from "@/components/DraftControlPanel";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
@@ -550,6 +551,26 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export CSV
               </Button>
+            )}
+            {isHost && (isDrafting || isPaused) && (
+              <DraftControlPanel
+                roomId={room.id}
+                isDrafting={isDrafting}
+                isAuction={true}
+                canForceSkip={isDrafting && activeNoms.length > 0}
+                recentPicks={[...picks]
+                  .sort((a, b) => b.pick_number - a.pick_number)
+                  .map((p) => ({
+                    id: p.id,
+                    pick_number: p.pick_number,
+                    team_idx: p.team_idx,
+                    player_name: p.player_name,
+                    team_name:
+                      participants.find((x) => x.draft_position === p.team_idx)
+                        ?.team_name ?? `Team ${p.team_idx}`,
+                  }))}
+                availablePlayers={players.filter((p) => !draftedIds.has(p.id))}
+              />
             )}
             {isHost && (isDrafting || isPaused) && (
               <Button
