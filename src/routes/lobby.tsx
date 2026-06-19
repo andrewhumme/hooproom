@@ -44,6 +44,7 @@ type Room = {
   status: "waiting" | "drafting" | "paused" | "complete";
   visibility: "public" | "spectate" | "private";
   current_pick_number: number | null;
+  pick_deadline: string | null;
   created_at: string;
   participant_count?: number;
 };
