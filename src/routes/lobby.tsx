@@ -109,10 +109,20 @@ function LobbyPage() {
         { event: "*", schema: "public", table: "draft_participants" },
         () => load()
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "draft_picks" },
+        () => load()
+      )
       .subscribe();
+
+    // Safety-net poll so the lobby never shows a stale draft, even if a
+    // realtime event is dropped or the tab was backgrounded.
+    const poll = setInterval(load, 8000);
 
     return () => {
       mounted = false;
+      clearInterval(poll);
       supabase.removeChannel(channel);
     };
   }, [authLoading]);
