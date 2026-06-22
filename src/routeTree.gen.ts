@@ -20,6 +20,7 @@ import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snak
 import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
 import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
 import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 
 const LobbyRoute = LobbyRouteImport.update({
   id: '/lobby',
@@ -75,6 +76,11 @@ const ApiPublicAuctionTickRoute = ApiPublicAuctionTickRouteImport.update({
   path: '/api/public/auction-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/_authenticated/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby_/new': typeof LobbyNewRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/draft/$roomId'
     | '/lobby/new'
+    | '/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/draft/$roomId'
     | '/lobby/new'
+    | '/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/_authenticated/me'
     | '/draft/$roomId'
     | '/lobby_/new'
+    | '/_authenticated/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
@@ -246,15 +258,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAuctionTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedMeRoute: typeof AuthenticatedMeRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMeRoute: AuthenticatedMeRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
