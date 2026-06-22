@@ -626,6 +626,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -649,6 +670,17 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          is_admin: boolean
+          last_sign_in_at: string
+        }[]
       }
       advance_past_keepers: { Args: { _room_id: string }; Returns: undefined }
       auction_award_due: { Args: { _room_id?: string }; Returns: number }
@@ -771,9 +803,17 @@ export type Database = {
         Returns: number
       }
       auto_fill_and_start: { Args: { _room_id: string }; Returns: undefined }
+      claim_admin_if_unclaimed: { Args: never; Returns: boolean }
       claim_draft_position: {
         Args: { _new_position: number; _participant_id: string }
         Returns: undefined
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       host_adjust_clock: {
         Args: { _delta_sec: number; _room_id: string }
@@ -1215,7 +1255,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1342,6 +1382,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
