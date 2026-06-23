@@ -1,10 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   checkIsAdmin,
   claimAdminIfUnclaimed,
   listAdminUsers,
+  deleteUser,
+  deleteAllGuestUsers,
   type AdminUserRow,
 } from "@/lib/admin.functions";
 import { AppHeader } from "@/components/AppHeader";
@@ -18,6 +21,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   ssr: false,
@@ -29,11 +42,18 @@ function AdminUsersPage() {
   const check = useServerFn(checkIsAdmin);
   const claim = useServerFn(claimAdminIfUnclaimed);
   const list = useServerFn(listAdminUsers);
+  const removeUser = useServerFn(deleteUser);
+  const removeGuests = useServerFn(deleteAllGuestUsers);
 
   const [status, setStatus] = useState<"loading" | "denied" | "ok">("loading");
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<AdminUserRow | null>(null);
+  const [confirmPurge, setConfirmPurge] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const guestCount = useMemo(() => users.filter((u) => u.is_guest).length, [users]);
 
   async function load() {
     try {
@@ -72,6 +92,39 @@ function AdminUsersPage() {
     }
   }
 
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setBusy(true);
+    try {
+      await removeUser({ data: { userId: pendingDelete.id } });
+      toast.success(`Deleted ${pendingDelete.email ?? pendingDelete.id}`);
+      setPendingDelete(null);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePurgeGuests() {
+    setBusy(true);
+    try {
+      const { deleted, failures } = await removeGuests();
+      if (failures.length) {
+        toast.warning(`Deleted ${deleted} guests, ${failures.length} failed.`);
+      } else {
+        toast.success(`Deleted ${deleted} guest account${deleted === 1 ? "" : "s"}.`);
+      }
+      setConfirmPurge(false);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -80,7 +133,9 @@ function AdminUsersPage() {
           <div>
             <h1 className="text-3xl font-black tracking-tight">Users</h1>
             <p className="text-sm text-muted-foreground">
-              Everyone who has created a HoopRoom login.
+              Everyone who has created a HoopRoom login. Guests are throwaway
+              spectator accounts auto-created when someone joins a room without
+              signing up.
             </p>
           </div>
           <Button variant="outline" onClick={() => navigate({ to: "/me" })}>
@@ -112,8 +167,25 @@ function AdminUsersPage() {
 
         {status === "ok" && (
           <Card>
-            <CardHeader>
-              <CardTitle>{users.length} account{users.length === 1 ? "" : "s"}</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+              <CardTitle>
+                {users.length} account{users.length === 1 ? "" : "s"}
+                {guestCount > 0 && (
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">
+                    ({guestCount} guest{guestCount === 1 ? "" : "s"})
+                  </span>
+                )}
+              </CardTitle>
+              {guestCount > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfirmPurge(true)}
+                  disabled={busy}
+                >
+                  Delete all guests
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               <Table>
@@ -124,6 +196,7 @@ function AdminUsersPage() {
                     <TableHead>Signed up</TableHead>
                     <TableHead>Last sign-in</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead className="w-[1%]" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -144,9 +217,25 @@ function AdminUsersPage() {
                           <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
                             admin
                           </span>
+                        ) : u.is_guest ? (
+                          <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            guest
+                          </span>
                         ) : (
                           <span className="text-xs text-muted-foreground">user</span>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setPendingDelete(u)}
+                          disabled={u.is_admin || busy}
+                          title={u.is_admin ? "Can't delete an admin" : "Delete user"}
+                        >
+                          Delete
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -156,6 +245,55 @@ function AdminUsersPage() {
           </Card>
         )}
       </main>
+
+      <AlertDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.email ?? pendingDelete?.id} will be permanently
+              removed. Any drafts they created or joined will lose this
+              participant. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={busy}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {busy ? "Deleting…" : "Delete user"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmPurge} onOpenChange={setConfirmPurge}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete all guest accounts?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes {guestCount} throwaway spectator account
+              {guestCount === 1 ? "" : "s"} (emails ending in
+              @hooproom.test). Real signups are not affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handlePurgeGuests}
+              disabled={busy}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {busy ? "Deleting…" : `Delete ${guestCount} guest${guestCount === 1 ? "" : "s"}`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
