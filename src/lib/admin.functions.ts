@@ -27,12 +27,63 @@ export type AdminUserRow = {
   created_at: string;
   last_sign_in_at: string | null;
   is_admin: boolean;
+  is_guest: boolean;
 };
+
+function isGuestEmail(email: string | null): boolean {
+  return !!email && /^guest_[a-z0-9]+@hooproom\.test$/i.test(email);
+}
 
 export const listAdminUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AdminUserRow[]> => {
     const { data, error } = await context.supabase.rpc("admin_list_users");
     if (error) throw new Error(error.message);
-    return (data ?? []) as AdminUserRow[];
+    return ((data ?? []) as Omit<AdminUserRow, "is_guest">[]).map((u) => ({
+      ...u,
+      is_guest: isGuestEmail(u.email),
+    }));
+  });
+
+export const deleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
+    if (data.userId === context.userId) throw new Error("You can't delete your own account.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+    return { deleted: true };
+  });
+
+export const deleteAllGuestUsers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
+
+    const { data: rows, error } = await context.supabase.rpc("admin_list_users");
+    if (error) throw new Error(error.message);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let deleted = 0;
+    const failures: string[] = [];
+    for (const u of (rows ?? []) as { id: string; email: string | null }[]) {
+      if (!isGuestEmail(u.email)) continue;
+      const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(u.id);
+      if (delErr) failures.push(u.email ?? u.id);
+      else deleted++;
+    }
+    return { deleted, failures };
   });
