@@ -808,6 +808,7 @@ export type Database = {
         Args: { _new_position: number; _participant_id: string }
         Returns: undefined
       }
+      delete_stale_guests: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
