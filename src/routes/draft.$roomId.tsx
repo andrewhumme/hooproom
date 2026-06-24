@@ -296,6 +296,18 @@ function DraftRoomPage() {
   const isDrafting = room?.status === "drafting";
   const isPaused = room?.status === "paused";
 
+  // Flash the summary page automatically the moment the draft completes.
+  const flashedSummaryRef = useRef(false);
+  useEffect(() => {
+    if (isComplete && !flashedSummaryRef.current) {
+      flashedSummaryRef.current = true;
+      const t = setTimeout(() => {
+        navigate({ to: "/draft/$roomId/summary", params: { roomId } });
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [isComplete, navigate, roomId]);
+
   const { currentRound, currentTeamIdx, currentReverse } = useMemo(() => {
     if (!room || !isDrafting) return { currentRound: 0, currentTeamIdx: 0, currentReverse: false };
     const r = Math.floor((currentPickNumber - 1) / room.team_count) + 1;
