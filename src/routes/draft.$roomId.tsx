@@ -613,7 +613,6 @@ function DraftRoomPage() {
         teamCount: room.team_count,
         rounds: room.rounds,
         pickClockSec: room.pick_clock_sec,
-        completedAt: room.completed_at ?? null,
       },
       rows,
     );
