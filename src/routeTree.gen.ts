@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
 import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
+import { Route as DraftRoomIdSummaryRouteImport } from './routes/draft.$roomId.summary'
 import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
 import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
 import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
@@ -56,6 +57,11 @@ const AuthenticatedMeRoute = AuthenticatedMeRouteImport.update({
   path: '/me',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const DraftRoomIdSummaryRoute = DraftRoomIdSummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => DraftRoomIdRoute,
+} as any)
 const ApiPublicSnakeTickRoute = ApiPublicSnakeTickRouteImport.update({
   id: '/api/public/snake-tick',
   path: '/api/public/snake-tick',
@@ -87,26 +93,28 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/me': typeof AuthenticatedMeRoute
-  '/draft/$roomId': typeof DraftRoomIdRoute
+  '/draft/$roomId': typeof DraftRoomIdRouteWithChildren
   '/lobby/new': typeof LobbyNewRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
+  '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/me': typeof AuthenticatedMeRoute
-  '/draft/$roomId': typeof DraftRoomIdRoute
+  '/draft/$roomId': typeof DraftRoomIdRouteWithChildren
   '/lobby/new': typeof LobbyNewRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
+  '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -115,13 +123,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/_authenticated/me': typeof AuthenticatedMeRoute
-  '/draft/$roomId': typeof DraftRoomIdRoute
+  '/draft/$roomId': typeof DraftRoomIdRouteWithChildren
   '/lobby_/new': typeof LobbyNewRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
+  '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
+    | '/draft/$roomId/summary'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
+    | '/draft/$roomId/summary'
   id:
     | '__root__'
     | '/'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
+    | '/draft/$roomId/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,7 +183,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   LobbyRoute: typeof LobbyRoute
-  DraftRoomIdRoute: typeof DraftRoomIdRoute
+  DraftRoomIdRoute: typeof DraftRoomIdRouteWithChildren
   LobbyNewRoute: typeof LobbyNewRoute
   ApiPublicAuctionTickRoute: typeof ApiPublicAuctionTickRoute
   ApiPublicLobbyTickRoute: typeof ApiPublicLobbyTickRoute
@@ -230,6 +242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/draft/$roomId/summary': {
+      id: '/draft/$roomId/summary'
+      path: '/summary'
+      fullPath: '/draft/$roomId/summary'
+      preLoaderRoute: typeof DraftRoomIdSummaryRouteImport
+      parentRoute: typeof DraftRoomIdRoute
+    }
     '/api/public/snake-tick': {
       id: '/api/public/snake-tick'
       path: '/api/public/snake-tick'
@@ -281,12 +300,24 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface DraftRoomIdRouteChildren {
+  DraftRoomIdSummaryRoute: typeof DraftRoomIdSummaryRoute
+}
+
+const DraftRoomIdRouteChildren: DraftRoomIdRouteChildren = {
+  DraftRoomIdSummaryRoute: DraftRoomIdSummaryRoute,
+}
+
+const DraftRoomIdRouteWithChildren = DraftRoomIdRoute._addFileChildren(
+  DraftRoomIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   LobbyRoute: LobbyRoute,
-  DraftRoomIdRoute: DraftRoomIdRoute,
+  DraftRoomIdRoute: DraftRoomIdRouteWithChildren,
   LobbyNewRoute: LobbyNewRoute,
   ApiPublicAuctionTickRoute: ApiPublicAuctionTickRoute,
   ApiPublicLobbyTickRoute: ApiPublicLobbyTickRoute,

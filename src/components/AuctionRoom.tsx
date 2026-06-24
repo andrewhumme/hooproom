@@ -168,6 +168,18 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const isHost = !!userId && userId === room.host_user_id;
   const isPaused = room.status === "paused";
 
+  // Auto-flash the summary page when the auction wraps up.
+  const flashedSummaryRef = useRef(false);
+  useEffect(() => {
+    if (isComplete && !flashedSummaryRef.current) {
+      flashedSummaryRef.current = true;
+      const t = setTimeout(() => {
+        navigate({ to: "/draft/$roomId/summary", params: { roomId: room.id } });
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [isComplete, navigate, room.id]);
+
   // ---- player pool ----
   const playersFetchedRef = useRef(false);
   useEffect(() => {
@@ -1148,8 +1160,18 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
             <Trophy className="mx-auto h-10 w-10 text-primary" />
             <div className="mt-2 text-2xl font-black">Auction complete!</div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Export your results to import into your league platform.
+              Heading to your draft summary…
             </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <Button asChild size="lg" className="font-bold">
+                <Link to="/draft/$roomId/summary" params={{ roomId: room.id }}>
+                  <Trophy /> View summary
+                </Link>
+              </Button>
+              <Button onClick={handleExport} variant="outline" className="font-bold">
+                <Download /> Export XLSX
+              </Button>
+            </div>
           </Card>
         )}
       </main>

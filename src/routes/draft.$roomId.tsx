@@ -296,6 +296,18 @@ function DraftRoomPage() {
   const isDrafting = room?.status === "drafting";
   const isPaused = room?.status === "paused";
 
+  // Flash the summary page automatically the moment the draft completes.
+  const flashedSummaryRef = useRef(false);
+  useEffect(() => {
+    if (isComplete && !flashedSummaryRef.current) {
+      flashedSummaryRef.current = true;
+      const t = setTimeout(() => {
+        navigate({ to: "/draft/$roomId/summary", params: { roomId } });
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [isComplete, navigate, roomId]);
+
   const { currentRound, currentTeamIdx, currentReverse } = useMemo(() => {
     if (!room || !isDrafting) return { currentRound: 0, currentTeamIdx: 0, currentReverse: false };
     const r = Math.floor((currentPickNumber - 1) / room.team_count) + 1;
@@ -1516,11 +1528,18 @@ function DraftRoomPage() {
               <Trophy className="mx-auto h-8 w-8 text-primary" />
               <div className="mt-2 text-lg font-black">Draft complete!</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Export the results to import into your league platform.
+                View the full summary or export to your league platform.
               </p>
-              <Button onClick={handleExport} className="mt-4 font-bold" size="lg">
-                <Download /> Export XLSX
-              </Button>
+              <div className="mt-4 flex flex-col items-stretch gap-2">
+                <Button asChild className="font-bold" size="lg">
+                  <Link to="/draft/$roomId/summary" params={{ roomId }}>
+                    <Trophy /> View summary
+                  </Link>
+                </Button>
+                <Button onClick={handleExport} variant="outline" className="font-bold">
+                  <Download /> Export XLSX
+                </Button>
+              </div>
             </Card>
           )}
 
