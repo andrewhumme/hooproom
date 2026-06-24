@@ -489,7 +489,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     for (const p of participants) {
       if (p.draft_position) teamNameByIdx.set(p.draft_position, p.team_name);
     }
-    const rows = picks.map((pk) => ({
+    const rows: ExportPickRow[] = picks.map((pk) => ({
       pick_number: pk.pick_number,
       round: 0,
       team_idx: pk.team_idx,
@@ -498,10 +498,18 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       player_position: pk.player_position,
       player_team: pk.player_team,
       was_autopick: false,
+      auction_price: pk.auction_price,
     }));
-    const csv = buildDraftCsv(room.name, rows);
-    const safe = room.name.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
-    downloadCsv(`${safe}_auction.csv`, csv);
+    downloadDraftXlsx(
+      {
+        roomName: room.name,
+        draftFormat: room.draft_format,
+        scoringFormat: room.scoring_format,
+        teamCount: room.team_count,
+        budget: room.auction_budget,
+      },
+      rows,
+    );
   };
 
   // ---- render ----
