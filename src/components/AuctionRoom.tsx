@@ -1160,8 +1160,18 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
             <Trophy className="mx-auto h-10 w-10 text-primary" />
             <div className="mt-2 text-2xl font-black">Auction complete!</div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Export your results to import into your league platform.
+              Heading to your draft summary…
             </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <Button asChild size="lg" className="font-bold">
+                <Link to="/draft/$roomId/summary" params={{ roomId: room.id }}>
+                  <Trophy /> View summary
+                </Link>
+              </Button>
+              <Button onClick={handleExport} variant="outline" className="font-bold">
+                <Download /> Export XLSX
+              </Button>
+            </div>
           </Card>
         )}
       </main>
