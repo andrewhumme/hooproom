@@ -595,7 +595,7 @@ function DraftRoomPage() {
     for (const p of participants) {
       if (p.draft_position) teamNameByIdx.set(p.draft_position, p.team_name);
     }
-    const rows = picks.map((pk) => ({
+    const rows: ExportPickRow[] = picks.map((pk) => ({
       pick_number: pk.pick_number,
       round: pk.round,
       team_idx: pk.team_idx,
@@ -605,9 +605,18 @@ function DraftRoomPage() {
       player_team: pk.player_team,
       was_autopick: pk.was_autopick,
     }));
-    const csv = buildDraftCsv(room.name, rows);
-    const safe = room.name.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
-    downloadCsv(`${safe}_draft.csv`, csv);
+    downloadDraftXlsx(
+      {
+        roomName: room.name,
+        draftFormat: room.draft_format,
+        scoringFormat: room.scoring_format,
+        teamCount: room.team_count,
+        rounds: room.rounds,
+        pickClockSec: room.pick_clock_sec,
+        completedAt: room.completed_at ?? null,
+      },
+      rows,
+    );
   };
 
   // ------- Render: loading / not found / not authed -------
