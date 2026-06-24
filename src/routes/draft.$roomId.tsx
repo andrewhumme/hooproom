@@ -994,7 +994,7 @@ function DraftRoomPage() {
             )}
             {isComplete && (
               <Button onClick={handleExport} className="font-bold">
-                <Download /> Export CSV
+                <Download /> Export XLSX
               </Button>
             )}
             {isHost && (isDrafting || isPaused) && (
@@ -1519,7 +1519,7 @@ function DraftRoomPage() {
                 Export the results to import into your league platform.
               </p>
               <Button onClick={handleExport} className="mt-4 font-bold" size="lg">
-                <Download /> Export CSV
+                <Download /> Export XLSX
               </Button>
             </Card>
           )}

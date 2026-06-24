@@ -557,7 +557,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
             )}
             {isComplete && (
               <Button onClick={handleExport} className="font-bold">
-                <Download /> Export CSV
+                <Download /> Export XLSX
               </Button>
             )}
             {isHost && (isDrafting || isPaused) && (
