@@ -37,7 +37,7 @@ import { type DraftablePlayer } from "@/lib/balldontlie";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
 import { compareByRank } from "@/lib/playerRankings";
-import { buildDraftCsv, downloadCsv } from "@/lib/draftExport";
+import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
 import { assignPicksToSlots, buildSlotSpots, totalSlots, type SlotConfig } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 import {
@@ -595,7 +595,7 @@ function DraftRoomPage() {
     for (const p of participants) {
       if (p.draft_position) teamNameByIdx.set(p.draft_position, p.team_name);
     }
-    const rows = picks.map((pk) => ({
+    const rows: ExportPickRow[] = picks.map((pk) => ({
       pick_number: pk.pick_number,
       round: pk.round,
       team_idx: pk.team_idx,
@@ -605,9 +605,17 @@ function DraftRoomPage() {
       player_team: pk.player_team,
       was_autopick: pk.was_autopick,
     }));
-    const csv = buildDraftCsv(room.name, rows);
-    const safe = room.name.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
-    downloadCsv(`${safe}_draft.csv`, csv);
+    downloadDraftXlsx(
+      {
+        roomName: room.name,
+        draftFormat: room.draft_format,
+        scoringFormat: room.scoring_format,
+        teamCount: room.team_count,
+        rounds: room.rounds,
+        pickClockSec: room.pick_clock_sec,
+      },
+      rows,
+    );
   };
 
   // ------- Render: loading / not found / not authed -------
@@ -986,7 +994,7 @@ function DraftRoomPage() {
             )}
             {isComplete && (
               <Button onClick={handleExport} className="font-bold">
-                <Download /> Export CSV
+                <Download /> Export XLSX
               </Button>
             )}
             {isHost && (isDrafting || isPaused) && (
@@ -1511,7 +1519,7 @@ function DraftRoomPage() {
                 Export the results to import into your league platform.
               </p>
               <Button onClick={handleExport} className="mt-4 font-bold" size="lg">
-                <Download /> Export CSV
+                <Download /> Export XLSX
               </Button>
             </Card>
           )}
