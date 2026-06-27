@@ -225,10 +225,12 @@ function NewRoomPage() {
 
       navigate({ to: "/draft/$roomId", params: { roomId: room.id } });
     } catch (err) {
+      const e = err as { message?: string; details?: string; hint?: string; code?: string } | null;
       const msg =
-        (err as { message?: string } | null)?.message ??
-        (typeof err === "string" ? err : null) ??
-        "Failed to create room";
+        [e?.message, e?.details, e?.hint, e?.code ? `(${e.code})` : null]
+          .filter(Boolean)
+          .join(" — ") ||
+        (typeof err === "string" ? err : "Failed to create room");
       console.error("create room failed", err);
       setError(msg);
       setBusy(false);

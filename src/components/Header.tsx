@@ -100,7 +100,7 @@ export function Header() {
                 <Button variant="ghost" className="gap-1.5 font-semibold h-9 px-3">
                   <User className="h-4 w-4" />
                   <span className="max-w-[120px] truncate">
-                    {user.user_metadata.display_name || user.email?.split("@")[0] || "Account"}
+                    {user.user_metadata?.display_name || user.email?.split("@")[0] || "Account"}
                   </span>
                   <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
