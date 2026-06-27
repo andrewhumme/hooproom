@@ -357,15 +357,19 @@ export function PlayerStatsModal({
                       data={chartData}
                       margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="var(--border)"
+                        strokeOpacity={0.6}
+                      />
                       <XAxis
                         dataKey="season"
-                        stroke="hsl(var(--muted-foreground))"
+                        stroke="var(--muted-foreground)"
                         fontSize={12}
                         tickLine={false}
                       />
                       <YAxis
-                        stroke="hsl(var(--muted-foreground))"
+                        stroke="var(--muted-foreground)"
                         fontSize={12}
                         tickLine={false}
                         domain={yDomain}
@@ -376,8 +380,8 @@ export function PlayerStatsModal({
                       />
                       <Tooltip
                         contentStyle={{
-                          background: "hsl(var(--popover))",
-                          border: "1px solid hsl(var(--border))",
+                          background: "var(--popover)",
+                          border: "1px solid var(--border)",
                           borderRadius: 8,
                           fontSize: 12,
                           fontWeight: 700,
@@ -390,10 +394,15 @@ export function PlayerStatsModal({
                       <Line
                         type="linear"
                         dataKey="value"
-                        stroke="hsl(var(--primary))"
+                        stroke="var(--primary)"
                         strokeWidth={3}
-                        dot={{ r: 5, fill: "hsl(var(--primary))", stroke: "hsl(var(--primary))" }}
-                        activeDot={{ r: 7 }}
+                        dot={{
+                          r: 5,
+                          fill: "var(--background)",
+                          stroke: "var(--primary)",
+                          strokeWidth: 2,
+                        }}
+                        activeDot={{ r: 7, fill: "var(--primary)", stroke: "var(--background)", strokeWidth: 2 }}
                         isAnimationActive={false}
                         connectNulls
                       />
