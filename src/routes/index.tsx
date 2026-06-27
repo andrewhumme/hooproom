@@ -63,8 +63,8 @@ function Landing() {
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground md:text-xl">
               Snake or auction. Live, slow, or offline. You set the rules, the clock,
-              the rosters — we handle the board. When you're done, export straight to
-              ESPN, Yahoo, Sleeper, or any platform you play on.
+              the rosters — we handle the board. When you're done, export your
+              draft results and let the games begin!
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
