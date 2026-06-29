@@ -1155,7 +1155,34 @@ function DraftRoomPage() {
         </div>
       </div>
 
+      {isComplete && (
+        <div className="border-b border-border bg-primary/5">
+          <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-6 py-5 sm:flex-row sm:justify-between sm:text-left">
+            <div className="flex items-center gap-3">
+              <Trophy className="h-8 w-8 shrink-0 text-primary" />
+              <div>
+                <div className="text-lg font-black">Draft complete!</div>
+                <p className="text-sm text-muted-foreground">
+                  View the full summary or export to your league platform.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild className="font-bold" size="lg">
+                <Link to="/draft/$roomId/summary" params={{ roomId }}>
+                  <Trophy /> View summary
+                </Link>
+              </Button>
+              <Button onClick={handleExport} variant="outline" className="font-bold">
+                <Download /> Export XLSX
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[1fr_360px]">
+
         {/* Mobile-only tab switcher */}
         <Tabs
           value={mobileTab}
@@ -1523,25 +1550,6 @@ function DraftRoomPage() {
             </ul>
           </Card>
 
-          {isComplete && (
-            <Card className="border-2 border-primary/40 bg-primary/5 p-6 text-center">
-              <Trophy className="mx-auto h-8 w-8 text-primary" />
-              <div className="mt-2 text-lg font-black">Draft complete!</div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                View the full summary or export to your league platform.
-              </p>
-              <div className="mt-4 flex flex-col items-stretch gap-2">
-                <Button asChild className="font-bold" size="lg">
-                  <Link to="/draft/$roomId/summary" params={{ roomId }}>
-                    <Trophy /> View summary
-                  </Link>
-                </Button>
-                <Button onClick={handleExport} variant="outline" className="font-bold">
-                  <Download /> Export XLSX
-                </Button>
-              </div>
-            </Card>
-          )}
 
           {error && isDrafting && (
             <Card className="border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
