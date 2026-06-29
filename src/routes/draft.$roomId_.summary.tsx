@@ -23,7 +23,7 @@ import {
   DollarSign,
 } from "lucide-react";
 
-export const Route = createFileRoute("/draft/$roomId/summary")({
+export const Route = createFileRoute("/draft/$roomId_/summary")({
   component: DraftSummaryPage,
   head: () => ({
     meta: [
