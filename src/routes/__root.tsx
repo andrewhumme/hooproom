@@ -31,14 +31,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "HoopRoom — Real-time NBA Mock Drafts" },
+      { title: "HoopRoom — Custom NBA Fantasy Draft Platform" },
       { name: "description", content: "Live NBA fantasy mock drafts with real-time picks, smart rankings, and AI draft grades." },
       { name: "author", content: "HoopRoom" },
-      { property: "og:title", content: "HoopRoom — Real-time NBA Mock Drafts" },
+      { property: "og:title", content: "HoopRoom — Custom NBA Fantasy Draft Platform" },
       { property: "og:description", content: "Live NBA fantasy mock drafts with real-time picks, smart rankings, and AI draft grades." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@HoopRoom" },
+      { name: "twitter:title", content: "HoopRoom — Custom NBA Fantasy Draft Platform" },
+      { name: "twitter:description", content: "Live NBA fantasy mock drafts with real-time picks, smart rankings, and AI draft grades." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5e2df3a8-7156-4637-a2de-533d426bdf1f/id-preview-4c871c53--46312d31-45d5-4004-ad9d-f467b5bea016.lovable.app-1782760097895.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5e2df3a8-7156-4637-a2de-533d426bdf1f/id-preview-4c871c53--46312d31-45d5-4004-ad9d-f467b5bea016.lovable.app-1782760097895.png" },
     ],
     links: [
       {
