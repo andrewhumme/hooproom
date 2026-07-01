@@ -715,7 +715,27 @@ function DraftRoomPage() {
             </div>
           </Card>
 
-          {room.auto_start_at && (
+          {room.room_type === "league" && room.scheduled_start_at && (
+            <Card className="mt-6 border-2 border-primary/30 bg-primary/5 p-4">
+              <div className="text-xs font-black uppercase tracking-widest text-primary">
+                Scheduled league draft
+              </div>
+              <div className="mt-1 text-lg font-black">
+                {new Date(room.scheduled_start_at).toLocaleString(undefined, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                No lobby timer — the commissioner starts the draft manually once everyone's in.
+              </p>
+            </Card>
+          )}
+
+          {room.room_type === "mock" && room.auto_start_at && (
             <LobbyCountdown deadline={room.auto_start_at} />
           )}
 
@@ -727,7 +747,9 @@ function DraftRoomPage() {
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   {room.team_count - participants.length > 0
-                    ? `${room.team_count - participants.length} open seat${room.team_count - participants.length === 1 ? "" : "s"} — empty seats will fill with bots when the draft starts.`
+                    ? room.room_type === "league"
+                      ? `${room.team_count - participants.length} open seat${room.team_count - participants.length === 1 ? "" : "s"} — waiting on players to join before the commissioner starts.`
+                      : `${room.team_count - participants.length} open seat${room.team_count - participants.length === 1 ? "" : "s"} — empty seats will fill with bots when the draft starts.`
                     : "Room is full."}
                 </p>
               </div>
