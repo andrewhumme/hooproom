@@ -912,22 +912,39 @@ function NewRoomPage() {
               onChange={setFormat}
             />
 
-            <div>
-              <Label>Lobby auto-start</Label>
-              <p className="mt-1 text-xs text-muted-foreground">
-                How long to wait for humans to join. When the timer expires, any open seats fill with bots and the draft starts automatically. You can always start early — empty seats become bots.
-              </p>
-              <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                {LOBBY_TIMER_OPTIONS.map((opt) => (
-                  <ClockChip
-                    key={opt.value}
-                    label={opt.label}
-                    active={lobbyTimerSec === opt.value}
-                    onClick={() => setLobbyTimerSec(opt.value)}
-                  />
-                ))}
+            {roomType === "mock" ? (
+              <div>
+                <Label>Lobby auto-start</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  How long to wait for humans to join. When the timer expires, any open seats fill with bots and the draft starts automatically. Once every seat is filled, the timer squeezes to a 10-second countdown.
+                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  {LOBBY_TIMER_OPTIONS.map((opt) => (
+                    <ClockChip
+                      key={opt.value}
+                      label={opt.label}
+                      active={lobbyTimerSec === opt.value}
+                      onClick={() => setLobbyTimerSec(opt.value)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <Label htmlFor="scheduled_start_at">Scheduled start</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Pick the date and time your league draft kicks off. The room stays open with no auto-fill — you'll click "Start draft" when everyone's in.
+                </p>
+                <Input
+                  id="scheduled_start_at"
+                  type="datetime-local"
+                  required
+                  value={scheduledStartAt}
+                  onChange={(e) => setScheduledStartAt(e.target.value)}
+                  className="mt-1.5 w-full font-bold sm:w-auto"
+                />
+              </div>
+            )}
 
 
             {error && (
