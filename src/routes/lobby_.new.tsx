@@ -192,13 +192,22 @@ function NewRoomPage() {
       slots_bn: slots.BN,
       reversal_rounds: reversalsEnabled ? reversalRounds : [],
       auto_start_at:
-        lobbyTimerSec > 0
+        roomType === "mock" && lobbyTimerSec > 0
           ? new Date(Date.now() + lobbyTimerSec * 1000).toISOString()
           : null,
+      scheduled_start_at:
+        roomType === "league" && scheduledStartAt
+          ? new Date(scheduledStartAt).toISOString()
+          : null,
+      room_type: roomType,
       visibility,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
+    if (roomType === "league" && !scheduledStartAt) {
+      setError("Pick a scheduled start date and time for your league draft.");
       return;
     }
     if (rounds < 1) {
