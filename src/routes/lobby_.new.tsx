@@ -49,6 +49,8 @@ const SCHEMA = z.object({
   slots_bn: z.number().int().min(0).max(15),
   reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
   auto_start_at: z.string().nullable(),
+  scheduled_start_at: z.string().nullable(),
+  room_type: z.enum(["mock", "league"]),
   visibility: z.enum(["public", "spectate", "private"]),
 });
 
