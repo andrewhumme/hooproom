@@ -477,17 +477,21 @@ function DraftRoomPage() {
 
   // ------- Actions -------
   const handleJoin = async () => {
+    // Require a real account to take a seat — guests can only spectate.
+    if (!user || isGuest) {
+      navigate({
+        to: "/auth",
+        search: { redirect: `/draft/${roomId}` },
+      });
+      return;
+    }
     setActionBusy(true);
     setError(null);
     try {
-      await ensureGuestSession();
-      const { data: sessionData } = await supabase.auth.getSession();
-      const currentUser = sessionData.session?.user ?? user;
-      if (!currentUser) throw new Error("Could not start guest session");
       const { error } = await supabase.from("draft_participants").insert({
         room_id: roomId,
-        user_id: currentUser.id,
-        team_name: (currentUser.user_metadata?.display_name as string) ?? "Team",
+        user_id: user.id,
+        team_name: (user.user_metadata?.display_name as string) ?? "Team",
       });
       if (error) throw error;
     } catch (err) {
