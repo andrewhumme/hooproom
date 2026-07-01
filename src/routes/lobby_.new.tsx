@@ -49,6 +49,8 @@ const SCHEMA = z.object({
   slots_bn: z.number().int().min(0).max(15),
   reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
   auto_start_at: z.string().nullable(),
+  scheduled_start_at: z.string().nullable(),
+  room_type: z.enum(["mock", "league"]),
   visibility: z.enum(["public", "spectate", "private"]),
 });
 
@@ -131,7 +133,9 @@ function NewRoomPage() {
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
-  const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(10 * 60);
+  const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(5 * 60);
+  const [roomType, setRoomType] = useState<"mock" | "league">("mock");
+  const [scheduledStartAt, setScheduledStartAt] = useState<string>(""); // datetime-local value
   const [visibility, setVisibility] = useState<"public" | "spectate" | "private">("public");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -188,13 +192,22 @@ function NewRoomPage() {
       slots_bn: slots.BN,
       reversal_rounds: reversalsEnabled ? reversalRounds : [],
       auto_start_at:
-        lobbyTimerSec > 0
+        roomType === "mock" && lobbyTimerSec > 0
           ? new Date(Date.now() + lobbyTimerSec * 1000).toISOString()
           : null,
+      scheduled_start_at:
+        roomType === "league" && scheduledStartAt
+          ? new Date(scheduledStartAt).toISOString()
+          : null,
+      room_type: roomType,
       visibility,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
+    if (roomType === "league" && !scheduledStartAt) {
+      setError("Pick a scheduled start date and time for your league draft.");
       return;
     }
     if (rounds < 1) {
@@ -252,6 +265,51 @@ function NewRoomPage() {
 
         <Card className="border-2 p-6 shadow-[var(--shadow-bold)]">
           <form onSubmit={handleCreate} className="space-y-6">
+            {/* Room type: Mock vs League */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {(
+                [
+                  {
+                    v: "mock",
+                    label: "Mock Draft",
+                    hint: "Practice run. Lobby timer fills empty seats with bots.",
+                  },
+                  {
+                    v: "league",
+                    label: "League Draft",
+                    hint: "Real league. Pick a start date/time — no bot fill unless you say so.",
+                  },
+                ] as const
+              ).map(({ v, label, hint }) => {
+                const active = roomType === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => {
+                      setRoomType(v);
+                      // Sensible defaults when flipping type
+                      if (v === "league") {
+                        setVisibility("private");
+                      } else {
+                        setVisibility("public");
+                      }
+                    }}
+                    className={`rounded-md border-2 p-4 text-left transition ${
+                      active
+                        ? "border-primary bg-primary/10 shadow-[var(--shadow-bold)]"
+                        : "border-border bg-card hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="text-base font-black">{label}</div>
+                    <div className="mt-1 text-xs font-medium text-muted-foreground">
+                      {hint}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
             <div>
               <Label htmlFor="name">Room name</Label>
               <Input
@@ -854,22 +912,39 @@ function NewRoomPage() {
               onChange={setFormat}
             />
 
-            <div>
-              <Label>Lobby auto-start</Label>
-              <p className="mt-1 text-xs text-muted-foreground">
-                How long to wait for humans to join. When the timer expires, any open seats fill with bots and the draft starts automatically. You can always start early — empty seats become bots.
-              </p>
-              <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                {LOBBY_TIMER_OPTIONS.map((opt) => (
-                  <ClockChip
-                    key={opt.value}
-                    label={opt.label}
-                    active={lobbyTimerSec === opt.value}
-                    onClick={() => setLobbyTimerSec(opt.value)}
-                  />
-                ))}
+            {roomType === "mock" ? (
+              <div>
+                <Label>Lobby auto-start</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  How long to wait for humans to join. When the timer expires, any open seats fill with bots and the draft starts automatically. Once every seat is filled, the timer squeezes to a 10-second countdown.
+                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  {LOBBY_TIMER_OPTIONS.map((opt) => (
+                    <ClockChip
+                      key={opt.value}
+                      label={opt.label}
+                      active={lobbyTimerSec === opt.value}
+                      onClick={() => setLobbyTimerSec(opt.value)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <Label htmlFor="scheduled_start_at">Scheduled start</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Pick the date and time your league draft kicks off. The room stays open with no auto-fill — you'll click "Start draft" when everyone's in.
+                </p>
+                <Input
+                  id="scheduled_start_at"
+                  type="datetime-local"
+                  required
+                  value={scheduledStartAt}
+                  onChange={(e) => setScheduledStartAt(e.target.value)}
+                  className="mt-1.5 w-full font-bold sm:w-auto"
+                />
+              </div>
+            )}
 
 
             {error && (

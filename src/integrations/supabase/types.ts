@@ -319,7 +319,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
+          room_type: string
           rounds: number
+          scheduled_start_at: string | null
           scoring_format: string
           slots_bn: number
           slots_c: number
@@ -358,7 +360,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline?: string | null
           reversal_rounds?: number[]
+          room_type?: string
           rounds: number
+          scheduled_start_at?: string | null
           scoring_format?: string
           slots_bn?: number
           slots_c?: number
@@ -397,7 +401,9 @@ export type Database = {
           pick_clock_sec?: number
           pick_deadline?: string | null
           reversal_rounds?: number[]
+          room_type?: string
           rounds?: number
+          scheduled_start_at?: string | null
           scoring_format?: string
           slots_bn?: number
           slots_c?: number
@@ -774,7 +780,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
+          room_type: string
           rounds: number
+          scheduled_start_at: string | null
           scoring_format: string
           slots_bn: number
           slots_c: number
@@ -840,7 +848,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
+          room_type: string
           rounds: number
+          scheduled_start_at: string | null
           scoring_format: string
           slots_bn: number
           slots_c: number
@@ -888,7 +898,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
+          room_type: string
           rounds: number
+          scheduled_start_at: string | null
           scoring_format: string
           slots_bn: number
           slots_c: number
@@ -973,7 +985,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
+          room_type: string
           rounds: number
+          scheduled_start_at: string | null
           scoring_format: string
           slots_bn: number
           slots_c: number
@@ -1088,7 +1102,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
+          room_type: string
           rounds: number
+          scheduled_start_at: string | null
           scoring_format: string
           slots_bn: number
           slots_c: number
@@ -1165,7 +1181,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
+          room_type: string
           rounds: number
+          scheduled_start_at: string | null
           scoring_format: string
           slots_bn: number
           slots_c: number
@@ -1222,7 +1240,9 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           reversal_rounds: number[]
+          room_type: string
           rounds: number
+          scheduled_start_at: string | null
           scoring_format: string
           slots_bn: number
           slots_c: number
