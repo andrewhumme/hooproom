@@ -133,7 +133,9 @@ function NewRoomPage() {
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
-  const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(10 * 60);
+  const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(5 * 60);
+  const [roomType, setRoomType] = useState<"mock" | "league">("mock");
+  const [scheduledStartAt, setScheduledStartAt] = useState<string>(""); // datetime-local value
   const [visibility, setVisibility] = useState<"public" | "spectate" | "private">("public");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
