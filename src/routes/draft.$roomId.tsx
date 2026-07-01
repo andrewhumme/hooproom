@@ -142,7 +142,7 @@ const STAT_COLUMNS: { key: StatKey; label: string; decimals: number }[] = [
 
 function DraftRoomPage() {
   const { roomId } = Route.useParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isGuest, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [room, setRoom] = useState<Room | null>(null);
