@@ -100,6 +100,8 @@ type Room = {
   slots_bn: number;
   reversal_rounds: number[] | null;
   auto_start_at: string | null;
+  scheduled_start_at: string | null;
+  room_type: "mock" | "league";
 };
 
 type Participant = {
