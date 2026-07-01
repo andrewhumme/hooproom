@@ -860,8 +860,8 @@ function DraftRoomPage() {
                   {participants.length >= room.team_count
                     ? "Room full"
                     : !user || isGuest
-                      ? "Sign up to take a seat"
-                      : "Take a seat"}
+                      ? "Sign up to join draft"
+                      : "Take a seat and spectate"}
                 </Button>
               ) : (
                 !isHost && (
