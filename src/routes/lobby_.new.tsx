@@ -265,6 +265,51 @@ function NewRoomPage() {
 
         <Card className="border-2 p-6 shadow-[var(--shadow-bold)]">
           <form onSubmit={handleCreate} className="space-y-6">
+            {/* Room type: Mock vs League */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {(
+                [
+                  {
+                    v: "mock",
+                    label: "Mock Draft",
+                    hint: "Practice run. Lobby timer fills empty seats with bots.",
+                  },
+                  {
+                    v: "league",
+                    label: "League Draft",
+                    hint: "Real league. Pick a start date/time — no bot fill unless you say so.",
+                  },
+                ] as const
+              ).map(({ v, label, hint }) => {
+                const active = roomType === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => {
+                      setRoomType(v);
+                      // Sensible defaults when flipping type
+                      if (v === "league") {
+                        setVisibility("private");
+                      } else {
+                        setVisibility("public");
+                      }
+                    }}
+                    className={`rounded-md border-2 p-4 text-left transition ${
+                      active
+                        ? "border-primary bg-primary/10 shadow-[var(--shadow-bold)]"
+                        : "border-border bg-card hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="text-base font-black">{label}</div>
+                    <div className="mt-1 text-xs font-medium text-muted-foreground">
+                      {hint}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
             <div>
               <Label htmlFor="name">Room name</Label>
               <Input
