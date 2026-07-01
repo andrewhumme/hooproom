@@ -857,7 +857,11 @@ function DraftRoomPage() {
                   disabled={actionBusy || participants.length >= room.team_count}
                 >
                   {actionBusy && <Loader2 className="animate-spin" />}
-                  {participants.length >= room.team_count ? "Room full" : "Take a seat"}
+                  {participants.length >= room.team_count
+                    ? "Room full"
+                    : !user || isGuest
+                      ? "Sign up to take a seat"
+                      : "Take a seat"}
                 </Button>
               ) : (
                 !isHost && (
