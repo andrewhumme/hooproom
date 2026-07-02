@@ -440,9 +440,14 @@ function DraftRoomPage() {
     // Autopick fires ONLY when the pick clock expires — empty seats wait the
     // full clock too, which keeps pacing realistic and prevents the UI from
     // thrashing through dozens of picks per second when most seats are empty.
-    const clockExpired = secondsLeft <= 0 && !!room.pick_deadline;
-    if (!clockExpired) return;
-    if (!players.length) return; // wait until pool loaded
+    // Compute expiration from the deadline directly (not from `secondsLeft`
+    // state) — on the transition from waiting → drafting, the state is still
+    // 0 from the prior phase and would spuriously trigger an instant autopick
+    // for pick 1 before the countdown effect has a chance to recompute.
+    if (!room.pick_deadline) return;
+    const msLeft = new Date(room.pick_deadline).getTime() - Date.now();
+    if (msLeft > 0) return;
+
 
     const best = availablePlayers[0];
     if (!best) return;
