@@ -1077,6 +1077,22 @@ function DraftRoomPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            {(() => {
+              const seatedIds = new Set(
+                participants.map((p) => p.user_id).filter(Boolean) as string[]
+              );
+              const spectators = [...presentUserIds].filter((id) => !seatedIds.has(id)).length;
+              if (spectators <= 0) return null;
+              return (
+                <div
+                  className="flex items-center gap-1.5 rounded-md border-2 border-border bg-card px-2.5 py-1.5 text-sm font-bold text-muted-foreground"
+                  title={`${spectators} spectator${spectators === 1 ? "" : "s"} watching`}
+                >
+                  <Eye className="h-4 w-4" />
+                  <span className="tabular-nums">{spectators}</span>
+                </div>
+              );
+            })()}
             {isDrafting && (
               <>
                 <div className="flex items-center gap-2">
