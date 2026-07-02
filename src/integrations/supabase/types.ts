@@ -960,6 +960,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      host_set_pick_clock: {
+        Args: { _room_id: string; _seconds: number }
+        Returns: undefined
+      }
       host_start_with_bots: { Args: { _room_id: string }; Returns: undefined }
       host_undo_pick: {
         Args: { _count?: number; _room_id: string }
