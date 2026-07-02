@@ -69,6 +69,7 @@ export function DraftControlPanel({
   recentPicks,
   availablePlayers,
   canForceSkip,
+  pickClockSec,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -77,6 +78,7 @@ export function DraftControlPanel({
   const [adjustSec, setAdjustSec] = useState(30);
   const [replacePickId, setReplacePickId] = useState<string>("");
   const [replaceSearch, setReplaceSearch] = useState("");
+  const [newClockSec, setNewClockSec] = useState<number>(pickClockSec);
 
   const callRpc = async (
     label: string,
