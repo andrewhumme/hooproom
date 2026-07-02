@@ -139,6 +139,31 @@ function NewRoomPage() {
   const [visibility, setVisibility] = useState<"public" | "spectate" | "private">("public");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const TOTAL_STEPS = 4;
+  const STEP_LABELS = ["Type", "Format", "Basics", "Launch"] as const;
+
+  const canAdvance = (s: number): string | null => {
+    if (s === 2) {
+      // format step — nothing blocking (defaults set)
+      return null;
+    }
+    if (s === 3) {
+      if (!name.trim() || name.trim().length < 2) return "Give your room a name (2+ characters).";
+      if (rounds < 1) return "Add at least one roster slot.";
+    }
+    return null;
+  };
+  const goNext = () => {
+    const err = canAdvance(step);
+    if (err) { setError(err); return; }
+    setError(null);
+    setStep((s) => (Math.min(TOTAL_STEPS, s + 1) as 1 | 2 | 3 | 4));
+  };
+  const goBack = () => {
+    setError(null);
+    setStep((s) => (Math.max(1, s - 1) as 1 | 2 | 3 | 4));
+  };
 
   const rounds = totalSlots(slots);
   // Auction goes "slow" automatically when bid clock crosses the threshold
