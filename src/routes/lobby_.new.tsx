@@ -423,9 +423,9 @@ function NewRoomPage() {
                 })}
               </div>
             </div>
+            )}
 
-
-
+            {step === 2 && (
             <div>
               <Label>Draft format</Label>
               <p className="mt-1 text-xs text-muted-foreground">
