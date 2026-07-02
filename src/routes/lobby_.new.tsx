@@ -386,7 +386,9 @@ function NewRoomPage() {
                 className="mt-1.5"
               />
             </div>
+            )}
 
+            {step === 3 && (
             <div>
               <Label>Privacy</Label>
               <p className="mt-1 text-xs text-muted-foreground">
