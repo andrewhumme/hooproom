@@ -253,13 +253,25 @@ function NewRoomPage() {
         .single();
       if (roomErr) throw roomErr;
 
-      // Auto-join host as first participant
+      // Auto-join host as first participant, using their profile display name.
+      const { data: hostProfile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+      const hostTeamName =
+        hostProfile?.display_name?.trim() ||
+        (currentUser.user_metadata?.display_name as string | undefined)?.trim() ||
+        currentUser.email?.split("@")[0] ||
+        "Host";
+
       const { error: joinErr } = await supabase.from("draft_participants").insert({
         room_id: room.id,
         user_id: currentUser.id,
-        team_name: (currentUser.user_metadata?.display_name as string) ?? "Host",
+        team_name: hostTeamName,
       });
       if (joinErr) throw joinErr;
+
 
       navigate({ to: "/draft/$roomId", params: { roomId: room.id } });
     } catch (err) {
