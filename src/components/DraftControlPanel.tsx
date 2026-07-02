@@ -247,6 +247,53 @@ export function DraftControlPanel({
           </div>
         )}
 
+        {/* ─── Default pick clock (applies to future picks) ─── */}
+        {!isAuction && (
+          <div className="space-y-2 rounded-md border border-border bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                Pick clock length
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                current: {pickClockSec}s
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Time budget for future picks. The pick already on the clock isn't affected — use +/- above for that.
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={15}
+                max={259200}
+                step={5}
+                value={newClockSec}
+                onChange={(e) =>
+                  setNewClockSec(
+                    Math.max(15, Math.min(259200, Number(e.target.value) || 60)),
+                  )
+                }
+                className="h-8 w-24 text-center text-xs"
+              />
+              <span className="text-[11px] text-muted-foreground">seconds</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto font-bold"
+                disabled={!!busy || newClockSec === pickClockSec}
+                onClick={handleSetClock}
+              >
+                {busy === "setclock" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  "Apply"
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
+
         {/* ─── Undo picks ─── */}
         <div className="space-y-2 rounded-md border border-border bg-muted/30 p-3">
           <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
