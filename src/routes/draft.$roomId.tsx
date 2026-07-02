@@ -46,6 +46,7 @@ import {
   Check,
   Clock,
   Copy,
+  Eye,
   Download,
   Loader2,
   Pause,
@@ -165,6 +166,7 @@ function DraftRoomPage() {
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  const [presentUserIds, setPresentUserIds] = useState<Set<string>>(new Set());
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
@@ -228,6 +230,40 @@ function DraftRoomPage() {
     return () => {
       mounted = false;
       supabase.removeChannel(channel);
+    };
+  }, [roomId]);
+
+  // ------- Presence: track who's currently viewing this room -------
+  useEffect(() => {
+    if (!roomId) return;
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    (async () => {
+      await ensureGuestSession();
+      const { data: { user: u } } = await supabase.auth.getUser();
+      const uid = u?.id;
+      if (cancelled) return;
+
+      channel = supabase.channel(`presence-draft-${roomId}`, {
+        config: { presence: { key: uid ?? crypto.randomUUID() } },
+      });
+
+      channel
+        .on("presence", { event: "sync" }, () => {
+          const state = channel!.presenceState() as Record<string, unknown[]>;
+          setPresentUserIds(new Set(Object.keys(state)));
+        })
+        .subscribe(async (status) => {
+          if (status === "SUBSCRIBED") {
+            await channel!.track({ online_at: new Date().toISOString() });
+          }
+        });
+    })();
+
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
   }, [roomId]);
 
@@ -1041,6 +1077,22 @@ function DraftRoomPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            {(() => {
+              const seatedIds = new Set(
+                participants.map((p) => p.user_id).filter(Boolean) as string[]
+              );
+              const spectators = [...presentUserIds].filter((id) => !seatedIds.has(id)).length;
+              if (spectators <= 0) return null;
+              return (
+                <div
+                  className="flex items-center gap-1.5 rounded-md border-2 border-border bg-card px-2.5 py-1.5 text-sm font-bold text-muted-foreground"
+                  title={`${spectators} spectator${spectators === 1 ? "" : "s"} watching`}
+                >
+                  <Eye className="h-4 w-4" />
+                  <span className="tabular-nums">{spectators}</span>
+                </div>
+              );
+            })()}
             {isDrafting && (
               <>
                 <div className="flex items-center gap-2">
