@@ -490,14 +490,35 @@ function DraftRoomPage() {
     setActionBusy(true);
     setError(null);
     try {
+      // Idempotent join — if the user already has a seat (from a prior tab,
+      // reconnect, or realtime lag), treat it as success instead of showing
+      // a scary red error.
+      const { data: existing } = await supabase
+        .from("draft_participants")
+        .select("id")
+        .eq("room_id", roomId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (existing) return;
+
       const { error } = await supabase.from("draft_participants").insert({
         room_id: roomId,
         user_id: user.id,
         team_name: (user.user_metadata?.display_name as string) ?? "Team",
       });
-      if (error) throw error;
+      if (error) {
+        // 23505 = unique_violation — a concurrent insert (double-click, second
+        // tab) beat us to it. That's fine, they're seated.
+        if ((error as { code?: string }).code === "23505") return;
+        throw error;
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to join");
+      const msg = err instanceof Error ? err.message : "Failed to join";
+      setError(
+        /row-level security|permission/i.test(msg)
+          ? "Couldn't join this room — it may be full, already started, or spectate-only. Try refreshing."
+          : msg,
+      );
     } finally {
       setActionBusy(false);
     }
