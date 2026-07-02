@@ -467,7 +467,9 @@ function NewRoomPage() {
                 })}
               </div>
             </div>
+            )}
 
+            {step === 3 && (
             <div>
               <Label>Teams</Label>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -497,6 +499,8 @@ function NewRoomPage() {
                 </div>
               </div>
             </div>
+            )}
+            {step === 3 && (
             <div>
               <Label>Roster slots</Label>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -529,8 +533,9 @@ function NewRoomPage() {
                 {rounds} rounds · {teamCount * rounds} total picks
               </p>
             </div>
+            )}
 
-            {draftFormat === "snake" && (
+            {step === 2 && draftFormat === "snake" && (
               <div>
                 <Label>Reversal rounds</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
