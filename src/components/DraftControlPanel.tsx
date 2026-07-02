@@ -114,6 +114,16 @@ export function DraftControlPanel({
     );
   };
 
+  const handleSetClock = async () => {
+    const secs = Math.max(15, Math.min(259200, Math.round(newClockSec) || 60));
+    await callRpc("setclock", () =>
+      supabase.rpc("host_set_pick_clock", {
+        _room_id: roomId,
+        _seconds: secs,
+      }),
+    );
+  };
+
   const replacementOptions = useMemo(() => {
     const q = replaceSearch.trim().toLowerCase();
     const base = q
