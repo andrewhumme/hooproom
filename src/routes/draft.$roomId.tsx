@@ -1152,6 +1152,7 @@ function DraftRoomPage() {
                       slotMap.get(p.team_idx)?.team_name ?? `Team ${p.team_idx}`,
                   }))}
                 availablePlayers={players.filter((p) => !takenIds.has(p.id))}
+                pickClockSec={room.pick_clock_sec}
               />
             )}
             {isHost && (isDrafting || isPaused) && (
