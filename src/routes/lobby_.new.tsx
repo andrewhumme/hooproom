@@ -598,8 +598,7 @@ function NewRoomPage() {
               </div>
             )}
 
-
-            {isAuction && (
+            {step === 2 && isAuction && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
                 <div>
                   <div className="text-xs font-black uppercase tracking-widest text-primary">
