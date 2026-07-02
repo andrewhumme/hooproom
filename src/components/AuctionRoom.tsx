@@ -590,7 +590,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                         ?.team_name ?? `Team ${p.team_idx}`,
                   }))}
                 availablePlayers={players.filter((p) => !draftedIds.has(p.id))}
-                pickClockSec={room.pick_clock_sec ?? 60}
+                pickClockSec={60}
               />
             )}
             {isHost && (isDrafting || isPaused) && (
