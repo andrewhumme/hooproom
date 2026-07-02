@@ -232,6 +232,40 @@ function DraftRoomPage() {
     };
   }, [roomId]);
 
+  // ------- Presence: track who's currently viewing this room -------
+  useEffect(() => {
+    if (!roomId) return;
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    (async () => {
+      await ensureGuestSession();
+      const { data: { user: u } } = await supabase.auth.getUser();
+      const uid = u?.id;
+      if (cancelled) return;
+
+      channel = supabase.channel(`presence-draft-${roomId}`, {
+        config: { presence: { key: uid ?? crypto.randomUUID() } },
+      });
+
+      channel
+        .on("presence", { event: "sync" }, () => {
+          const state = channel!.presenceState() as Record<string, unknown[]>;
+          setPresentUserIds(new Set(Object.keys(state)));
+        })
+        .subscribe(async (status) => {
+          if (status === "SUBSCRIBED") {
+            await channel!.track({ online_at: new Date().toISOString() });
+          }
+        });
+    })();
+
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [roomId]);
+
   // ------- Load player pool when draft starts -------
   const playersFetchedRef = useRef(false);
   useEffect(() => {
