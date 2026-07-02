@@ -975,14 +975,29 @@ function NewRoomPage() {
               </div>
             )}
 
-            <ChipGroup
-              label="Scoring format"
-              options={FORMAT_OPTIONS}
-              value={format}
-              onChange={setFormat}
-            />
+            {step === 3 && (
+              <ChipGroup
+                label="Scoring format"
+                options={FORMAT_OPTIONS}
+                value={format}
+                onChange={setFormat}
+              />
+            )}
 
-            {roomType === "mock" ? (
+            {step === 4 && (
+              <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4">
+                <div className="text-xs font-black uppercase tracking-widest text-primary">
+                  Review
+                </div>
+                <ul className="mt-2 space-y-1 text-xs font-semibold text-muted-foreground">
+                  <li><span className="text-foreground">{roomType === "mock" ? "Mock draft" : "League draft"}</span> · {visibility}</li>
+                  <li><span className="text-foreground">{name || "Untitled room"}</span> · {teamCount} teams · {rounds} rounds</li>
+                  <li>{isAuction ? "Auction" : "Snake"} · {isAuction ? `${formatClock(auctionBidClock)} bid clock` : `${formatClock(pickClock)} pick clock`} · {format}</li>
+                </ul>
+              </div>
+            )}
+
+            {step === 4 && roomType === "mock" && (
               <div>
                 <Label>Lobby auto-start</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -999,7 +1014,8 @@ function NewRoomPage() {
                   ))}
                 </div>
               </div>
-            ) : (
+            )}
+            {step === 4 && roomType === "league" && (
               <div>
                 <Label htmlFor="scheduled_start_at">Scheduled start</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -1028,14 +1044,24 @@ function NewRoomPage() {
                 type="button"
                 variant="outline"
                 className="font-bold"
-                onClick={() => navigate({ to: "/lobby" })}
+                onClick={() => (step === 1 ? navigate({ to: "/lobby" }) : goBack())}
               >
-                Cancel
+                {step === 1 ? "Cancel" : "Back"}
               </Button>
-              <Button type="submit" className="flex-1 font-bold" disabled={busy}>
-                {busy && <Loader2 className="animate-spin" />}
-                Create room
-              </Button>
+              {step < TOTAL_STEPS ? (
+                <Button
+                  type="button"
+                  className="flex-1 font-bold"
+                  onClick={goNext}
+                >
+                  Continue
+                </Button>
+              ) : (
+                <Button type="submit" className="flex-1 font-bold" disabled={busy}>
+                  {busy && <Loader2 className="animate-spin" />}
+                  Create room
+                </Button>
+              )}
             </div>
           </form>
         </Card>
