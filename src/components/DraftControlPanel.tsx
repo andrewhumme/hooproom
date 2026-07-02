@@ -53,6 +53,8 @@ type Props = {
   availablePlayers: DraftablePlayer[];
   /** Whether the on-the-clock pick can be force-skipped. Snake only. */
   canForceSkip: boolean;
+  /** Current per-pick time budget on the room, in seconds. */
+  pickClockSec: number;
 };
 
 /**
