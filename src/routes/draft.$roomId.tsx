@@ -165,6 +165,7 @@ function DraftRoomPage() {
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  const [presentUserIds, setPresentUserIds] = useState<Set<string>>(new Set());
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
