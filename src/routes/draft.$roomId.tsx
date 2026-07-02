@@ -501,11 +501,25 @@ function DraftRoomPage() {
         .maybeSingle();
       if (existing) return;
 
+      // Prefer the profile display name (set on /me), fall back to auth
+      // metadata, then the email prefix — anything but a generic "Team".
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      const teamName =
+        profile?.display_name?.trim() ||
+        (user.user_metadata?.display_name as string | undefined)?.trim() ||
+        user.email?.split("@")[0] ||
+        "Team";
+
       const { error } = await supabase.from("draft_participants").insert({
         room_id: roomId,
         user_id: user.id,
-        team_name: (user.user_metadata?.display_name as string) ?? "Team",
+        team_name: teamName,
       });
+
       if (error) {
         // 23505 = unique_violation — a concurrent insert (double-click, second
         // tab) beat us to it. That's fine, they're seated.
