@@ -371,7 +371,9 @@ function NewRoomPage() {
                 );
               })}
             </div>
+            )}
 
+            {step === 3 && (
             <div>
               <Label htmlFor="name">Room name</Label>
               <Input
