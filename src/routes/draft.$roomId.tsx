@@ -46,6 +46,7 @@ import {
   Check,
   Clock,
   Copy,
+  Eye,
   Download,
   Loader2,
   Pause,
