@@ -447,6 +447,8 @@ function DraftRoomPage() {
     if (!room.pick_deadline) return;
     const msLeft = new Date(room.pick_deadline).getTime() - Date.now();
     if (msLeft > 0) return;
+    if (!players.length) return; // wait until pool loaded
+
 
 
     const best = availablePlayers[0];
