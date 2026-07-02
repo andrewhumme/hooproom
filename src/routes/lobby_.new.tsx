@@ -139,6 +139,31 @@ function NewRoomPage() {
   const [visibility, setVisibility] = useState<"public" | "spectate" | "private">("public");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const TOTAL_STEPS = 4;
+  const STEP_LABELS = ["Type", "Format", "Basics", "Launch"] as const;
+
+  const canAdvance = (s: number): string | null => {
+    if (s === 2) {
+      // format step — nothing blocking (defaults set)
+      return null;
+    }
+    if (s === 3) {
+      if (!name.trim() || name.trim().length < 2) return "Give your room a name (2+ characters).";
+      if (rounds < 1) return "Add at least one roster slot.";
+    }
+    return null;
+  };
+  const goNext = () => {
+    const err = canAdvance(step);
+    if (err) { setError(err); return; }
+    setError(null);
+    setStep((s) => (Math.min(TOTAL_STEPS, s + 1) as 1 | 2 | 3 | 4));
+  };
+  const goBack = () => {
+    setError(null);
+    setStep((s) => (Math.max(1, s - 1) as 1 | 2 | 3 | 4));
+  };
 
   const rounds = totalSlots(slots);
   // Auction goes "slow" automatically when bid clock crosses the threshold
@@ -253,19 +278,56 @@ function NewRoomPage() {
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto max-w-2xl px-6 py-10">
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="text-xs font-bold uppercase tracking-widest text-primary">
-            New room
+            New room · Step {step} of {TOTAL_STEPS}
           </div>
-          <h1 className="mt-2 text-3xl font-black md:text-4xl">Host a draft.</h1>
+          <h1 className="mt-2 text-3xl font-black md:text-4xl">
+            {step === 1 && "What kind of draft?"}
+            {step === 2 && "Pick your format."}
+            {step === 3 && "Room basics."}
+            {step === 4 && "Ready to launch."}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Set your format. We'll generate a shareable link you can send to your league.
+            {step === 1 && "Mock drafts run practice reps with bot fill. League drafts wait for your real managers."}
+            {step === 2 && "Snake or auction, live or slow — dial in the clock and format-specific rules."}
+            {step === 3 && "Name it, pick who can join, set team count and roster."}
+            {step === 4 && (roomType === "mock" ? "Choose your lobby timer and create the room." : "Schedule kickoff and create the room.")}
           </p>
+          <div className="mt-4 flex items-center gap-2">
+            {STEP_LABELS.map((label, i) => {
+              const n = (i + 1) as 1 | 2 | 3 | 4;
+              const done = step > n;
+              const current = step === n;
+              return (
+                <div key={label} className="flex flex-1 items-center gap-2">
+                  <div
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-black ${
+                      current
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : done
+                          ? "border-primary bg-primary/20 text-primary"
+                          : "border-border bg-card text-muted-foreground"
+                    }`}
+                  >
+                    {n}
+                  </div>
+                  <div className={`hidden text-[11px] font-bold uppercase tracking-widest sm:block ${current ? "text-foreground" : "text-muted-foreground"}`}>
+                    {label}
+                  </div>
+                  {n < TOTAL_STEPS && (
+                    <div className={`h-0.5 flex-1 rounded ${done ? "bg-primary" : "bg-border"}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <Card className="border-2 p-6 shadow-[var(--shadow-bold)]">
           <form onSubmit={handleCreate} className="space-y-6">
-            {/* Room type: Mock vs League */}
+            {/* STEP 1: Room type */}
+            {step === 1 && (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {(
                 [
@@ -309,7 +371,9 @@ function NewRoomPage() {
                 );
               })}
             </div>
+            )}
 
+            {step === 3 && (
             <div>
               <Label htmlFor="name">Room name</Label>
               <Input
@@ -322,7 +386,9 @@ function NewRoomPage() {
                 className="mt-1.5"
               />
             </div>
+            )}
 
+            {step === 3 && (
             <div>
               <Label>Privacy</Label>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -357,9 +423,9 @@ function NewRoomPage() {
                 })}
               </div>
             </div>
+            )}
 
-
-
+            {step === 2 && (
             <div>
               <Label>Draft format</Label>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -401,7 +467,9 @@ function NewRoomPage() {
                 })}
               </div>
             </div>
+            )}
 
+            {step === 3 && (
             <div>
               <Label>Teams</Label>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -431,6 +499,8 @@ function NewRoomPage() {
                 </div>
               </div>
             </div>
+            )}
+            {step === 3 && (
             <div>
               <Label>Roster slots</Label>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -463,8 +533,9 @@ function NewRoomPage() {
                 {rounds} rounds · {teamCount * rounds} total picks
               </p>
             </div>
+            )}
 
-            {draftFormat === "snake" && (
+            {step === 2 && draftFormat === "snake" && (
               <div>
                 <Label>Reversal rounds</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -527,8 +598,7 @@ function NewRoomPage() {
               </div>
             )}
 
-
-            {isAuction && (
+            {step === 2 && isAuction && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
                 <div>
                   <div className="text-xs font-black uppercase tracking-widest text-primary">
@@ -798,7 +868,7 @@ function NewRoomPage() {
               </div>
             )}
 
-            {!isAuction && (
+            {step === 2 && !isAuction && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
                 <div>
                   <div className="text-xs font-black uppercase tracking-widest text-primary">
@@ -905,14 +975,29 @@ function NewRoomPage() {
               </div>
             )}
 
-            <ChipGroup
-              label="Scoring format"
-              options={FORMAT_OPTIONS}
-              value={format}
-              onChange={setFormat}
-            />
+            {step === 3 && (
+              <ChipGroup
+                label="Scoring format"
+                options={FORMAT_OPTIONS}
+                value={format}
+                onChange={setFormat}
+              />
+            )}
 
-            {roomType === "mock" ? (
+            {step === 4 && (
+              <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4">
+                <div className="text-xs font-black uppercase tracking-widest text-primary">
+                  Review
+                </div>
+                <ul className="mt-2 space-y-1 text-xs font-semibold text-muted-foreground">
+                  <li><span className="text-foreground">{roomType === "mock" ? "Mock draft" : "League draft"}</span> · {visibility}</li>
+                  <li><span className="text-foreground">{name || "Untitled room"}</span> · {teamCount} teams · {rounds} rounds</li>
+                  <li>{isAuction ? "Auction" : "Snake"} · {isAuction ? `${formatClock(auctionBidClock)} bid clock` : `${formatClock(pickClock)} pick clock`} · {format}</li>
+                </ul>
+              </div>
+            )}
+
+            {step === 4 && roomType === "mock" && (
               <div>
                 <Label>Lobby auto-start</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -929,7 +1014,8 @@ function NewRoomPage() {
                   ))}
                 </div>
               </div>
-            ) : (
+            )}
+            {step === 4 && roomType === "league" && (
               <div>
                 <Label htmlFor="scheduled_start_at">Scheduled start</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -958,14 +1044,24 @@ function NewRoomPage() {
                 type="button"
                 variant="outline"
                 className="font-bold"
-                onClick={() => navigate({ to: "/lobby" })}
+                onClick={() => (step === 1 ? navigate({ to: "/lobby" }) : goBack())}
               >
-                Cancel
+                {step === 1 ? "Cancel" : "Back"}
               </Button>
-              <Button type="submit" className="flex-1 font-bold" disabled={busy}>
-                {busy && <Loader2 className="animate-spin" />}
-                Create room
-              </Button>
+              {step < TOTAL_STEPS ? (
+                <Button
+                  type="button"
+                  className="flex-1 font-bold"
+                  onClick={goNext}
+                >
+                  Continue
+                </Button>
+              ) : (
+                <Button type="submit" className="flex-1 font-bold" disabled={busy}>
+                  {busy && <Loader2 className="animate-spin" />}
+                  Create room
+                </Button>
+              )}
             </div>
           </form>
         </Card>
