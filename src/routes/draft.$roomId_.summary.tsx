@@ -94,6 +94,9 @@ function DraftSummaryPage() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statsByPlayer, setStatsByPlayer] = useState<Record<string, PlayerSeasonStats>>({});
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const [initedCollapse, setInitedCollapse] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -123,6 +126,24 @@ function DraftSummaryPage() {
       mounted = false;
     };
   }, [roomId]);
+
+  // Load season stats for every drafted player (needed to compute team totals
+  // and league maxes for the heatmap). Only the user's own team shows the
+  // heatmap visualization, so competitors' cards stay untouched.
+  useEffect(() => {
+    if (picks.length === 0) return;
+    const keys = Array.from(new Set(picks.map((p) => p.player_id)));
+    if (keys.length === 0) return;
+    let cancelled = false;
+    fetchLatestStatsForPlayersServer({ data: { playerKeys: keys } })
+      .then((res) => {
+        if (!cancelled) setStatsByPlayer(res);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [picks]);
 
   const slotCfg: SlotConfig | null = useMemo(() => {
     if (!room) return null;
