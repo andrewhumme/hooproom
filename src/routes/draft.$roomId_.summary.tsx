@@ -14,8 +14,15 @@ import {
   type SlotConfig,
 } from "@/lib/rosterSlots";
 import {
+  fetchLatestStatsForPlayersServer,
+  type PlayerSeasonStats,
+} from "@/lib/playerStats.functions";
+import {
   ArrowLeft,
+  ChevronDown,
+  ChevronRight,
   Download,
+  Flame,
   Loader2,
   Trophy,
   Crown,
