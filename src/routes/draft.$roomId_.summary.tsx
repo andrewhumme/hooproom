@@ -378,7 +378,9 @@ function DraftSummaryPage() {
           {myTeamIdx != null ? "Your team & the rest of the league" : "All teams"}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Tap any roster to see how it stacks up by position slot.
+          Tap a team header to expand or collapse its roster.
+          {myTeamIdx != null &&
+            " Your team also shows a category heatmap so you can see where you're strong or weak."}
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -392,6 +394,8 @@ function DraftSummaryPage() {
               ? teamPicks.reduce((s, p) => s + (p.auction_price ?? 0), 0)
               : 0;
             const isMine = myTeamIdx === teamIdx;
+            const isCollapsed = collapsed.has(teamIdx);
+            const totals = teamTotals.get(teamIdx);
             return (
               <Card
                 key={teamIdx}
@@ -401,23 +405,35 @@ function DraftSummaryPage() {
                     : "border-border p-0"
                 }
               >
-                <div
-                  className={`flex items-center justify-between gap-2 rounded-t-lg px-4 py-3 ${
+                <button
+                  type="button"
+                  onClick={() => toggleCollapse(teamIdx)}
+                  className={`flex w-full items-center justify-between gap-2 rounded-t-lg px-4 py-3 text-left transition hover:bg-muted/60 ${
                     isMine ? "bg-primary/10" : "bg-muted/40"
                   }`}
+                  aria-expanded={!isCollapsed}
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      {isMine && <Crown className="h-4 w-4 text-primary" />}
-                      <div className="truncate text-sm font-black">
-                        {team?.team_name ?? `Team ${teamIdx} (Auto)`}
+                  <div className="flex min-w-0 items-center gap-2">
+                    {isCollapsed ? (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        {isMine && <Crown className="h-4 w-4 text-primary" />}
+                        <div className="truncate text-sm font-black">
+                          {team?.team_name ?? `Team ${teamIdx} (Auto)`}
+                        </div>
                       </div>
-                    </div>
-                    <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-                      Slot #{teamIdx} · {teamPicks.length}/{rosterSlotCount} picks
-                      {teamAutopicks > 0 && (
-                        <span className="ml-1 text-primary">· {teamAutopicks} auto</span>
-                      )}
+                      <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                        Slot #{teamIdx} · {teamPicks.length}/{rosterSlotCount} picks
+                        {teamAutopicks > 0 && (
+                          <span className="ml-1 text-primary">
+                            · {teamAutopicks} auto
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {isAuction && (
@@ -428,23 +444,31 @@ function DraftSummaryPage() {
                       <div className="text-sm font-black">${teamSpend}</div>
                     </div>
                   )}
-                </div>
-                {teamPicks.length === 0 ? (
-                  <div className="p-6 text-center text-sm text-muted-foreground">
-                    No picks.
-                  </div>
-                ) : slotCfg ? (
-                  <RosterSlotList
-                    picks={teamPicks}
-                    cfg={slotCfg}
-                    teamCount={room.team_count}
-                    showPrice={isAuction}
-                  />
-                ) : null}
+                </button>
+                {!isCollapsed && (
+                  <>
+                    {isMine && totals && teamPicks.length > 0 && (
+                      <CategoryHeatmap totals={totals} maxes={catMax} />
+                    )}
+                    {teamPicks.length === 0 ? (
+                      <div className="p-6 text-center text-sm text-muted-foreground">
+                        No picks.
+                      </div>
+                    ) : slotCfg ? (
+                      <RosterSlotList
+                        picks={teamPicks}
+                        cfg={slotCfg}
+                        teamCount={room.team_count}
+                        showPrice={isAuction}
+                      />
+                    ) : null}
+                  </>
+                )}
               </Card>
             );
           })}
         </div>
+
 
         {/* Full draft order */}
         <h2 className="mt-10 text-xl font-black">Full draft order</h2>
