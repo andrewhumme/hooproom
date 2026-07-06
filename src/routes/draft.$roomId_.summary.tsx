@@ -189,10 +189,61 @@ function DraftSummaryPage() {
     return idxs;
   }, [room, myTeamIdx]);
 
+  // Default collapse: only user's team open. All others collapsed. Runs once
+  // after room + user are resolved.
+  useEffect(() => {
+    if (initedCollapse || !room) return;
+    const s = new Set<number>();
+    for (let i = 1; i <= room.team_count; i++) {
+      if (i !== myTeamIdx) s.add(i);
+    }
+    setCollapsed(s);
+    setInitedCollapse(true);
+  }, [room, myTeamIdx, initedCollapse]);
+
+  // Per-team category totals from drafted players' latest-season per-game
+  // averages. Sums for counting stats; games-weighted averages for pcts.
+  const teamTotals = useMemo(() => {
+    const out = new Map<number, TeamCategoryTotals>();
+    if (!room) return out;
+    for (let idx = 1; idx <= room.team_count; idx++) {
+      const teamPicks = picks.filter((p) => p.team_idx === idx);
+      out.set(idx, computeTeamTotals(teamPicks, statsByPlayer));
+    }
+    return out;
+  }, [room, picks, statsByPlayer]);
+
+  // Category maxes across the whole league — used to shade my-team heatmap
+  // relative to the pool that was actually drafted here.
+  const catMax = useMemo(() => {
+    const keys: (keyof TeamCategoryTotals)[] = [
+      "pts", "reb", "ast", "stl", "blk", "fg3_made", "fg_pct", "ft_pct",
+    ];
+    const m: Partial<Record<keyof TeamCategoryTotals, number>> = {};
+    for (const k of keys) {
+      let max = 0;
+      for (const t of teamTotals.values()) {
+        const v = t[k];
+        if (v != null && v > max) max = v;
+      }
+      m[k] = max;
+    }
+    return m as Record<keyof TeamCategoryTotals, number>;
+  }, [teamTotals]);
+
   const autopickCount = picks.filter((p) => p.was_autopick).length;
   const totalSpent = isAuction
     ? picks.reduce((s, p) => s + (p.auction_price ?? 0), 0)
     : 0;
+
+  const toggleCollapse = (idx: number) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
 
   const handleExport = () => {
     if (!room) return;
