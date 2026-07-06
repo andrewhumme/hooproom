@@ -1308,7 +1308,46 @@ function DraftRoomPage() {
         </div>
       )}
 
+      {!isComplete && picks.length > 0 && (
+        <div className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl items-center gap-2 px-6 py-2">
+            <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Last picks
+            </span>
+            <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
+              {[...picks]
+                .sort((a, b) => b.pick_number - a.pick_number)
+                .slice(0, 8)
+                .map((pk) => {
+                  const team = slotMap.get(pk.team_idx);
+                  const isMine = pk.user_id === user?.id;
+                  return (
+                    <div
+                      key={pk.id}
+                      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
+                        isMine
+                          ? "border-primary/60 bg-primary/10 text-foreground"
+                          : "border-border bg-card text-muted-foreground"
+                      }`}
+                      title={`#${pk.pick_number} · ${team?.team_name ?? `Team ${pk.team_idx}`}`}
+                    >
+                      <span className="font-mono font-black tabular-nums text-muted-foreground">
+                        #{pk.pick_number}
+                      </span>
+                      <span className="truncate text-foreground">{pk.player_name}</span>
+                      <span className="hidden text-[10px] font-black uppercase text-muted-foreground sm:inline">
+                        {team?.team_name ?? `Team ${pk.team_idx}`}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[1fr_360px]">
+
 
         {/* Mobile-only tab switcher */}
         <Tabs

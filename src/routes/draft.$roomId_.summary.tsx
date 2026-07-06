@@ -14,8 +14,15 @@ import {
   type SlotConfig,
 } from "@/lib/rosterSlots";
 import {
+  fetchLatestStatsForPlayersServer,
+  type PlayerSeasonStats,
+} from "@/lib/playerStats.functions";
+import {
   ArrowLeft,
+  ChevronDown,
+  ChevronRight,
   Download,
+  Flame,
   Loader2,
   Trophy,
   Crown,
@@ -87,6 +94,9 @@ function DraftSummaryPage() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statsByPlayer, setStatsByPlayer] = useState<Record<string, PlayerSeasonStats>>({});
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const [initedCollapse, setInitedCollapse] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -116,6 +126,24 @@ function DraftSummaryPage() {
       mounted = false;
     };
   }, [roomId]);
+
+  // Load season stats for every drafted player (needed to compute team totals
+  // and league maxes for the heatmap). Only the user's own team shows the
+  // heatmap visualization, so competitors' cards stay untouched.
+  useEffect(() => {
+    if (picks.length === 0) return;
+    const keys = Array.from(new Set(picks.map((p) => p.player_id)));
+    if (keys.length === 0) return;
+    let cancelled = false;
+    fetchLatestStatsForPlayersServer({ data: { playerKeys: keys } })
+      .then((res) => {
+        if (!cancelled) setStatsByPlayer(res);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [picks]);
 
   const slotCfg: SlotConfig | null = useMemo(() => {
     if (!room) return null;
@@ -161,10 +189,61 @@ function DraftSummaryPage() {
     return idxs;
   }, [room, myTeamIdx]);
 
+  // Default collapse: only user's team open. All others collapsed. Runs once
+  // after room + user are resolved.
+  useEffect(() => {
+    if (initedCollapse || !room) return;
+    const s = new Set<number>();
+    for (let i = 1; i <= room.team_count; i++) {
+      if (i !== myTeamIdx) s.add(i);
+    }
+    setCollapsed(s);
+    setInitedCollapse(true);
+  }, [room, myTeamIdx, initedCollapse]);
+
+  // Per-team category totals from drafted players' latest-season per-game
+  // averages. Sums for counting stats; games-weighted averages for pcts.
+  const teamTotals = useMemo(() => {
+    const out = new Map<number, TeamCategoryTotals>();
+    if (!room) return out;
+    for (let idx = 1; idx <= room.team_count; idx++) {
+      const teamPicks = picks.filter((p) => p.team_idx === idx);
+      out.set(idx, computeTeamTotals(teamPicks, statsByPlayer));
+    }
+    return out;
+  }, [room, picks, statsByPlayer]);
+
+  // Category maxes across the whole league — used to shade my-team heatmap
+  // relative to the pool that was actually drafted here.
+  const catMax = useMemo(() => {
+    const keys: (keyof TeamCategoryTotals)[] = [
+      "pts", "reb", "ast", "stl", "blk", "fg3_made", "fg_pct", "ft_pct",
+    ];
+    const m: Partial<Record<keyof TeamCategoryTotals, number>> = {};
+    for (const k of keys) {
+      let max = 0;
+      for (const t of teamTotals.values()) {
+        const v = t[k];
+        if (v != null && v > max) max = v;
+      }
+      m[k] = max;
+    }
+    return m as Record<keyof TeamCategoryTotals, number>;
+  }, [teamTotals]);
+
   const autopickCount = picks.filter((p) => p.was_autopick).length;
   const totalSpent = isAuction
     ? picks.reduce((s, p) => s + (p.auction_price ?? 0), 0)
     : 0;
+
+  const toggleCollapse = (idx: number) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
 
   const handleExport = () => {
     if (!room) return;
@@ -299,7 +378,9 @@ function DraftSummaryPage() {
           {myTeamIdx != null ? "Your team & the rest of the league" : "All teams"}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Tap any roster to see how it stacks up by position slot.
+          Tap a team header to expand or collapse its roster.
+          {myTeamIdx != null &&
+            " Your team also shows a category heatmap so you can see where you're strong or weak."}
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -313,6 +394,8 @@ function DraftSummaryPage() {
               ? teamPicks.reduce((s, p) => s + (p.auction_price ?? 0), 0)
               : 0;
             const isMine = myTeamIdx === teamIdx;
+            const isCollapsed = collapsed.has(teamIdx);
+            const totals = teamTotals.get(teamIdx);
             return (
               <Card
                 key={teamIdx}
@@ -322,23 +405,35 @@ function DraftSummaryPage() {
                     : "border-border p-0"
                 }
               >
-                <div
-                  className={`flex items-center justify-between gap-2 rounded-t-lg px-4 py-3 ${
+                <button
+                  type="button"
+                  onClick={() => toggleCollapse(teamIdx)}
+                  className={`flex w-full items-center justify-between gap-2 rounded-t-lg px-4 py-3 text-left transition hover:bg-muted/60 ${
                     isMine ? "bg-primary/10" : "bg-muted/40"
                   }`}
+                  aria-expanded={!isCollapsed}
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      {isMine && <Crown className="h-4 w-4 text-primary" />}
-                      <div className="truncate text-sm font-black">
-                        {team?.team_name ?? `Team ${teamIdx} (Auto)`}
+                  <div className="flex min-w-0 items-center gap-2">
+                    {isCollapsed ? (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        {isMine && <Crown className="h-4 w-4 text-primary" />}
+                        <div className="truncate text-sm font-black">
+                          {team?.team_name ?? `Team ${teamIdx} (Auto)`}
+                        </div>
                       </div>
-                    </div>
-                    <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-                      Slot #{teamIdx} · {teamPicks.length}/{rosterSlotCount} picks
-                      {teamAutopicks > 0 && (
-                        <span className="ml-1 text-primary">· {teamAutopicks} auto</span>
-                      )}
+                      <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                        Slot #{teamIdx} · {teamPicks.length}/{rosterSlotCount} picks
+                        {teamAutopicks > 0 && (
+                          <span className="ml-1 text-primary">
+                            · {teamAutopicks} auto
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {isAuction && (
@@ -349,23 +444,31 @@ function DraftSummaryPage() {
                       <div className="text-sm font-black">${teamSpend}</div>
                     </div>
                   )}
-                </div>
-                {teamPicks.length === 0 ? (
-                  <div className="p-6 text-center text-sm text-muted-foreground">
-                    No picks.
-                  </div>
-                ) : slotCfg ? (
-                  <RosterSlotList
-                    picks={teamPicks}
-                    cfg={slotCfg}
-                    teamCount={room.team_count}
-                    showPrice={isAuction}
-                  />
-                ) : null}
+                </button>
+                {!isCollapsed && (
+                  <>
+                    {isMine && totals && teamPicks.length > 0 && (
+                      <CategoryHeatmap totals={totals} maxes={catMax} />
+                    )}
+                    {teamPicks.length === 0 ? (
+                      <div className="p-6 text-center text-sm text-muted-foreground">
+                        No picks.
+                      </div>
+                    ) : slotCfg ? (
+                      <RosterSlotList
+                        picks={teamPicks}
+                        cfg={slotCfg}
+                        teamCount={room.team_count}
+                        showPrice={isAuction}
+                      />
+                    ) : null}
+                  </>
+                )}
               </Card>
             );
           })}
         </div>
+
 
         {/* Full draft order */}
         <h2 className="mt-10 text-xl font-black">Full draft order</h2>
@@ -543,5 +646,137 @@ function RosterSlotList({
         </li>
       ))}
     </ul>
+  );
+}
+
+// ---------- Category heatmap helpers ----------
+
+type TeamCategoryTotals = {
+  pts: number | null;
+  reb: number | null;
+  ast: number | null;
+  stl: number | null;
+  blk: number | null;
+  fg3_made: number | null;
+  fg_pct: number | null;
+  ft_pct: number | null;
+};
+
+const CAT_META: {
+  key: keyof TeamCategoryTotals;
+  label: string;
+  decimals: number;
+  isPct?: boolean;
+}[] = [
+  { key: "pts", label: "PTS", decimals: 1 },
+  { key: "reb", label: "REB", decimals: 1 },
+  { key: "ast", label: "AST", decimals: 1 },
+  { key: "stl", label: "STL", decimals: 1 },
+  { key: "blk", label: "BLK", decimals: 1 },
+  { key: "fg3_made", label: "3PM", decimals: 1 },
+  { key: "fg_pct", label: "FG%", decimals: 3, isPct: true },
+  { key: "ft_pct", label: "FT%", decimals: 3, isPct: true },
+];
+
+function computeTeamTotals(
+  teamPicks: Pick[],
+  statsByPlayer: Record<string, PlayerSeasonStats>,
+): TeamCategoryTotals {
+  const sums: Record<string, number> = {
+    pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fg3_made: 0,
+  };
+  let fgAttWeighted = 0;
+  let ftAttWeighted = 0;
+  let fgWeight = 0;
+  let ftWeight = 0;
+  let count = 0;
+  for (const p of teamPicks) {
+    const s = statsByPlayer[p.player_id];
+    if (!s) continue;
+    count++;
+    sums.pts += s.pts ?? 0;
+    sums.reb += s.reb ?? 0;
+    sums.ast += s.ast ?? 0;
+    sums.stl += s.stl ?? 0;
+    sums.blk += s.blk ?? 0;
+    sums.fg3_made += s.fg3_made ?? 0;
+    // Weight FG% / FT% by games played so heavier contributors count more.
+    const gp = s.games_played ?? 0;
+    if (s.fg_pct != null && gp > 0) {
+      fgAttWeighted += s.fg_pct * gp;
+      fgWeight += gp;
+    }
+    if (s.ft_pct != null && gp > 0) {
+      ftAttWeighted += s.ft_pct * gp;
+      ftWeight += gp;
+    }
+  }
+  if (count === 0) {
+    return {
+      pts: null, reb: null, ast: null, stl: null, blk: null,
+      fg3_made: null, fg_pct: null, ft_pct: null,
+    };
+  }
+  return {
+    pts: sums.pts,
+    reb: sums.reb,
+    ast: sums.ast,
+    stl: sums.stl,
+    blk: sums.blk,
+    fg3_made: sums.fg3_made,
+    fg_pct: fgWeight > 0 ? fgAttWeighted / fgWeight : null,
+    ft_pct: ftWeight > 0 ? ftAttWeighted / ftWeight : null,
+  };
+}
+
+function CategoryHeatmap({
+  totals,
+  maxes,
+}: {
+  totals: TeamCategoryTotals;
+  maxes: Record<keyof TeamCategoryTotals, number>;
+}) {
+  return (
+    <div className="border-b border-border bg-background/60 px-4 py-3">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <Flame className="h-3 w-3 text-primary" />
+        Category heatmap
+        <span className="ml-auto text-[9px] font-bold normal-case tracking-normal text-muted-foreground/70">
+          vs. league best
+        </span>
+      </div>
+      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+        {CAT_META.map((c) => {
+          const v = totals[c.key];
+          const max = maxes[c.key] ?? 0;
+          const ratio = v != null && max > 0 ? Math.min(1, v / max) : 0;
+          const alpha = v == null ? 0 : 0.1 + ratio * 0.7;
+          const style: React.CSSProperties = {
+            backgroundColor: `color-mix(in oklab, var(--primary) ${(alpha * 100).toFixed(0)}%, transparent)`,
+          };
+          const formatted =
+            v == null
+              ? "—"
+              : c.isPct
+                ? v.toFixed(3).replace(/^0\./, ".")
+                : v.toFixed(c.decimals);
+          return (
+            <div
+              key={c.key}
+              className="flex flex-col items-center rounded-md border border-border/70 px-1 py-1 text-center"
+              style={style}
+              title={`${c.label}: ${formatted}${max > 0 && v != null ? ` · best in league ${c.isPct ? max.toFixed(3).replace(/^0\./, ".") : max.toFixed(c.decimals)}` : ""}`}
+            >
+              <span className="text-xs font-black tabular-nums leading-none">
+                {formatted}
+              </span>
+              <span className="mt-0.5 text-[9px] font-black uppercase tracking-wider text-muted-foreground">
+                {c.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
