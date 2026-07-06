@@ -745,7 +745,7 @@ function CategoryHeatmap({
           vs. league best
         </span>
       </div>
-      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-8">
         {CAT_META.map((c) => {
           const v = totals[c.key];
           const max = maxes[c.key] ?? 0;
@@ -763,15 +763,15 @@ function CategoryHeatmap({
           return (
             <div
               key={c.key}
-              className="flex flex-col items-center rounded-md border border-border/70 px-1 py-1 text-center"
+              className="flex items-center justify-between gap-2 rounded-md border border-border/70 px-2 py-2 sm:flex-col sm:justify-center sm:gap-0.5 sm:px-1 sm:py-1 sm:text-center"
               style={style}
               title={`${c.label}: ${formatted}${max > 0 && v != null ? ` · best in league ${c.isPct ? max.toFixed(3).replace(/^0\./, ".") : max.toFixed(c.decimals)}` : ""}`}
             >
-              <span className="text-xs font-black tabular-nums leading-none">
-                {formatted}
-              </span>
-              <span className="mt-0.5 text-[9px] font-black uppercase tracking-wider text-muted-foreground">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground sm:order-2 sm:text-[9px]">
                 {c.label}
+              </span>
+              <span className="text-sm font-black tabular-nums leading-none sm:order-1 sm:text-xs">
+                {formatted}
               </span>
             </div>
           );
