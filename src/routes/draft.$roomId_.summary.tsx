@@ -745,7 +745,7 @@ function CategoryHeatmap({
           vs. league best
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 xs:grid-cols-4 sm:grid-cols-8">
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-8">
         {CAT_META.map((c) => {
           const v = totals[c.key];
           const max = maxes[c.key] ?? 0;
