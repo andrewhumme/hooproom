@@ -1626,7 +1626,11 @@ function DraftRoomPage() {
                     : "Spectating — join a seat to draft players"}
                 </p>
               </div>
+              {myTotals && picks.some((p) => p.user_id === user?.id) && (
+                <CategoryHeatmap totals={myTotals} maxes={catMax} />
+              )}
               <RosterSlotList
+
                 picks={
                   meParticipant
                     ? picks
