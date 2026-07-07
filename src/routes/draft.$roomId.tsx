@@ -1848,6 +1848,116 @@ function DraftRoomPage() {
   );
 }
 
+type TeamCategoryTotals = {
+  pts: number | null;
+  reb: number | null;
+  ast: number | null;
+  stl: number | null;
+  blk: number | null;
+  fg3_made: number | null;
+  fg_pct: number | null;
+  ft_pct: number | null;
+};
+
+const CAT_META: {
+  key: keyof TeamCategoryTotals;
+  label: string;
+  decimals: number;
+  isPct?: boolean;
+}[] = [
+  { key: "pts", label: "PTS", decimals: 1 },
+  { key: "reb", label: "REB", decimals: 1 },
+  { key: "ast", label: "AST", decimals: 1 },
+  { key: "stl", label: "STL", decimals: 1 },
+  { key: "blk", label: "BLK", decimals: 1 },
+  { key: "fg3_made", label: "3PM", decimals: 1 },
+  { key: "fg_pct", label: "FG%", decimals: 3, isPct: true },
+  { key: "ft_pct", label: "FT%", decimals: 3, isPct: true },
+];
+
+function computeTeamTotals(
+  teamPicks: Pick[],
+  statsByPlayer: Record<string, PlayerSeasonStats>,
+): TeamCategoryTotals {
+  const sums = { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fg3_made: 0 };
+  let fgWeighted = 0, ftWeighted = 0, fgWeight = 0, ftWeight = 0, count = 0;
+  for (const p of teamPicks) {
+    const s = statsByPlayer[p.player_id];
+    if (!s) continue;
+    count++;
+    sums.pts += s.pts ?? 0;
+    sums.reb += s.reb ?? 0;
+    sums.ast += s.ast ?? 0;
+    sums.stl += s.stl ?? 0;
+    sums.blk += s.blk ?? 0;
+    sums.fg3_made += s.fg3_made ?? 0;
+    const gp = s.games_played ?? 0;
+    if (s.fg_pct != null && gp > 0) { fgWeighted += s.fg_pct * gp; fgWeight += gp; }
+    if (s.ft_pct != null && gp > 0) { ftWeighted += s.ft_pct * gp; ftWeight += gp; }
+  }
+  if (count === 0) {
+    return { pts: null, reb: null, ast: null, stl: null, blk: null, fg3_made: null, fg_pct: null, ft_pct: null };
+  }
+  return {
+    pts: sums.pts, reb: sums.reb, ast: sums.ast, stl: sums.stl, blk: sums.blk,
+    fg3_made: sums.fg3_made,
+    fg_pct: fgWeight > 0 ? fgWeighted / fgWeight : null,
+    ft_pct: ftWeight > 0 ? ftWeighted / ftWeight : null,
+  };
+}
+
+function CategoryHeatmap({
+  totals,
+  maxes,
+}: {
+  totals: TeamCategoryTotals;
+  maxes: Record<keyof TeamCategoryTotals, number>;
+}) {
+  return (
+    <div className="border-b border-border bg-background/60 px-4 py-3">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <Flame className="h-3 w-3 text-primary" />
+        Category heatmap
+        <span className="ml-auto text-[9px] font-bold normal-case tracking-normal text-muted-foreground/70">
+          vs. league best
+        </span>
+      </div>
+      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+        {CAT_META.map((c) => {
+          const v = totals[c.key];
+          const max = maxes[c.key] ?? 0;
+          const ratio = v != null && max > 0 ? Math.min(1, v / max) : 0;
+          const alpha = v == null ? 0 : 0.1 + ratio * 0.7;
+          const style: React.CSSProperties = {
+            backgroundColor: `color-mix(in oklab, var(--primary) ${(alpha * 100).toFixed(0)}%, transparent)`,
+          };
+          const formatted =
+            v == null
+              ? "—"
+              : c.isPct
+                ? v.toFixed(3).replace(/^0\./, ".")
+                : v.toFixed(c.decimals);
+          return (
+            <div
+              key={c.key}
+              className="flex flex-col items-center justify-center gap-0.5 rounded-md border border-border/70 px-1 py-1.5 text-center"
+              style={style}
+              title={`${c.label}: ${formatted}${max > 0 && v != null ? ` · best in league ${c.isPct ? max.toFixed(3).replace(/^0\./, ".") : max.toFixed(c.decimals)}` : ""}`}
+            >
+              <span className="text-sm font-black tabular-nums leading-none">
+                {formatted}
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
+                {c.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Stat({
   label,
   value,
