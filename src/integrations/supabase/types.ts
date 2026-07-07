@@ -811,6 +811,7 @@ export type Database = {
         Returns: number
       }
       auto_fill_and_start: { Args: { _room_id: string }; Returns: undefined }
+      can_view_room: { Args: { _room_id: string }; Returns: boolean }
       claim_admin_if_unclaimed: { Args: never; Returns: boolean }
       claim_draft_position: {
         Args: { _new_position: number; _participant_id: string }
