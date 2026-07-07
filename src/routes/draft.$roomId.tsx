@@ -1941,43 +1941,69 @@ function computeTeamTotals(
 
 function CategoryHeatmap({
   totals,
-  maxes,
+  allTotals,
 }: {
   totals: TeamCategoryTotals;
-  maxes: Record<keyof TeamCategoryTotals, number>;
+  allTotals: TeamCategoryTotals[];
 }) {
+  // Rank-based diverging color: red (bottom) → amber (mid) → green (top)
+  // within the league. Falls back to neutral when only one team has picked
+  // or the category has no data.
+  const rankedTeams = allTotals.length;
   return (
     <div className="border-b border-border bg-background/60 px-4 py-3">
       <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
         <Flame className="h-3 w-3 text-primary" />
         Category heatmap
         <span className="ml-auto text-[9px] font-bold normal-case tracking-normal text-muted-foreground/70">
-          vs. league best
+          vs. league rank
         </span>
       </div>
-      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+      <div className="grid grid-cols-4 gap-1.5">
         {CAT_META.map((c) => {
           const v = totals[c.key];
-          const max = maxes[c.key] ?? 0;
-          const ratio = v != null && max > 0 ? Math.min(1, v / max) : 0;
-          const alpha = v == null ? 0 : 0.1 + ratio * 0.7;
-          const style: React.CSSProperties = {
-            backgroundColor: `color-mix(in oklab, var(--primary) ${(alpha * 100).toFixed(0)}%, transparent)`,
-          };
+          const values = allTotals
+            .map((t) => t[c.key])
+            .filter((n): n is number => n != null);
+          // Percentile among teams with data: 0 = worst, 1 = best.
+          let percentile: number | null = null;
+          if (v != null && values.length > 1) {
+            const sorted = [...values].sort((a, b) => a - b);
+            // Average rank for ties.
+            const first = sorted.indexOf(v);
+            const last = sorted.lastIndexOf(v);
+            const avgRank = (first + last) / 2;
+            percentile = avgRank / (sorted.length - 1);
+          }
+          // Diverging color: red → amber → green via hue interpolation.
+          // Hue 15 (red) → 45 (amber) → 145 (green).
+          let bg = "transparent";
+          let ring = "border-border/70";
+          if (percentile != null) {
+            const hue = 15 + percentile * 130; // 15 → 145
+            const alpha = 0.18 + Math.abs(percentile - 0.5) * 0.35; // stronger at extremes
+            bg = `oklch(0.72 0.16 ${hue.toFixed(1)} / ${alpha.toFixed(2)})`;
+            if (percentile >= 0.75) ring = "border-emerald-500/50";
+            else if (percentile <= 0.25) ring = "border-red-500/50";
+          }
           const formatted =
             v == null
               ? "—"
               : c.isPct
                 ? v.toFixed(3).replace(/^0\./, ".")
                 : v.toFixed(c.decimals);
+          const rankLabel =
+            percentile == null
+              ? ""
+              : ` · rank ${Math.round((1 - percentile) * (rankedTeams - 1)) + 1}/${rankedTeams}`;
           return (
             <div
               key={c.key}
-              className="flex flex-col items-center justify-center gap-0.5 rounded-md border border-border/70 px-1 py-1.5 text-center"
-              style={style}
-              title={`${c.label}: ${formatted}${max > 0 && v != null ? ` · best in league ${c.isPct ? max.toFixed(3).replace(/^0\./, ".") : max.toFixed(c.decimals)}` : ""}`}
+              className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-md border px-1 py-1.5 text-center ${ring}`}
+              style={{ backgroundColor: bg }}
+              title={`${c.label}: ${formatted}${rankLabel}`}
             >
-              <span className="text-sm font-black tabular-nums leading-none">
+              <span className="w-full truncate text-sm font-black tabular-nums leading-none">
                 {formatted}
               </span>
               <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
