@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1358,24 +1359,56 @@ function DraftRoomPage() {
                 .map((pk) => {
                   const team = slotMap.get(pk.team_idx);
                   const isMine = pk.user_id === user?.id;
+                  const roundNum = Math.ceil(pk.pick_number / room.team_count);
+                  const pickInRound = ((pk.pick_number - 1) % room.team_count) + 1;
                   return (
-                    <div
-                      key={pk.id}
-                      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
-                        isMine
-                          ? "border-primary/60 bg-primary/10 text-foreground"
-                          : "border-border bg-card text-muted-foreground"
-                      }`}
-                      title={`#${pk.pick_number} · ${team?.team_name ?? `Team ${pk.team_idx}`}`}
-                    >
-                      <span className="font-mono font-black tabular-nums text-muted-foreground">
-                        #{pk.pick_number}
-                      </span>
-                      <span className="truncate text-foreground">{pk.player_name}</span>
-                      <span className="hidden text-[10px] font-black uppercase text-muted-foreground sm:inline">
-                        {team?.team_name ?? `Team ${pk.team_idx}`}
-                      </span>
-                    </div>
+                    <Popover key={pk.id}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 ${
+                            isMine
+                              ? "border-primary/60 bg-primary/10 text-foreground"
+                              : "border-border bg-card text-muted-foreground"
+                          }`}
+                        >
+                          <span className="font-mono font-black tabular-nums text-muted-foreground">
+                            #{pk.pick_number}
+                          </span>
+                          <span className="truncate text-foreground">{pk.player_name}</span>
+                          <span className="hidden text-[10px] font-black uppercase text-muted-foreground sm:inline">
+                            {team?.team_name ?? `Team ${pk.team_idx}`}
+                          </span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-64 p-3">
+                        <div className="text-sm font-black">{pk.player_name}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          {pk.player_position ?? "—"}{pk.player_team ? ` · ${pk.player_team}` : ""}
+                        </div>
+                        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                          <div className="rounded-md border border-border bg-muted/30 px-1 py-1.5">
+                            <div className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Round</div>
+                            <div className="text-sm font-black tabular-nums">{roundNum}</div>
+                          </div>
+                          <div className="rounded-md border border-border bg-muted/30 px-1 py-1.5">
+                            <div className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Pick</div>
+                            <div className="text-sm font-black tabular-nums">{pickInRound}</div>
+                          </div>
+                          <div className="rounded-md border border-border bg-muted/30 px-1 py-1.5">
+                            <div className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Overall</div>
+                            <div className="text-sm font-black tabular-nums">#{pk.pick_number}</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 rounded-md border border-border bg-background px-2 py-1.5">
+                          <div className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Drafted by</div>
+                          <div className="mt-0.5 text-sm font-black">
+                            {team?.team_name ?? <span className="italic text-muted-foreground">Auto (Team {pk.team_idx})</span>}
+                            {isMine && <span className="ml-1.5 text-[10px] font-black uppercase text-primary">You</span>}
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   );
                 })}
             </div>
@@ -1627,7 +1660,7 @@ function DraftRoomPage() {
                 </p>
               </div>
               {myTotals && picks.some((p) => p.user_id === user?.id) && (
-                <CategoryHeatmap totals={myTotals} maxes={catMax} />
+                <CategoryHeatmap totals={myTotals} allTotals={Array.from(teamTotalsByIdx.values())} />
               )}
               <RosterSlotList
 
@@ -1908,43 +1941,69 @@ function computeTeamTotals(
 
 function CategoryHeatmap({
   totals,
-  maxes,
+  allTotals,
 }: {
   totals: TeamCategoryTotals;
-  maxes: Record<keyof TeamCategoryTotals, number>;
+  allTotals: TeamCategoryTotals[];
 }) {
+  // Rank-based diverging color: red (bottom) → amber (mid) → green (top)
+  // within the league. Falls back to neutral when only one team has picked
+  // or the category has no data.
+  const rankedTeams = allTotals.length;
   return (
     <div className="border-b border-border bg-background/60 px-4 py-3">
       <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
         <Flame className="h-3 w-3 text-primary" />
         Category heatmap
         <span className="ml-auto text-[9px] font-bold normal-case tracking-normal text-muted-foreground/70">
-          vs. league best
+          vs. league rank
         </span>
       </div>
-      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+      <div className="grid grid-cols-4 gap-1.5">
         {CAT_META.map((c) => {
           const v = totals[c.key];
-          const max = maxes[c.key] ?? 0;
-          const ratio = v != null && max > 0 ? Math.min(1, v / max) : 0;
-          const alpha = v == null ? 0 : 0.1 + ratio * 0.7;
-          const style: React.CSSProperties = {
-            backgroundColor: `color-mix(in oklab, var(--primary) ${(alpha * 100).toFixed(0)}%, transparent)`,
-          };
+          const values = allTotals
+            .map((t) => t[c.key])
+            .filter((n): n is number => n != null);
+          // Percentile among teams with data: 0 = worst, 1 = best.
+          let percentile: number | null = null;
+          if (v != null && values.length > 1) {
+            const sorted = [...values].sort((a, b) => a - b);
+            // Average rank for ties.
+            const first = sorted.indexOf(v);
+            const last = sorted.lastIndexOf(v);
+            const avgRank = (first + last) / 2;
+            percentile = avgRank / (sorted.length - 1);
+          }
+          // Diverging color: red → amber → green via hue interpolation.
+          // Hue 15 (red) → 45 (amber) → 145 (green).
+          let bg = "transparent";
+          let ring = "border-border/70";
+          if (percentile != null) {
+            const hue = 15 + percentile * 130; // 15 → 145
+            const alpha = 0.18 + Math.abs(percentile - 0.5) * 0.35; // stronger at extremes
+            bg = `oklch(0.72 0.16 ${hue.toFixed(1)} / ${alpha.toFixed(2)})`;
+            if (percentile >= 0.75) ring = "border-emerald-500/50";
+            else if (percentile <= 0.25) ring = "border-red-500/50";
+          }
           const formatted =
             v == null
               ? "—"
               : c.isPct
                 ? v.toFixed(3).replace(/^0\./, ".")
                 : v.toFixed(c.decimals);
+          const rankLabel =
+            percentile == null
+              ? ""
+              : ` · rank ${Math.round((1 - percentile) * (rankedTeams - 1)) + 1}/${rankedTeams}`;
           return (
             <div
               key={c.key}
-              className="flex flex-col items-center justify-center gap-0.5 rounded-md border border-border/70 px-1 py-1.5 text-center"
-              style={style}
-              title={`${c.label}: ${formatted}${max > 0 && v != null ? ` · best in league ${c.isPct ? max.toFixed(3).replace(/^0\./, ".") : max.toFixed(c.decimals)}` : ""}`}
+              className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-md border px-1 py-1.5 text-center ${ring}`}
+              style={{ backgroundColor: bg }}
+              title={`${c.label}: ${formatted}${rankLabel}`}
             >
-              <span className="text-sm font-black tabular-nums leading-none">
+              <span className="w-full truncate text-sm font-black tabular-nums leading-none">
                 {formatted}
               </span>
               <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
