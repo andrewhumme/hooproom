@@ -1484,7 +1484,7 @@ function DraftRoomPage() {
                   return (
                     <li
                       key={p.id}
-                      className={`flex items-center justify-between gap-3 px-4 py-1 hover:bg-muted/60 ${zebra}`}
+                      className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 py-1.5 hover:bg-muted/60 ${zebra}`}
                     >
                       <button
                         type="button"
@@ -1503,7 +1503,7 @@ function DraftRoomPage() {
                         </div>
                       </button>
 
-                      <div className="hidden shrink-0 items-stretch rounded-md border border-border/70 bg-background/70 text-[11px] font-bold tabular-nums sm:flex">
+                      <div className="order-last flex w-full shrink-0 items-stretch overflow-x-auto rounded-md border border-border/70 bg-background/70 text-[11px] font-bold tabular-nums sm:order-none sm:w-auto">
                         {STAT_COLUMNS.map((col, idx) => (
                           <Stat
                             key={col.key}
@@ -1517,6 +1517,7 @@ function DraftRoomPage() {
                           />
                         ))}
                       </div>
+
 
                       <div className="flex w-[104px] shrink-0 items-center justify-end gap-1">
                         {isJoined && (
