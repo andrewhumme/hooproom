@@ -1660,7 +1660,7 @@ function DraftRoomPage() {
                 </p>
               </div>
               {myTotals && picks.some((p) => p.user_id === user?.id) && (
-                <CategoryHeatmap totals={myTotals} maxes={catMax} />
+                <CategoryHeatmap totals={myTotals} allTotals={Array.from(teamTotalsByIdx.values())} />
               )}
               <RosterSlotList
 
