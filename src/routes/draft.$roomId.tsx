@@ -450,6 +450,42 @@ function DraftRoomPage() {
     return max;
   }, [availablePlayers, latestStats]);
 
+  // Per-team category totals + league maxes (for the My Team heatmap).
+  const teamTotalsByIdx = useMemo(() => {
+    const byTeam = new Map<number, Pick[]>();
+    for (const pk of picks) {
+      const arr = byTeam.get(pk.team_idx) ?? [];
+      arr.push(pk);
+      byTeam.set(pk.team_idx, arr);
+    }
+    const out = new Map<number, TeamCategoryTotals>();
+    for (const [idx, ps] of byTeam) {
+      out.set(idx, computeTeamTotals(ps, latestStats));
+    }
+    return out;
+  }, [picks, latestStats]);
+
+  const catMax = useMemo(() => {
+    const keys: (keyof TeamCategoryTotals)[] = [
+      "pts", "reb", "ast", "stl", "blk", "fg3_made", "fg_pct", "ft_pct",
+    ];
+    const m: Record<string, number> = {};
+    for (const k of keys) m[k] = 0;
+    for (const t of teamTotalsByIdx.values()) {
+      for (const k of keys) {
+        const v = t[k];
+        if (v != null && v > m[k]) m[k] = v;
+      }
+    }
+    return m as Record<keyof TeamCategoryTotals, number>;
+  }, [teamTotalsByIdx]);
+
+  const myTotals = meParticipant?.draft_position
+    ? teamTotalsByIdx.get(meParticipant.draft_position) ?? null
+    : null;
+
+
+
   // ------- Pick clock countdown + autopick trigger -------
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
   useEffect(() => {
