@@ -1358,24 +1358,56 @@ function DraftRoomPage() {
                 .map((pk) => {
                   const team = slotMap.get(pk.team_idx);
                   const isMine = pk.user_id === user?.id;
+                  const roundNum = Math.ceil(pk.pick_number / room.team_count);
+                  const pickInRound = ((pk.pick_number - 1) % room.team_count) + 1;
                   return (
-                    <div
-                      key={pk.id}
-                      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
-                        isMine
-                          ? "border-primary/60 bg-primary/10 text-foreground"
-                          : "border-border bg-card text-muted-foreground"
-                      }`}
-                      title={`#${pk.pick_number} · ${team?.team_name ?? `Team ${pk.team_idx}`}`}
-                    >
-                      <span className="font-mono font-black tabular-nums text-muted-foreground">
-                        #{pk.pick_number}
-                      </span>
-                      <span className="truncate text-foreground">{pk.player_name}</span>
-                      <span className="hidden text-[10px] font-black uppercase text-muted-foreground sm:inline">
-                        {team?.team_name ?? `Team ${pk.team_idx}`}
-                      </span>
-                    </div>
+                    <Popover key={pk.id}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 ${
+                            isMine
+                              ? "border-primary/60 bg-primary/10 text-foreground"
+                              : "border-border bg-card text-muted-foreground"
+                          }`}
+                        >
+                          <span className="font-mono font-black tabular-nums text-muted-foreground">
+                            #{pk.pick_number}
+                          </span>
+                          <span className="truncate text-foreground">{pk.player_name}</span>
+                          <span className="hidden text-[10px] font-black uppercase text-muted-foreground sm:inline">
+                            {team?.team_name ?? `Team ${pk.team_idx}`}
+                          </span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-64 p-3">
+                        <div className="text-sm font-black">{pk.player_name}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          {pk.player_position ?? "—"}{pk.player_team ? ` · ${pk.player_team}` : ""}
+                        </div>
+                        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                          <div className="rounded-md border border-border bg-muted/30 px-1 py-1.5">
+                            <div className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Round</div>
+                            <div className="text-sm font-black tabular-nums">{roundNum}</div>
+                          </div>
+                          <div className="rounded-md border border-border bg-muted/30 px-1 py-1.5">
+                            <div className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Pick</div>
+                            <div className="text-sm font-black tabular-nums">{pickInRound}</div>
+                          </div>
+                          <div className="rounded-md border border-border bg-muted/30 px-1 py-1.5">
+                            <div className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Overall</div>
+                            <div className="text-sm font-black tabular-nums">#{pk.pick_number}</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 rounded-md border border-border bg-background px-2 py-1.5">
+                          <div className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Drafted by</div>
+                          <div className="mt-0.5 text-sm font-black">
+                            {team?.team_name ?? <span className="italic text-muted-foreground">Auto (Team {pk.team_idx})</span>}
+                            {isMine && <span className="ml-1.5 text-[10px] font-black uppercase text-primary">You</span>}
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   );
                 })}
             </div>
