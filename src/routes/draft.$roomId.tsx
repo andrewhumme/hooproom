@@ -39,7 +39,7 @@ import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
 import { compareByRank } from "@/lib/playerRankings";
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
-import { assignPicksToSlots, buildSlotSpots, totalSlots, type SlotConfig } from "@/lib/rosterSlots";
+import { assignPicksToSlots, buildSlotSpots, eligibleSlotsForPosition, totalSlots, type SlotConfig, type SlotKey } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 import {
   ArrowDown,
