@@ -453,8 +453,8 @@ function DraftRoomPage() {
   // greedy logic used when actually assigning picks (FLX/BN accept anyone;
   // G/F accept guards/forwards; specific slots require a positional match).
   const myOpenSlotPositions = useMemo(() => {
-    if (!slotCfg || !meParticipant) return null;
-    const myPicks = picks.filter((p) => p.team_idx === meParticipant.team_idx);
+    if (!slotCfg || !meParticipant?.draft_position) return null;
+    const myPicks = picks.filter((p) => p.team_idx === meParticipant.draft_position);
     const assigned = assignPicksToSlots(myPicks, slotCfg);
     const takenKeys = new Set(
       assigned.map((a) => a.spotKey).filter((k): k is string => !!k),
