@@ -610,7 +610,9 @@ function DraftRoomPage() {
     canFitPlayer,
     players.length,
     totalPicks,
+    isMyTurn,
   ]);
+
 
   // ------- Actions -------
   const handleJoin = async () => {
