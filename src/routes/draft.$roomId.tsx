@@ -599,6 +599,7 @@ function DraftRoomPage() {
     secondsLeft,
     currentPickNumber,
     availablePlayers,
+    canFitPlayer,
     players.length,
     totalPicks,
   ]);
