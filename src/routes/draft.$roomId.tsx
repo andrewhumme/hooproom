@@ -448,6 +448,38 @@ function DraftRoomPage() {
     return filtered.slice(0, 200);
   }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats]);
 
+  // ------- Roster-fit eligibility for the current user's remaining slots -------
+  // A player is "fittable" if any of my open slots can accept them per the same
+  // greedy logic used when actually assigning picks (FLX/BN accept anyone;
+  // G/F accept guards/forwards; specific slots require a positional match).
+  const myOpenSlotPositions = useMemo(() => {
+    if (!slotCfg || !meParticipant) return null;
+    const myPicks = picks.filter((p) => p.team_idx === meParticipant.team_idx);
+    const assigned = assignPicksToSlots(myPicks, slotCfg);
+    const takenKeys = new Set(
+      assigned.map((a) => a.spotKey).filter((k): k is string => !!k),
+    );
+    const remaining = buildSlotSpots(slotCfg).filter((s) => !takenKeys.has(s.key));
+    return new Set<SlotKey>(remaining.map((s) => s.pos));
+  }, [slotCfg, meParticipant, picks]);
+
+  const canFitPlayer = useCallback(
+    (pos: string | null) => {
+      if (!myOpenSlotPositions || myOpenSlotPositions.size === 0) return true;
+      if (myOpenSlotPositions.has("FLX") || myOpenSlotPositions.has("BN")) return true;
+      const elig = eligibleSlotsForPosition(pos);
+      const isGuard = elig.includes("PG") || elig.includes("SG");
+      const isForward = elig.includes("SF") || elig.includes("PF");
+      for (const slot of myOpenSlotPositions) {
+        if (slot === "G" && isGuard) return true;
+        if (slot === "F" && isForward) return true;
+        if ((elig as SlotKey[]).includes(slot)) return true;
+      }
+      return false;
+    },
+    [myOpenSlotPositions],
+  );
+
   // Per-stat max across visible players (for heatmap shading).
   const statMax = useMemo(() => {
     const keys = ["pts", "reb", "ast", "stl", "blk", "fg3_made", "fg_pct", "ft_pct"] as const;
