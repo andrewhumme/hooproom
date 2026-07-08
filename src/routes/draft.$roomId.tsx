@@ -747,6 +747,10 @@ function DraftRoomPage() {
   const handlePick = useCallback(
     async (player: DraftablePlayer) => {
       if (!isMyTurn || !room) return;
+      if (!canFitPlayer(player.position)) {
+        setError(`No open roster slot for a ${player.position || "this"} player`);
+        return;
+      }
       setActionBusy(true);
       setError(null);
       const { error } = await supabase.rpc("make_pick", {
