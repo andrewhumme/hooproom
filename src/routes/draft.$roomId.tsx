@@ -39,7 +39,7 @@ import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
 import { compareByRank } from "@/lib/playerRankings";
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
-import { assignPicksToSlots, buildSlotSpots, totalSlots, type SlotConfig } from "@/lib/rosterSlots";
+import { assignPicksToSlots, buildSlotSpots, eligibleSlotsForPosition, totalSlots, type SlotConfig, type SlotKey } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 import {
   ArrowDown,
@@ -448,6 +448,38 @@ function DraftRoomPage() {
     return filtered.slice(0, 200);
   }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats]);
 
+  // ------- Roster-fit eligibility for the current user's remaining slots -------
+  // A player is "fittable" if any of my open slots can accept them per the same
+  // greedy logic used when actually assigning picks (FLX/BN accept anyone;
+  // G/F accept guards/forwards; specific slots require a positional match).
+  const myOpenSlotPositions = useMemo(() => {
+    if (!slotCfg || !meParticipant?.draft_position) return null;
+    const myPicks = picks.filter((p) => p.team_idx === meParticipant.draft_position);
+    const assigned = assignPicksToSlots(myPicks, slotCfg);
+    const takenKeys = new Set(
+      assigned.map((a) => a.spotKey).filter((k): k is string => !!k),
+    );
+    const remaining = buildSlotSpots(slotCfg).filter((s) => !takenKeys.has(s.key));
+    return new Set<SlotKey>(remaining.map((s) => s.pos));
+  }, [slotCfg, meParticipant, picks]);
+
+  const canFitPlayer = useCallback(
+    (pos: string | null) => {
+      if (!myOpenSlotPositions || myOpenSlotPositions.size === 0) return true;
+      if (myOpenSlotPositions.has("FLX") || myOpenSlotPositions.has("BN")) return true;
+      const elig = eligibleSlotsForPosition(pos);
+      const isGuard = elig.includes("PG") || elig.includes("SG");
+      const isForward = elig.includes("SF") || elig.includes("PF");
+      for (const slot of myOpenSlotPositions) {
+        if (slot === "G" && isGuard) return true;
+        if (slot === "F" && isForward) return true;
+        if ((elig as SlotKey[]).includes(slot)) return true;
+      }
+      return false;
+    },
+    [myOpenSlotPositions],
+  );
+
   // Per-stat max across visible players (for heatmap shading).
   const statMax = useMemo(() => {
     const keys = ["pts", "reb", "ast", "stl", "blk", "fg3_made", "fg_pct", "ft_pct"] as const;
@@ -538,7 +570,7 @@ function DraftRoomPage() {
 
 
 
-    const best = availablePlayers[0];
+    const best = availablePlayers.find((pl) => canFitPlayer(pl.position)) ?? availablePlayers[0];
     if (!best) return;
 
     autopickFiredRef.current = currentPickNumber;
@@ -567,6 +599,7 @@ function DraftRoomPage() {
     secondsLeft,
     currentPickNumber,
     availablePlayers,
+    canFitPlayer,
     players.length,
     totalPicks,
   ]);
@@ -714,6 +747,10 @@ function DraftRoomPage() {
   const handlePick = useCallback(
     async (player: DraftablePlayer) => {
       if (!isMyTurn || !room) return;
+      if (!canFitPlayer(player.position)) {
+        setError(`No open roster slot for a ${player.position || "this"} player`);
+        return;
+      }
       setActionBusy(true);
       setError(null);
       const { error } = await supabase.rpc("make_pick", {
@@ -727,7 +764,7 @@ function DraftRoomPage() {
       setActionBusy(false);
       if (error) setError(error.message);
     },
-    [isMyTurn, room]
+    [isMyTurn, room, canFitPlayer]
   );
 
   const handleCopyLink = async () => {
@@ -1626,15 +1663,25 @@ function DraftRoomPage() {
                             )}
                           </Button>
                         )}
-                        <Button
-                          size="sm"
-                          onClick={() => handlePick(p)}
-                          disabled={!isMyTurn || actionBusy}
-                          className="h-7 px-2.5 text-xs font-bold"
-                          variant={isMyTurn ? "default" : "outline"}
-                        >
-                          Draft
-                        </Button>
+                        {(() => {
+                          const fits = canFitPlayer(p.position);
+                          return (
+                            <Button
+                              size="sm"
+                              onClick={() => handlePick(p)}
+                              disabled={!isMyTurn || actionBusy || !fits}
+                              className="h-7 px-2.5 text-xs font-bold"
+                              variant={isMyTurn && fits ? "default" : "outline"}
+                              title={
+                                !fits
+                                  ? `No open roster slot for a ${p.position || "this"} player`
+                                  : undefined
+                              }
+                            >
+                              {!fits && isMyTurn ? "No slot" : "Draft"}
+                            </Button>
+                          );
+                        })()}
                       </div>
                     </li>
                   );
