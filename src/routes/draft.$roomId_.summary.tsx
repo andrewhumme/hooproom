@@ -189,13 +189,17 @@ function DraftSummaryPage() {
     return idxs;
   }, [room, myTeamIdx]);
 
-  // Default collapse: only user's team open. All others collapsed. Runs once
+  // Default collapse: on mobile, only the user's team is open; on desktop,
+  // all teams are expanded so the summary is scannable at a glance. Runs once
   // after room + user are resolved.
   useEffect(() => {
     if (initedCollapse || !room) return;
+    const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
     const s = new Set<number>();
-    for (let i = 1; i <= room.team_count; i++) {
-      if (i !== myTeamIdx) s.add(i);
+    if (!isDesktop) {
+      for (let i = 1; i <= room.team_count; i++) {
+        if (i !== myTeamIdx) s.add(i);
+      }
     }
     setCollapsed(s);
     setInitedCollapse(true);
