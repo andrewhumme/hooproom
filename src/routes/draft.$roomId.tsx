@@ -229,9 +229,22 @@ function DraftRoomPage() {
       )
       .subscribe();
 
+    // When the tab/phone wakes back up, realtime may have missed events
+    // while backgrounded — resync from the server so the player list and
+    // pick state can't be stale (which caused "player already drafted" errors).
+    const resync = () => {
+      if (document.visibilityState === "visible") loadAll();
+    };
+    document.addEventListener("visibilitychange", resync);
+    window.addEventListener("focus", resync);
+    window.addEventListener("online", resync);
+
     return () => {
       mounted = false;
       supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", resync);
+      window.removeEventListener("focus", resync);
+      window.removeEventListener("online", resync);
     };
   }, [roomId]);
 
