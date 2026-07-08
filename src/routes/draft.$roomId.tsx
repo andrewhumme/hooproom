@@ -570,7 +570,7 @@ function DraftRoomPage() {
 
 
 
-    const best = availablePlayers[0];
+    const best = availablePlayers.find((pl) => canFitPlayer(pl.position)) ?? availablePlayers[0];
     if (!best) return;
 
     autopickFiredRef.current = currentPickNumber;
