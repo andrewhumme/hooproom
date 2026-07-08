@@ -556,6 +556,13 @@ function DraftRoomPage() {
     if (currentPickNumber > totalPicks) return;
     if (autopickFiredRef.current === currentPickNumber) return;
 
+    // Never autopick for the user who is on the clock from their own tab —
+    // if their device sleeps/locks, the deadline can elapse in the background
+    // and fire the instant the tab wakes, stealing their pick. Other clients
+    // and the server-side snake-tick cron still trigger autopick when they're
+    // truly AFK.
+    if (isMyTurn) return;
+
     // Autopick fires ONLY when the pick clock expires — empty seats wait the
     // full clock too, which keeps pacing realistic and prevents the UI from
     // thrashing through dozens of picks per second when most seats are empty.
@@ -567,6 +574,7 @@ function DraftRoomPage() {
     const msLeft = new Date(room.pick_deadline).getTime() - Date.now();
     if (msLeft > 0) return;
     if (!players.length) return; // wait until pool loaded
+
 
 
 
