@@ -1663,15 +1663,25 @@ function DraftRoomPage() {
                             )}
                           </Button>
                         )}
-                        <Button
-                          size="sm"
-                          onClick={() => handlePick(p)}
-                          disabled={!isMyTurn || actionBusy}
-                          className="h-7 px-2.5 text-xs font-bold"
-                          variant={isMyTurn ? "default" : "outline"}
-                        >
-                          Draft
-                        </Button>
+                        {(() => {
+                          const fits = canFitPlayer(p.position);
+                          return (
+                            <Button
+                              size="sm"
+                              onClick={() => handlePick(p)}
+                              disabled={!isMyTurn || actionBusy || !fits}
+                              className="h-7 px-2.5 text-xs font-bold"
+                              variant={isMyTurn && fits ? "default" : "outline"}
+                              title={
+                                !fits
+                                  ? `No open roster slot for a ${p.position || "this"} player`
+                                  : undefined
+                              }
+                            >
+                              {!fits && isMyTurn ? "No slot" : "Draft"}
+                            </Button>
+                          );
+                        })()}
                       </div>
                     </li>
                   );
