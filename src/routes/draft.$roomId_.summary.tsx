@@ -217,23 +217,8 @@ function DraftSummaryPage() {
     return out;
   }, [room, picks, statsByPlayer]);
 
-  // Category maxes across the whole league — used to shade my-team heatmap
-  // relative to the pool that was actually drafted here.
-  const catMax = useMemo(() => {
-    const keys: (keyof TeamCategoryTotals)[] = [
-      "pts", "reb", "ast", "stl", "blk", "fg3_made", "fg_pct", "ft_pct",
-    ];
-    const m: Partial<Record<keyof TeamCategoryTotals, number>> = {};
-    for (const k of keys) {
-      let max = 0;
-      for (const t of teamTotals.values()) {
-        const v = t[k];
-        if (v != null && v > max) max = v;
-      }
-      m[k] = max;
-    }
-    return m as Record<keyof TeamCategoryTotals, number>;
-  }, [teamTotals]);
+
+
 
   const autopickCount = picks.filter((p) => p.was_autopick).length;
   const totalSpent = isAuction
