@@ -38,8 +38,12 @@ export const Route = createFileRoute("/draft/$roomId_/summary")({
   component: DraftSummaryPage,
   head: () => ({
     meta: [
-      { title: "Draft Summary — HoopRoom" },
-      { name: "description", content: "Post-draft recap of all teams and picks." },
+      { title: "Draft Report Card — HoopRoom" },
+      {
+        name: "description",
+        content:
+          "Post-draft recap with team standings, category heatmap, and how your picks are aging across the season.",
+      },
     ],
   }),
 });
