@@ -1,69 +1,69 @@
-# Keepers + Custom Draft Picks
+# HoopRoom Season Report Card
 
-Add commissioner tools to (a) lock players to specific teams before the draft (Keepers) and (b) reassign individual draft picks to different teams (for pick trades).
+A self-updating post-draft experience that keeps HoopRoom relevant long after draft night. Zero manual upkeep — a weekly cron pulls the latest season stats from `nbaapi.com` (already integrated) and every completed draft room grows a live "how did your picks actually do?" page.
 
-## Database
+## Why this fits the constraint
 
-### New table: `room_keepers`
-Stores per-room keeper assignments. Created in the lobby, consumed when the draft starts.
-- `room_id`, `team_idx`, `player_id`, `player_name`, `player_position`, `player_team`
-- `keeper_round` smallint NULL — round the keeper costs that team. `NULL` = no cost (player just removed from pool).
-- Unique: `(room_id, player_id)` so a player can't be kept by two teams.
-- RLS: commissioner of the room can insert/update/delete; everyone in the draft can read.
+- **No content management.** You never write a post, update news, or moderate anything. Stats refresh themselves.
+- **Two natural return moments.** Mid-season ("is my draft still holding up?") and end of season ("who won?"). Both are baked into the product, not into your calendar.
+- **Leverages what's already built.** Uses the existing `player_season_stats` table, nbaapi.com fetchers, category heatmap logic, and completed-draft summary page.
+- **Stays in scope.** No lineups, no waivers, no weekly management — purely a rear-view mirror on the draft itself.
 
-### New table: `draft_pick_assignments`
-Overrides the default snake team for a specific pick slot. Only stored for picks that have been re-assigned away from their default owner.
-- `room_id`, `pick_number` int, `team_idx` smallint
-- Unique: `(room_id, pick_number)`
-- RLS: commissioner writes; participants read.
+## What users see
 
-### New helper function: `pick_team_for(_room, _pick_number)`
-Returns the team_idx that owns a given pick_number for a room. Checks `draft_pick_assignments` first, falls back to snake math (with reversal_rounds applied — same logic currently inlined in `make_pick`).
+### 1. Standings tab on every completed draft summary
+A leaderboard of every drafted roster in the room, ranked by 9-cat (or 8-cat) totals using season-to-date per-game averages. Same category math already used in the heatmap, just applied to all rosters. Updates weekly.
 
-### Modifications to existing functions
-- `make_pick`: replace inline snake math with `pick_team_for()`. No other behavior change.
-- `snake_autopick_due`: same swap.
-- `start_draft` and `auto_fill_and_start`: after randomizing positions, pre-insert all keepers with a `keeper_round` as `draft_picks` rows at the correct `pick_number` for that team + round. Mark `was_autopick = false` (or add a `was_keeper` flag — see Technical). Advance `current_pick_number` past any keeper picks at the start of the draft. Also exclude all keepered players (cost or no-cost) from the available pool.
-- `snake_autopick_due` autopick player search: exclude players in `room_keepers` for that room.
+### 2. "Your picks, aging" section (My Team tab)
+Each of your drafted players gets a mini card:
+- Round + pick number (what you paid)
+- Season-to-date fantasy value rank among all drafted players in the room
+- A simple grade chip: **Steal / Solid / Fair / Reach / Bust** based on how their current rank compares to draft slot
+- Sparkline showing rank movement across the season snapshots we've stored
 
-## Lobby UI (commissioner only)
+### 3. End-of-season awards (auto-generated, one-time)
+When the season ends, one cron run stamps each completed room with:
+- **Steal of the Draft** — biggest positive rank-vs-pick delta
+- **Biggest Bust** — biggest negative delta
+- **Best Overall Team** — top standings finisher
+- **Category King** — top team per category
 
-Add two collapsible panels in `src/routes/lobby_.new.tsx` / lobby room view, shown only when `auth.uid() === room.host_user_id` and `status === 'waiting'`:
+Awards render as a shareable card at the top of the summary page. Perfect social hook to pull the whole draft group back one more time.
 
-### Keepers panel
-- Per-team accordion (Team 1, Team 2, …)
-- Search box → player picker (reuse existing pool query)
-- For each kept player: dropdown `Round (1…rounds)` or `No cost`
-- Remove button per keeper
-- Validation: a team can't have more keepers than rounds; no duplicate players across teams.
+### 4. Optional email nudge
+One-line opt-in on `/me`: "Email me monthly + when season ends." One monthly digest + one season-end recap. Nothing else. Users who don't opt in still see everything passively when they visit.
 
-### Custom Draft Picks panel
-- Grid view: rows = rounds, columns = pick slots (mirrors snake board)
-- Each cell shows current owner (default or overridden); click to reassign to any team
-- "Reset to default" per pick
-- Visual highlight on overridden picks
+## Technical section
 
-Both panels lock once `status !== 'waiting'`.
+### Data pipeline
+- New table `player_season_snapshots(player_id, snapshot_date, games_played, per_game_stats jsonb)` — one row per player per weekly pull. Enables sparklines and rank-over-time.
+- Existing `fetchPlayerSeasonStats` server fn is reused; a thin wrapper writes both the current-season `player_season_stats` row AND a snapshot row.
+- New public cron route: `src/routes/api/public/hooks/refresh-season-stats.ts`. Iterates active-season player IDs in batches (respect nbaapi.com politeness), upserts stats + snapshots.
+- `pg_cron` weekly job (Mondays 6am ET) hits the route. Anon-key auth per house convention. Second `pg_cron` job runs once ~April 20 to stamp season awards into a new `draft_room_awards` table.
 
-## Draft board display
-- `DraftBoardSchematic`: when rendering pick slots pre-draft, use `pick_team_for` data to show traded picks correctly (server returns assignments).
-- Show small "K" badge on keeper picks in the board.
+### Standings + grades (pure derived data, no writes)
+- Compute in a `computeRoomStandings` server fn that joins `draft_pick_assignments` → `player_season_stats`. No caching table needed for v1 — completed rooms are small (10 rosters × ~15 players).
+- Grade thresholds: percentile rank of the player's current 9-cat value vs. all drafted players in the room, compared to their pick's percentile slot. Reuse the diverging red→amber→green scale already in the heatmap.
 
-## What is NOT in this slice
-- No paywall / Pro gating (we'll add `subscription_tier` later).
-- No keeper inflation logic (auction keeper cost in $ is out of scope; auction keepers will need their own pass — for v1 keepers apply to snake only).
-- No pick-trading UI for players (only commissioner-driven).
+### UI surfaces
+- `src/routes/draft.$roomId_.summary.tsx` — add "Standings" tab and, on My Team, the aging picks list. Awards banner renders only when `draft_room_awards` row exists.
+- `src/routes/_authenticated/me.tsx` — completed-draft cards get a "View report card" CTA and, if awards exist, a small trophy chip.
 
-## Technical notes
+### RLS
+- `player_season_snapshots`: public read via `TO anon` SELECT (stats are public data), writes service-role only.
+- `draft_room_awards`: SELECT policy mirrors `can_view_room`; writes service-role only.
 
-- Snake math for "what pick_number does Team X have in Round R" with reversal_rounds is the inverse of the current loop in `make_pick`. Build it as a SQL helper `team_pick_number(_room, _team_idx, _round)` so keeper insertion is clean.
-- Adding a `was_keeper boolean DEFAULT false` column to `draft_picks` is cleaner than overloading `was_autopick`; lets us style keeper rows differently in the board and recap.
-- Keep auction format untouched in this migration — return an error if someone tries to add keepers to an auction room (we'll handle auction keepers later).
-- All new RPCs use `SECURITY DEFINER` + `auth.uid()` check against `room.host_user_id`, matching the pattern of `add_bot_seat` / `host_start_with_bots`.
+### Out of scope for v1
+- Email delivery (kept as a follow-up once the passive experience is validated).
+- Historical past-seasons comparison.
+- Per-week matchup scoring / lineup management (violates project scope).
 
-## Build order
-1. Migration: tables, helper functions, `was_keeper` column, modified `make_pick` / `snake_autopick_due` / `auto_fill_and_start`.
-2. Commissioner RPCs: `keeper_upsert`, `keeper_remove`, `pick_assignment_set`, `pick_assignment_reset`.
-3. Lobby UI panels + wiring.
-4. Draft board badge for keepers + traded picks.
-5. Update memory with the new architecture.
+### Build order
+1. Snapshot table + migration + GRANTs + RLS.
+2. Weekly refresh cron route + `pg_cron` schedule.
+3. `computeRoomStandings` + grades logic (pure functions, unit-testable).
+4. Summary page: Standings tab + aging picks section.
+5. `draft_room_awards` table + season-end cron + awards banner.
+6. `/me` dashboard integration (CTA + trophy chip).
+
+Steps 1–4 alone deliver the mid-season return hook. Steps 5–6 add the end-of-season moment and can ship as a follow-up if you want to validate the passive experience first.
