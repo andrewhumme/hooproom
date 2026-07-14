@@ -422,6 +422,75 @@ export type Database = {
         }
         Relationships: []
       }
+      player_season_snapshots: {
+        Row: {
+          ast: number | null
+          blk: number | null
+          created_at: string
+          ef_fg_pct: number | null
+          fg_pct: number | null
+          fg3_made: number | null
+          fg3_pct: number | null
+          ft_pct: number | null
+          games_played: number | null
+          id: string
+          loose_key: string
+          minutes_per_game: number | null
+          player_key: string
+          pts: number | null
+          reb: number | null
+          season: number
+          snapshot_date: string
+          stl: number | null
+          team: string | null
+          tov: number | null
+        }
+        Insert: {
+          ast?: number | null
+          blk?: number | null
+          created_at?: string
+          ef_fg_pct?: number | null
+          fg_pct?: number | null
+          fg3_made?: number | null
+          fg3_pct?: number | null
+          ft_pct?: number | null
+          games_played?: number | null
+          id?: string
+          loose_key: string
+          minutes_per_game?: number | null
+          player_key: string
+          pts?: number | null
+          reb?: number | null
+          season: number
+          snapshot_date: string
+          stl?: number | null
+          team?: string | null
+          tov?: number | null
+        }
+        Update: {
+          ast?: number | null
+          blk?: number | null
+          created_at?: string
+          ef_fg_pct?: number | null
+          fg_pct?: number | null
+          fg3_made?: number | null
+          fg3_pct?: number | null
+          ft_pct?: number | null
+          games_played?: number | null
+          id?: string
+          loose_key?: string
+          minutes_per_game?: number | null
+          player_key?: string
+          pts?: number | null
+          reb?: number | null
+          season?: number
+          snapshot_date?: string
+          stl?: number | null
+          team?: string | null
+          tov?: number | null
+        }
+        Relationships: []
+      }
       player_season_stats: {
         Row: {
           ast: number | null
