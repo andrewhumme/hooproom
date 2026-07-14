@@ -19,6 +19,7 @@ import {
 } from "@/lib/playerStats.functions";
 import {
   ArrowLeft,
+  BarChart3,
   ChevronDown,
   ChevronRight,
   Download,
@@ -28,14 +29,21 @@ import {
   Crown,
   Zap,
   DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/draft/$roomId_/summary")({
   component: DraftSummaryPage,
   head: () => ({
     meta: [
-      { title: "Draft Summary — HoopRoom" },
-      { name: "description", content: "Post-draft recap of all teams and picks." },
+      { title: "Draft Report Card — HoopRoom" },
+      {
+        name: "description",
+        content:
+          "Post-draft recap with team standings, category heatmap, and how your picks are aging across the season.",
+      },
     ],
   }),
 });
@@ -362,6 +370,17 @@ function DraftSummaryPage() {
           </div>
         </Card>
 
+        {/* Standings — live category leaderboard using season-to-date per-game
+            averages. Refreshes automatically as the season progresses. */}
+        {picks.length > 0 && (
+          <StandingsSection
+            teamIndexes={Array.from({ length: room.team_count }, (_, i) => i + 1)}
+            teamTotals={teamTotals}
+            slotMap={slotMap}
+            myTeamIdx={myTeamIdx}
+          />
+        )}
+
         {/* Teams grid */}
         <h2 className="mt-10 text-xl font-black">
           {myTeamIdx != null ? "Your team & the rest of the league" : "All teams"}
@@ -369,7 +388,7 @@ function DraftSummaryPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Tap a team header to expand or collapse its roster.
           {myTeamIdx != null &&
-            " Your team also shows a category heatmap so you can see where you're strong or weak."}
+            " Your team also shows a category heatmap and how each pick is aging vs. the rest of the drafted pool."}
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -440,6 +459,14 @@ function DraftSummaryPage() {
                       <CategoryHeatmap
                         totals={totals}
                         allTotals={Array.from(teamTotals.values())}
+                      />
+                    )}
+                    {isMine && teamPicks.length > 0 && (
+                      <AgingPicks
+                        picks={teamPicks}
+                        allPicks={picks}
+                        statsByPlayer={statsByPlayer}
+                        teamCount={room.team_count}
                       />
                     )}
                     {teamPicks.length === 0 ? (
@@ -794,3 +821,289 @@ function CategoryHeatmap({
     </div>
   );
 }
+
+// ---------- Standings ----------
+// Fantasy-basketball "category wins" scoring: each team is compared head-to-head
+// against every other team across the 8 tracked categories. Wins tallied,
+// leaderboard sorted. Refreshes automatically as season stats update.
+
+function StandingsSection({
+  teamIndexes,
+  teamTotals,
+  slotMap,
+  myTeamIdx,
+}: {
+  teamIndexes: number[];
+  teamTotals: Map<number, TeamCategoryTotals>;
+  slotMap: Map<number, Participant>;
+  myTeamIdx: number | null;
+}) {
+  // Wins per team across all categories (higher = better; TOV would flip, but
+  // we don't track TOV in the heatmap set today).
+  const wins = new Map<number, number>();
+  teamIndexes.forEach((i) => wins.set(i, 0));
+  for (const cat of CAT_META) {
+    for (const a of teamIndexes) {
+      const va = teamTotals.get(a)?.[cat.key];
+      if (va == null) continue;
+      for (const b of teamIndexes) {
+        if (a === b) continue;
+        const vb = teamTotals.get(b)?.[cat.key];
+        if (vb == null) continue;
+        if (va > vb) wins.set(a, (wins.get(a) ?? 0) + 1);
+      }
+    }
+  }
+  const maxWins = CAT_META.length * (teamIndexes.length - 1);
+  const ranked = [...teamIndexes]
+    .map((idx) => ({
+      idx,
+      wins: wins.get(idx) ?? 0,
+      totals: teamTotals.get(idx),
+    }))
+    .sort((a, b) => b.wins - a.wins);
+
+  return (
+    <section className="mt-10">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-xl font-black">Category standings</h2>
+        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          Season-to-date
+        </span>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Head-to-head category wins across every team's drafted roster. Updates
+        as the NBA season progresses — no manual scoring needed.
+      </p>
+      <Card className="mt-4 overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] text-sm">
+            <thead className="bg-muted/60 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              <tr className="text-left">
+                <th className="px-3 py-2 w-10">#</th>
+                <th className="px-3 py-2">Team</th>
+                <th className="px-3 py-2 text-right">Cat wins</th>
+                <th className="px-3 py-2 text-right w-32">Strength</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ranked.map((row, i) => {
+                const team = slotMap.get(row.idx);
+                const isMine = myTeamIdx === row.idx;
+                const pct = maxWins > 0 ? row.wins / maxWins : 0;
+                return (
+                  <tr
+                    key={row.idx}
+                    className={`border-t border-border ${isMine ? "bg-primary/5" : ""}`}
+                  >
+                    <td className="px-3 py-2 font-mono font-black tabular-nums">
+                      {i + 1}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        {isMine && <Crown className="h-3.5 w-3.5 text-primary" />}
+                        <span className="font-black">
+                          {team?.team_name ?? `Team ${row.idx}`}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-right font-mono font-black tabular-nums">
+                      {row.wins}
+                      <span className="ml-1 text-[10px] font-bold text-muted-foreground">
+                        / {maxWins}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="ml-auto h-1.5 w-full max-w-[6rem] overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full bg-primary"
+                          style={{ width: `${Math.round(pct * 100)}%` }}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </section>
+  );
+}
+
+// ---------- Aging picks (My Team only) ----------
+// Grades each drafted player by how their season-to-date 9-cat value compares
+// to their draft slot. Player value = sum of category percentile ranks vs.
+// every other drafted player in the room.
+
+type AgingRow = {
+  pick: Pick;
+  value: number | null; // 0..1 (avg of category percentiles)
+  valueRank: number | null; // 1 = best
+  totalDrafted: number;
+  grade: "steal" | "solid" | "fair" | "reach" | "bust" | "unranked";
+};
+
+const GRADE_META: Record<
+  AgingRow["grade"],
+  { label: string; cls: string; icon: React.ReactNode }
+> = {
+  steal: {
+    label: "Steal",
+    cls: "border-emerald-500/60 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    icon: <TrendingUp className="h-3 w-3" />,
+  },
+  solid: {
+    label: "Solid",
+    cls: "border-primary/50 bg-primary/10 text-primary",
+    icon: <TrendingUp className="h-3 w-3" />,
+  },
+  fair: {
+    label: "Fair",
+    cls: "border-border bg-muted text-muted-foreground",
+    icon: <Minus className="h-3 w-3" />,
+  },
+  reach: {
+    label: "Reach",
+    cls: "border-amber-500/60 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    icon: <TrendingDown className="h-3 w-3" />,
+  },
+  bust: {
+    label: "Bust",
+    cls: "border-red-500/60 bg-red-500/10 text-red-600 dark:text-red-400",
+    icon: <TrendingDown className="h-3 w-3" />,
+  },
+  unranked: {
+    label: "No data",
+    cls: "border-dashed border-border bg-transparent text-muted-foreground",
+    icon: <Minus className="h-3 w-3" />,
+  },
+};
+
+function computePlayerPercentileValue(
+  s: PlayerSeasonStats | undefined,
+  allStats: PlayerSeasonStats[],
+): number | null {
+  if (!s) return null;
+  let sum = 0;
+  let count = 0;
+  for (const c of CAT_META) {
+    const v = s[c.key as keyof PlayerSeasonStats] as number | null | undefined;
+    if (v == null) continue;
+    const pool = allStats
+      .map((x) => x[c.key as keyof PlayerSeasonStats] as number | null | undefined)
+      .filter((n): n is number => n != null);
+    if (pool.length < 2) continue;
+    const sorted = [...pool].sort((a, b) => a - b);
+    const first = sorted.indexOf(v);
+    const last = sorted.lastIndexOf(v);
+    const avgRank = (first + last) / 2;
+    const pct = avgRank / (sorted.length - 1);
+    sum += pct;
+    count++;
+  }
+  if (count === 0) return null;
+  return sum / count;
+}
+
+function AgingPicks({
+  picks,
+  allPicks,
+  statsByPlayer,
+  teamCount,
+}: {
+  picks: Pick[];
+  allPicks: Pick[];
+  statsByPlayer: Record<string, PlayerSeasonStats>;
+  teamCount: number;
+}) {
+  // Rank every drafted player in the room by percentile-value.
+  const draftedStats: { pick: Pick; stats?: PlayerSeasonStats; value: number | null }[] =
+    allPicks.map((p) => {
+      const stats = statsByPlayer[p.player_id];
+      return { pick: p, stats, value: null };
+    });
+  const allStatsArr = draftedStats
+    .map((d) => d.stats)
+    .filter((s): s is PlayerSeasonStats => !!s);
+  draftedStats.forEach((d) => {
+    d.value = computePlayerPercentileValue(d.stats, allStatsArr);
+  });
+  const ranked = draftedStats
+    .filter((d) => d.value != null)
+    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+  const rankByPickId = new Map<string, number>();
+  ranked.forEach((d, i) => rankByPickId.set(d.pick.id, i + 1));
+  const totalDrafted = ranked.length;
+
+  const rows: AgingRow[] = picks
+    .slice()
+    .sort((a, b) => a.pick_number - b.pick_number)
+    .map((pk) => {
+      const value = draftedStats.find((d) => d.pick.id === pk.id)?.value ?? null;
+      const valueRank = rankByPickId.get(pk.id) ?? null;
+      let grade: AgingRow["grade"] = "unranked";
+      if (valueRank != null && totalDrafted > 0) {
+        // Compare value-rank to draft slot. Delta > 0 means player is
+        // outperforming where they were taken.
+        const delta = pk.pick_number - valueRank;
+        if (delta >= 15) grade = "steal";
+        else if (delta >= 5) grade = "solid";
+        else if (delta >= -5) grade = "fair";
+        else if (delta >= -15) grade = "reach";
+        else grade = "bust";
+      }
+      return { pick: pk, value, valueRank, totalDrafted, grade };
+    });
+
+  const hasAnyData = rows.some((r) => r.valueRank != null);
+
+  return (
+    <div className="border-b border-border bg-background/60 px-4 py-3">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <BarChart3 className="h-3 w-3 text-primary" />
+        Your picks, aging
+        <span className="ml-auto text-[9px] font-bold normal-case tracking-normal text-muted-foreground/70">
+          Grade vs. draft slot
+        </span>
+      </div>
+      {!hasAnyData ? (
+        <p className="text-xs italic text-muted-foreground">
+          Season stats not available yet for these picks.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border/60">
+          {rows.map((r) => {
+            const g = GRADE_META[r.grade];
+            return (
+              <li
+                key={r.pick.id}
+                className="flex items-center gap-2 py-1.5 text-xs"
+              >
+                <span className="w-10 shrink-0 font-mono font-bold tabular-nums text-muted-foreground">
+                  R{r.pick.round}.{pickInRound(r.pick, teamCount)}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-bold">
+                  {r.pick.player_name}
+                </span>
+                <span className="shrink-0 font-mono tabular-nums text-muted-foreground">
+                  {r.valueRank != null
+                    ? `#${r.valueRank}/${r.totalDrafted}`
+                    : "—"}
+                </span>
+                <span
+                  className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${g.cls}`}
+                >
+                  {g.icon}
+                  {g.label}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
