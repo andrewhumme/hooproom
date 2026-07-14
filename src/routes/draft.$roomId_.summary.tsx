@@ -461,6 +461,14 @@ function DraftSummaryPage() {
                         allTotals={Array.from(teamTotals.values())}
                       />
                     )}
+                    {isMine && teamPicks.length > 0 && (
+                      <AgingPicks
+                        picks={teamPicks}
+                        allPicks={picks}
+                        statsByPlayer={statsByPlayer}
+                        teamCount={room.team_count}
+                      />
+                    )}
                     {teamPicks.length === 0 ? (
                       <div className="p-6 text-center text-sm text-muted-foreground">
                         No picks.
