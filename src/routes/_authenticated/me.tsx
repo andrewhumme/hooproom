@@ -85,12 +85,11 @@ function MyDraftsPage() {
       const hostedQ = supabase.from("draft_rooms").select("*").eq("host_user_id", userId);
       const partsQ = supabase
         .from("draft_participants")
-        .select("id, room_id")
+        .select("room_id")
         .eq("user_id", userId);
 
       const [hostedRes, partsRes] = await Promise.all([hostedQ, partsQ]);
       const partRoomIds = (partsRes.data ?? []).map((r) => r.room_id);
-      const myParticipantIds = new Set((partsRes.data ?? []).map((r) => r.id));
 
       let joinedRooms: RoomRow[] = [];
       if (partRoomIds.length) {
@@ -109,17 +108,17 @@ function MyDraftsPage() {
       if (allRooms.length) {
         const { data: picks } = await supabase
           .from("draft_picks")
-          .select("room_id, participant_id, player_id")
+          .select("room_id, user_id, player_id")
           .in(
             "room_id",
             allRooms.map((r) => r.id),
           )
           .not("player_id", "is", null);
-        (picks ?? []).forEach((p: { room_id: string; participant_id: string | null }) => {
+        (picks ?? []).forEach((p) => {
           const m = meta[p.room_id];
           if (!m) return;
           m.totalPicks += 1;
-          if (p.participant_id && myParticipantIds.has(p.participant_id)) m.myPicks += 1;
+          if (p.user_id === userId) m.myPicks += 1;
         });
       }
 
