@@ -370,6 +370,17 @@ function DraftSummaryPage() {
           </div>
         </Card>
 
+        {/* Standings — live category leaderboard using season-to-date per-game
+            averages. Refreshes automatically as the season progresses. */}
+        {picks.length > 0 && (
+          <StandingsSection
+            teamIndexes={Array.from({ length: room.team_count }, (_, i) => i + 1)}
+            teamTotals={teamTotals}
+            slotMap={slotMap}
+            myTeamIdx={myTeamIdx}
+          />
+        )}
+
         {/* Teams grid */}
         <h2 className="mt-10 text-xl font-black">
           {myTeamIdx != null ? "Your team & the rest of the league" : "All teams"}
@@ -377,7 +388,7 @@ function DraftSummaryPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Tap a team header to expand or collapse its roster.
           {myTeamIdx != null &&
-            " Your team also shows a category heatmap so you can see where you're strong or weak."}
+            " Your team also shows a category heatmap and how each pick is aging vs. the rest of the drafted pool."}
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
