@@ -19,6 +19,7 @@ import {
 } from "@/lib/playerStats.functions";
 import {
   ArrowLeft,
+  BarChart3,
   ChevronDown,
   ChevronRight,
   Download,
@@ -28,6 +29,9 @@ import {
   Crown,
   Zap,
   DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/draft/$roomId_/summary")({

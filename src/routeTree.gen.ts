@@ -22,6 +22,7 @@ import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed
 import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
 import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as ApiPublicHooksRefreshSeasonStatsRouteImport } from './routes/api/public/hooks/refresh-season-stats'
 
 const LobbyRoute = LobbyRouteImport.update({
   id: '/lobby',
@@ -87,6 +88,12 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicHooksRefreshSeasonStatsRoute =
+  ApiPublicHooksRefreshSeasonStatsRouteImport.update({
+    id: '/api/public/hooks/refresh-season-stats',
+    path: '/api/public/hooks/refresh-season-stats',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
+  '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -115,6 +123,7 @@ export interface FileRoutesByTo {
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
+  '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,6 +140,7 @@ export interface FileRoutesById {
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId_/summary': typeof DraftRoomIdSummaryRoute
+  '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/draft/$roomId/summary'
+    | '/api/public/hooks/refresh-season-stats'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/draft/$roomId/summary'
+    | '/api/public/hooks/refresh-season-stats'
   id:
     | '__root__'
     | '/'
@@ -176,6 +188,7 @@ export interface FileRouteTypes {
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/draft/$roomId_/summary'
+    | '/api/public/hooks/refresh-season-stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -190,6 +203,7 @@ export interface RootRouteChildren {
   ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
   ApiPublicSnakeTickRoute: typeof ApiPublicSnakeTickRoute
   DraftRoomIdSummaryRoute: typeof DraftRoomIdSummaryRoute
+  ApiPublicHooksRefreshSeasonStatsRoute: typeof ApiPublicHooksRefreshSeasonStatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -285,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/refresh-season-stats': {
+      id: '/api/public/hooks/refresh-season-stats'
+      path: '/api/public/hooks/refresh-season-stats'
+      fullPath: '/api/public/hooks/refresh-season-stats'
+      preLoaderRoute: typeof ApiPublicHooksRefreshSeasonStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -313,6 +334,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,
   ApiPublicSnakeTickRoute: ApiPublicSnakeTickRoute,
   DraftRoomIdSummaryRoute: DraftRoomIdSummaryRoute,
+  ApiPublicHooksRefreshSeasonStatsRoute: ApiPublicHooksRefreshSeasonStatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
