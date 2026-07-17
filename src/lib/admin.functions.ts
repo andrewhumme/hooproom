@@ -108,7 +108,12 @@ export const backfillHistoricalStats = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { startSeason: number; endSeason: number }) => input)
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
     if (data.startSeason < 1980 || data.endSeason > 2100 || data.startSeason > data.endSeason) {
       throw new Error("Invalid season range");
     }
@@ -124,7 +129,12 @@ export const backfillHistoricalStats = createServerFn({ method: "POST" })
 export const refreshAdvancedStatsNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requireAdmin(context);
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
     const { refreshAdvancedStats } = await import("@/lib/seasonRefresh.server");
     return await refreshAdvancedStats();
   });
