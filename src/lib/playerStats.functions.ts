@@ -193,6 +193,11 @@ export type PlayerSeasonStats = {
   fg3_pct: number | null;
   ft_pct: number | null;
   ef_fg_pct: number | null;
+  ts_pct: number | null;
+  usg_pct: number | null;
+  ast_pct: number | null;
+  tov_pct: number | null;
+  pie: number | null;
 };
 
 const looseKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
