@@ -89,7 +89,7 @@ export const deleteAllGuestUsers = createServerFn({ method: "POST" })
   });
 
 async function requireAdmin(context: {
-  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }> };
+  supabase: { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" }) => Promise<{ data: unknown; error: { message: string } | null }> };
   userId: string;
 }) {
   const { data: isAdmin, error } = await context.supabase.rpc("has_role", {
