@@ -295,7 +295,56 @@ function AdminUsersPage() {
             </CardContent>
           </Card>
         )}
+
+        {status === "ok" && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Player data tools</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Historical backfill</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Populate 10 seasons of per-game averages (2015-16 → 2024-25)
+                    from nbaapi.com into player_season_stats. Safe to re-run —
+                    idempotent per player/season. Takes ~30–60s.
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={handleBackfill}
+                    disabled={dataBusy !== null}
+                  >
+                    {dataBusy === "backfill" ? "Backfilling…" : "Backfill 10 seasons"}
+                  </Button>
+                </div>
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Advanced stats</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Pull TS%, USG%, PIE, AST%, TOV% from stats.nba.com for the
+                    current season and patch existing rows. Also runs
+                    automatically as part of the weekly cron.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRefreshAdvanced}
+                    disabled={dataBusy !== null}
+                  >
+                    {dataBusy === "advanced" ? "Refreshing…" : "Refresh now"}
+                  </Button>
+                </div>
+              </div>
+              {dataLog.length > 0 && (
+                <pre className="max-h-64 overflow-auto rounded-md border border-border bg-muted/30 p-3 text-[11px] leading-relaxed">
+                  {dataLog.join("\n")}
+                </pre>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </main>
+
 
       <AlertDialog
         open={!!pendingDelete}
