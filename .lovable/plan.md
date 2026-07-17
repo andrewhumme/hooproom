@@ -1,69 +1,81 @@
-# HoopRoom Season Report Card
+# Better Roster Data: Historical Backfill + Advanced Stats
 
-A self-updating post-draft experience that keeps HoopRoom relevant long after draft night. Zero manual upkeep — a weekly cron pulls the latest season stats from `nbaapi.com` (already integrated) and every completed draft room grows a live "how did your picks actually do?" page.
+Two independent workstreams. Ship #1 first (immediate value on the draft board), then layer #2 on top of the weekly cron already running.
 
-## Why this fits the constraint
+## 1. Historical backfill — 10 seasons from nbaapi.com
 
-- **No content management.** You never write a post, update news, or moderate anything. Stats refresh themselves.
-- **Two natural return moments.** Mid-season ("is my draft still holding up?") and end of season ("who won?"). Both are baked into the product, not into your calendar.
-- **Leverages what's already built.** Uses the existing `player_season_stats` table, nbaapi.com fetchers, category heatmap logic, and completed-draft summary page.
-- **Stays in scope.** No lineups, no waivers, no weekly management — purely a rear-view mirror on the draft itself.
+**Goal:** Populate `player_season_stats` with seasons 2015-16 → 2024-25 (10 seasons) so the draft board and player modals can show multi-year trends, career averages, and consistency grades.
 
-## What users see
+**One-time job, no ongoing maintenance.**
 
-### 1. Standings tab on every completed draft summary
-A leaderboard of every drafted roster in the room, ranked by 9-cat (or 8-cat) totals using season-to-date per-game averages. Same category math already used in the heatmap, just applied to all rosters. Updates weekly.
+### Data
+- Source: `api.server.nbaapi.com/api/playertotals?season=YYYY` (already used for current season).
+- Regular season only (`isPlayoff !== true`) — same filter as `seasonRefresh.server.ts`.
+- Aggregate multi-team rows the same way (prefer `TOT`/`NTM` combined row).
+- Upsert on `(player_key, season)` — matches existing unique constraint, so re-runs are idempotent.
 
-### 2. "Your picks, aging" section (My Team tab)
-Each of your drafted players gets a mini card:
-- Round + pick number (what you paid)
-- Season-to-date fantasy value rank among all drafted players in the room
-- A simple grade chip: **Steal / Solid / Fair / Reach / Bust** based on how their current rank compares to draft slot
-- Sparkline showing rank movement across the season snapshots we've stored
+### Implementation
+- New helper in `src/lib/seasonRefresh.server.ts` (or a sibling `historicalBackfill.server.ts`): `backfillHistoricalSeasons(startSeason, endSeason)`. Reuses the existing `fetchSeason` + `aggregateBySeasonPlayer` + `toPerGameRow` functions — no duplicated logic.
+- New admin-only server function `backfillHistoricalStats` in `src/lib/admin.functions.ts` guarded by `requireSupabaseAuth` + `has_role(admin)` check. Runs the 10-season loop, returns per-season row counts. No cron — you trigger it once from the admin page.
+- Add a "Backfill historical stats" button to `src/routes/_authenticated/admin.users.tsx` (or a new admin sub-page) with a progress log.
 
-### 3. End-of-season awards (auto-generated, one-time)
-When the season ends, one cron run stamps each completed room with:
-- **Steal of the Draft** — biggest positive rank-vs-pick delta
-- **Biggest Bust** — biggest negative delta
-- **Best Overall Team** — top standings finisher
-- **Category King** — top team per category
+### Draft-board surfacing (light UI touch)
+- `PlayerStatsModal.tsx` already shows season rows — the extra seasons will appear automatically once backfilled.
+- Add a "3-yr avg" row in the modal header (simple average of the last 3 non-null seasons for PTS/REB/AST/3PM/STL/BLK) so it's visible without scrolling.
 
-Awards render as a shareable card at the top of the summary page. Perfect social hook to pull the whole draft group back one more time.
+## 2. Advanced stats enrichment — NBA CDN weekly cron
 
-### 4. Optional email nudge
-One-line opt-in on `/me`: "Email me monthly + when season ends." One monthly digest + one season-end recap. Nothing else. Users who don't opt in still see everything passively when they visit.
+**Goal:** Add TS%, USG%, and (optionally) per-36 minute stats to the current season so the draft board can show efficiency and role, not just raw counting stats.
+
+### Data
+- Source: `stats.nba.com/stats/leaguedashplayerstats` with `MeasureType=Advanced` (TS%, USG%, PIE, AST%, TOV%, etc.) and `MeasureType=Base&PerMode=Per36` for per-36.
+- Free, no auth. Requires a `Referer: https://www.nba.com/` header — otherwise 403.
+- One request per measure type per season. Two requests per weekly run.
+
+### Schema
+New migration: extend `player_season_stats` with nullable columns:
+- `ts_pct numeric(4,3)` — true shooting %
+- `usg_pct numeric(4,3)` — usage rate
+- `ast_pct numeric(4,3)`
+- `tov_pct numeric(4,3)`
+- `pie numeric(4,3)` — player impact estimate
+- `nba_player_id integer` (already exists on `players` — join key)
+
+Mirror the same columns onto `player_season_snapshots` so weekly rank-movement works for advanced metrics too.
+
+### Implementation
+- New helper `refreshAdvancedStats()` in `src/lib/seasonRefresh.server.ts`. Fetches NBA CDN, joins on `nba_player_id` (fallback to `loose_key` matched on player name), upserts the advanced columns onto the existing current-season row (does not create new rows).
+- Wire into the existing weekly cron: call `refreshAdvancedStats()` right after `refreshCurrentSeason()` inside `src/routes/api/public/hooks/refresh-season-stats.ts`. One cron job, two data pulls.
+- Snapshot: add advanced columns to the snapshot insert so trends work.
+
+### Surfacing
+- `PlayerStatsModal.tsx`: add an "Advanced" tab or a small stat row (TS%, USG%, PIE).
+- Draft board list (`src/routes/draft.$roomId.tsx` players tab): add a toggle/column for TS% or USG% — helps identify efficient scorers vs. volume shooters at a glance.
 
 ## Technical section
 
-### Data pipeline
-- New table `player_season_snapshots(player_id, snapshot_date, games_played, per_game_stats jsonb)` — one row per player per weekly pull. Enables sparklines and rank-over-time.
-- Existing `fetchPlayerSeasonStats` server fn is reused; a thin wrapper writes both the current-season `player_season_stats` row AND a snapshot row.
-- New public cron route: `src/routes/api/public/hooks/refresh-season-stats.ts`. Iterates active-season player IDs in batches (respect nbaapi.com politeness), upserts stats + snapshots.
-- `pg_cron` weekly job (Mondays 6am ET) hits the route. Anon-key auth per house convention. Second `pg_cron` job runs once ~April 20 to stamp season awards into a new `draft_room_awards` table.
+### Files touched / created
+- `src/lib/seasonRefresh.server.ts` — extract `backfillHistoricalSeasons`, add `refreshAdvancedStats`.
+- `src/lib/admin.functions.ts` — new `backfillHistoricalStats` server fn (admin-gated).
+- `src/routes/_authenticated/admin.users.tsx` — add backfill trigger button + log output.
+- `src/routes/api/public/hooks/refresh-season-stats.ts` — chain the advanced refresh into the weekly run.
+- `src/components/PlayerStatsModal.tsx` — surface 3-year avg row + advanced metrics.
+- Migration: add advanced columns to `player_season_stats` and `player_season_snapshots`.
 
-### Standings + grades (pure derived data, no writes)
-- Compute in a `computeRoomStandings` server fn that joins `draft_pick_assignments` → `player_season_stats`. No caching table needed for v1 — completed rooms are small (10 rosters × ~15 players).
-- Grade thresholds: percentile rank of the player's current 9-cat value vs. all drafted players in the room, compared to their pick's percentile slot. Reuse the diverging red→amber→green scale already in the heatmap.
+### Guardrails
+- **Rate limiting:** historical backfill sleeps ~500ms between season fetches (10 seasons × ~5 pages ≈ 50 requests, done in ~30s). NBA CDN calls include the `Referer` header and one retry with backoff on 429.
+- **Idempotency:** both jobs use `upsert(..., { onConflict: '...' })` — safe to re-run.
+- **RLS unchanged:** stats tables are already public-read via `TO anon`; new columns inherit that policy.
 
-### UI surfaces
-- `src/routes/draft.$roomId_.summary.tsx` — add "Standings" tab and, on My Team, the aging picks list. Awards banner renders only when `draft_room_awards` row exists.
-- `src/routes/_authenticated/me.tsx` — completed-draft cards get a "View report card" CTA and, if awards exist, a small trophy chip.
-
-### RLS
-- `player_season_snapshots`: public read via `TO anon` SELECT (stats are public data), writes service-role only.
-- `draft_room_awards`: SELECT policy mirrors `can_view_room`; writes service-role only.
-
-### Out of scope for v1
-- Email delivery (kept as a follow-up once the passive experience is validated).
-- Historical past-seasons comparison.
-- Per-week matchup scoring / lineup management (violates project scope).
+### Not in this plan (deliberately)
+- Paid feeds (Sportradar, SportsDataIO) — you already ruled those out for cost/maintenance.
+- Backfilling snapshots for past seasons — snapshots are for in-season rank tracking; historical seasons are point-in-time totals.
+- Career-arc UI (age curves, similarity scores) — that's a follow-up once the data is in.
 
 ### Build order
-1. Snapshot table + migration + GRANTs + RLS.
-2. Weekly refresh cron route + `pg_cron` schedule.
-3. `computeRoomStandings` + grades logic (pure functions, unit-testable).
-4. Summary page: Standings tab + aging picks section.
-5. `draft_room_awards` table + season-end cron + awards banner.
-6. `/me` dashboard integration (CTA + trophy chip).
+1. Historical backfill: helper + admin fn + admin UI trigger. Run it once, verify 10 seasons land.
+2. Advanced-stats migration + `refreshAdvancedStats` + wire into weekly cron. Manually POST the cron endpoint once to backfill this season.
+3. Surface both in `PlayerStatsModal` (3-yr avg row + advanced tab).
+4. Optional: TS%/USG% column toggle on the draft board players list.
 
-Steps 1–4 alone deliver the mid-season return hook. Steps 5–6 add the end-of-season moment and can ship as a follow-up if you want to validate the passive experience first.
+Steps 1–3 give you the meaningful data improvement. Step 4 is polish.
