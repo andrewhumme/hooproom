@@ -46,6 +46,8 @@ function AdminUsersPage() {
   const list = useServerFn(listAdminUsers);
   const removeUser = useServerFn(deleteUser);
   const removeGuests = useServerFn(deleteAllGuestUsers);
+  const backfill = useServerFn(backfillHistoricalStats);
+  const refreshAdvanced = useServerFn(refreshAdvancedStatsNow);
 
   const [status, setStatus] = useState<"loading" | "denied" | "ok">("loading");
   const [users, setUsers] = useState<AdminUserRow[]>([]);
