@@ -21,12 +21,23 @@ export const Route = createFileRoute("/api/public/hooks/refresh-season-stats")({
         }
 
         try {
-          const { refreshCurrentSeason } = await import(
+          const { refreshCurrentSeason, refreshAdvancedStats } = await import(
             "@/lib/seasonRefresh.server"
           );
           const result = await refreshCurrentSeason();
+          let advanced: Awaited<ReturnType<typeof refreshAdvancedStats>> | null = null;
+          try {
+            advanced = await refreshAdvancedStats();
+          } catch (advErr) {
+            // Advanced feed is nice-to-have — never fail the whole run if
+            // stats.nba.com throttles or rejects the request.
+            console.warn(
+              "advanced stats refresh failed",
+              advErr instanceof Error ? advErr.message : advErr,
+            );
+          }
           return new Response(
-            JSON.stringify({ ok: true, ...result }),
+            JSON.stringify({ ok: true, ...result, advanced }),
             { headers: { "Content-Type": "application/json" } },
           );
         } catch (err) {
