@@ -88,17 +88,7 @@ export const deleteAllGuestUsers = createServerFn({ method: "POST" })
     return { deleted, failures };
   });
 
-async function requireAdmin(context: {
-  supabase: { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" }) => Promise<{ data: unknown; error: { message: string } | null }> };
-  userId: string;
-}) {
-  const { data: isAdmin, error } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
-    _role: "admin",
-  });
-  if (error) throw new Error(error.message);
-  if (!isAdmin) throw new Error("Forbidden");
-}
+
 
 /**
  * One-time backfill of historical seasons into player_season_stats.
