@@ -51,11 +51,14 @@ type Props = {
   onToggleQueue?: () => void;
 };
 
-const SEASON_LABEL: Record<number, string> = {
-  2023: "2022-23",
-  2024: "2023-24",
-  2025: "2024-25",
-};
+// season = NBA season-end year (2025 = 2024-25). Covers historical backfill
+// range plus a safety buffer so labels don't fall back to a bare year.
+const SEASON_LABEL: Record<number, string> = Object.fromEntries(
+  Array.from({ length: 16 }, (_, i) => {
+    const end = 2015 + i; // 2015 → 2030
+    return [end, `${end - 1}-${String(end).slice(-2)}`];
+  }),
+);
 
 type StatKey =
   | "pts"
@@ -69,7 +72,10 @@ type StatKey =
   | "fg_pct"
   | "fg3_pct"
   | "ft_pct"
-  | "ef_fg_pct";
+  | "ef_fg_pct"
+  | "ts_pct"
+  | "usg_pct"
+  | "pie";
 
 type StatMeta = {
   key: StatKey;
@@ -91,6 +97,9 @@ const STAT_OPTIONS: StatMeta[] = [
   { key: "fg3_pct", label: "3P%", isPct: true },
   { key: "ft_pct", label: "FT%", isPct: true },
   { key: "ef_fg_pct", label: "eFG%", isPct: true },
+  { key: "ts_pct", label: "True Shooting %", isPct: true },
+  { key: "usg_pct", label: "Usage %", isPct: true },
+  { key: "pie", label: "Player Impact Est.", isPct: true },
 ];
 
 const fmt = (n: number | null | undefined, digits = 1) =>
@@ -272,8 +281,36 @@ export function PlayerStatsModal({
               value="table"
               className="mt-2 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
             >
-              <div className="mb-2 shrink-0 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Last 3 seasons · per-game averages
+              <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2 shrink-0">
+                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  Career history · per-game averages
+                </div>
+                {(() => {
+                  const latest = stats.find((s) => (s.games_played ?? 0) > 0);
+                  if (!latest) return null;
+                  const chips: Array<{ label: string; value: number | null }> = [
+                    { label: "TS%", value: latest.ts_pct ?? null },
+                    { label: "USG%", value: latest.usg_pct ?? null },
+                    { label: "PIE", value: latest.pie ?? null },
+                  ];
+                  const shown = chips.filter((c) => c.value != null);
+                  if (shown.length === 0) return null;
+                  return (
+                    <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
+                      <span className="text-muted-foreground">
+                        {SEASON_LABEL[latest.season] ?? latest.season} advanced:
+                      </span>
+                      {shown.map((c) => (
+                        <span
+                          key={c.label}
+                          className="rounded-md border border-border bg-muted/40 px-1.5 py-0.5"
+                        >
+                          {c.label} {(c.value! * 100).toFixed(1)}%
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
               <div className="mb-1 shrink-0 text-[10px] text-muted-foreground sm:hidden">
                 ← swipe to see more stats →
@@ -299,6 +336,43 @@ export function PlayerStatsModal({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
+                    {(() => {
+                      // 3-year average row from the most recent 3 seasons with games
+                      const recent = stats
+                        .filter((s) => (s.games_played ?? 0) > 0)
+                        .slice()
+                        .sort((a, b) => b.season - a.season)
+                        .slice(0, 3);
+                      if (recent.length < 2) return null;
+                      const avg = (k: keyof PlayerSeasonStats) => {
+                        const vals = recent
+                          .map((s) => s[k] as number | null)
+                          .filter((v): v is number => v != null);
+                        return vals.length === 0
+                          ? null
+                          : vals.reduce((a, b) => a + b, 0) / vals.length;
+                      };
+                      return (
+                        <tr className="bg-primary/5 font-bold">
+                          <Td divider={false} className="font-black text-primary">
+                            {recent.length}-yr avg
+                          </Td>
+                          <Td>—</Td>
+                          <Td>{Math.round(avg("games_played") ?? 0)}</Td>
+                          <Td>{fmt(avg("minutes_per_game"))}</Td>
+                          <Td>{fmt(avg("pts"))}</Td>
+                          <Td>{fmt(avg("reb"))}</Td>
+                          <Td>{fmt(avg("ast"))}</Td>
+                          <Td>{fmt(avg("stl"))}</Td>
+                          <Td>{fmt(avg("blk"))}</Td>
+                          <Td>{fmt(avg("tov"))}</Td>
+                          <Td>{fmtPct(avg("fg_pct"))}</Td>
+                          <Td>{fmtPct(avg("fg3_pct"))}</Td>
+                          <Td>{fmtPct(avg("ft_pct"))}</Td>
+                          <Td>{fmtPct(avg("ef_fg_pct"))}</Td>
+                        </tr>
+                      );
+                    })()}
                     {stats.map((s) => (
                       <tr key={s.season} className="font-medium">
                         <Td divider={false} className="font-black">
@@ -323,6 +397,7 @@ export function PlayerStatsModal({
                 </table>
               </div>
             </TabsContent>
+
 
             <TabsContent
               value="trend"

@@ -87,3 +87,44 @@ export const deleteAllGuestUsers = createServerFn({ method: "POST" })
     }
     return { deleted, failures };
   });
+
+
+
+/**
+ * One-time backfill of historical seasons into player_season_stats.
+ * Range is inclusive on both ends. Uses NBA season-end year (e.g. 2016 = 2015-16).
+ */
+export const backfillHistoricalStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { startSeason: number; endSeason: number }) => input)
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
+    if (data.startSeason < 1980 || data.endSeason > 2100 || data.startSeason > data.endSeason) {
+      throw new Error("Invalid season range");
+    }
+    const { backfillHistoricalSeasons } = await import("@/lib/seasonRefresh.server");
+    const results = await backfillHistoricalSeasons(data.startSeason, data.endSeason);
+    return { results };
+  });
+
+/**
+ * Manually trigger the advanced-stats (TS%, USG%, PIE...) refresh for the
+ * current season. Useful for immediate backfill after enabling the feature.
+ */
+export const refreshAdvancedStatsNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
+    const { refreshAdvancedStats } = await import("@/lib/seasonRefresh.server");
+    return await refreshAdvancedStats();
+  });

@@ -8,6 +8,8 @@ import {
   listAdminUsers,
   deleteUser,
   deleteAllGuestUsers,
+  backfillHistoricalStats,
+  refreshAdvancedStatsNow,
   type AdminUserRow,
 } from "@/lib/admin.functions";
 import { AppHeader } from "@/components/AppHeader";
@@ -44,6 +46,8 @@ function AdminUsersPage() {
   const list = useServerFn(listAdminUsers);
   const removeUser = useServerFn(deleteUser);
   const removeGuests = useServerFn(deleteAllGuestUsers);
+  const backfill = useServerFn(backfillHistoricalStats);
+  const refreshAdvanced = useServerFn(refreshAdvancedStatsNow);
 
   const [status, setStatus] = useState<"loading" | "denied" | "ok">("loading");
   const [users, setUsers] = useState<AdminUserRow[]>([]);
@@ -52,6 +56,53 @@ function AdminUsersPage() {
   const [pendingDelete, setPendingDelete] = useState<AdminUserRow | null>(null);
   const [confirmPurge, setConfirmPurge] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [dataBusy, setDataBusy] = useState<"backfill" | "advanced" | null>(null);
+  const [dataLog, setDataLog] = useState<string[]>([]);
+
+  function appendLog(line: string) {
+    setDataLog((l) => [...l, `[${new Date().toLocaleTimeString()}] ${line}`]);
+  }
+
+  async function handleBackfill() {
+    setDataBusy("backfill");
+    appendLog("Starting 10-season backfill (2015-16 → 2024-25)…");
+    try {
+      const { results } = await backfill({
+        data: { startSeason: 2016, endSeason: 2025 },
+      });
+      for (const r of results) {
+        if (r.error) appendLog(`Season ${r.season}: ERROR — ${r.error}`);
+        else appendLog(`Season ${r.season}: fetched ${r.fetched}, upserted ${r.upserted}`);
+      }
+      appendLog("Backfill complete.");
+      toast.success("Historical backfill complete");
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      appendLog(`Backfill failed: ${m}`);
+      toast.error(m);
+    } finally {
+      setDataBusy(null);
+    }
+  }
+
+  async function handleRefreshAdvanced() {
+    setDataBusy("advanced");
+    appendLog("Refreshing advanced stats (TS%, USG%, PIE) for current season…");
+    try {
+      const res = await refreshAdvanced();
+      appendLog(
+        `Advanced: fetched ${res.fetched} players, matched ${res.matched}, updated ${res.updated}`,
+      );
+      toast.success("Advanced stats refreshed");
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      appendLog(`Advanced refresh failed: ${m}`);
+      toast.error(m);
+    } finally {
+      setDataBusy(null);
+    }
+  }
+
 
   const guestCount = useMemo(() => users.filter((u) => u.is_guest).length, [users]);
 
@@ -244,7 +295,56 @@ function AdminUsersPage() {
             </CardContent>
           </Card>
         )}
+
+        {status === "ok" && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Player data tools</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Historical backfill</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Populate 10 seasons of per-game averages (2015-16 → 2024-25)
+                    from nbaapi.com into player_season_stats. Safe to re-run —
+                    idempotent per player/season. Takes ~30–60s.
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={handleBackfill}
+                    disabled={dataBusy !== null}
+                  >
+                    {dataBusy === "backfill" ? "Backfilling…" : "Backfill 10 seasons"}
+                  </Button>
+                </div>
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Advanced stats</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Pull TS%, USG%, PIE, AST%, TOV% from stats.nba.com for the
+                    current season and patch existing rows. Also runs
+                    automatically as part of the weekly cron.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRefreshAdvanced}
+                    disabled={dataBusy !== null}
+                  >
+                    {dataBusy === "advanced" ? "Refreshing…" : "Refresh now"}
+                  </Button>
+                </div>
+              </div>
+              {dataLog.length > 0 && (
+                <pre className="max-h-64 overflow-auto rounded-md border border-border bg-muted/30 p-3 text-[11px] leading-relaxed">
+                  {dataLog.join("\n")}
+                </pre>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </main>
+
 
       <AlertDialog
         open={!!pendingDelete}

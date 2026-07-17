@@ -425,6 +425,7 @@ export type Database = {
       player_season_snapshots: {
         Row: {
           ast: number | null
+          ast_pct: number | null
           blk: number | null
           created_at: string
           ef_fg_pct: number | null
@@ -436,6 +437,7 @@ export type Database = {
           id: string
           loose_key: string
           minutes_per_game: number | null
+          pie: number | null
           player_key: string
           pts: number | null
           reb: number | null
@@ -444,9 +446,13 @@ export type Database = {
           stl: number | null
           team: string | null
           tov: number | null
+          tov_pct: number | null
+          ts_pct: number | null
+          usg_pct: number | null
         }
         Insert: {
           ast?: number | null
+          ast_pct?: number | null
           blk?: number | null
           created_at?: string
           ef_fg_pct?: number | null
@@ -458,6 +464,7 @@ export type Database = {
           id?: string
           loose_key: string
           minutes_per_game?: number | null
+          pie?: number | null
           player_key: string
           pts?: number | null
           reb?: number | null
@@ -466,9 +473,13 @@ export type Database = {
           stl?: number | null
           team?: string | null
           tov?: number | null
+          tov_pct?: number | null
+          ts_pct?: number | null
+          usg_pct?: number | null
         }
         Update: {
           ast?: number | null
+          ast_pct?: number | null
           blk?: number | null
           created_at?: string
           ef_fg_pct?: number | null
@@ -480,6 +491,7 @@ export type Database = {
           id?: string
           loose_key?: string
           minutes_per_game?: number | null
+          pie?: number | null
           player_key?: string
           pts?: number | null
           reb?: number | null
@@ -488,12 +500,16 @@ export type Database = {
           stl?: number | null
           team?: string | null
           tov?: number | null
+          tov_pct?: number | null
+          ts_pct?: number | null
+          usg_pct?: number | null
         }
         Relationships: []
       }
       player_season_stats: {
         Row: {
           ast: number | null
+          ast_pct: number | null
           blk: number | null
           created_at: string
           dreb: number | null
@@ -513,6 +529,7 @@ export type Database = {
           loose_key: string | null
           minutes_per_game: number | null
           oreb: number | null
+          pie: number | null
           player_key: string
           pts: number | null
           reb: number | null
@@ -521,10 +538,14 @@ export type Database = {
           stl: number | null
           team: string | null
           tov: number | null
+          tov_pct: number | null
+          ts_pct: number | null
           updated_at: string
+          usg_pct: number | null
         }
         Insert: {
           ast?: number | null
+          ast_pct?: number | null
           blk?: number | null
           created_at?: string
           dreb?: number | null
@@ -544,6 +565,7 @@ export type Database = {
           loose_key?: string | null
           minutes_per_game?: number | null
           oreb?: number | null
+          pie?: number | null
           player_key: string
           pts?: number | null
           reb?: number | null
@@ -552,10 +574,14 @@ export type Database = {
           stl?: number | null
           team?: string | null
           tov?: number | null
+          tov_pct?: number | null
+          ts_pct?: number | null
           updated_at?: string
+          usg_pct?: number | null
         }
         Update: {
           ast?: number | null
+          ast_pct?: number | null
           blk?: number | null
           created_at?: string
           dreb?: number | null
@@ -575,6 +601,7 @@ export type Database = {
           loose_key?: string | null
           minutes_per_game?: number | null
           oreb?: number | null
+          pie?: number | null
           player_key?: string
           pts?: number | null
           reb?: number | null
@@ -583,7 +610,10 @@ export type Database = {
           stl?: number | null
           team?: string | null
           tov?: number | null
+          tov_pct?: number | null
+          ts_pct?: number | null
           updated_at?: string
+          usg_pct?: number | null
         }
         Relationships: []
       }

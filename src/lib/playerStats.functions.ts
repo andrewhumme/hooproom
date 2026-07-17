@@ -193,6 +193,11 @@ export type PlayerSeasonStats = {
   fg3_pct: number | null;
   ft_pct: number | null;
   ef_fg_pct: number | null;
+  ts_pct: number | null;
+  usg_pct: number | null;
+  ast_pct: number | null;
+  tov_pct: number | null;
+  pie: number | null;
 };
 
 const looseKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -203,7 +208,7 @@ export const fetchPlayerStatsServer = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("player_season_stats")
       .select(
-        "season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg3_made, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
+        "season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg3_made, fg_pct, fg3_pct, ft_pct, ef_fg_pct, ts_pct, usg_pct, ast_pct, tov_pct, pie",
       )
       .eq("loose_key", looseKey(data.playerKey))
       .order("season", { ascending: false });
@@ -236,7 +241,7 @@ export const fetchLatestStatsForPlayersServer = createServerFn({ method: "POST" 
       const { data: rows, error } = await supabaseAdmin
         .from("player_season_stats")
         .select(
-          "loose_key, season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg3_made, fg_pct, fg3_pct, ft_pct, ef_fg_pct",
+          "loose_key, season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg3_made, fg_pct, fg3_pct, ft_pct, ef_fg_pct, ts_pct, usg_pct, ast_pct, tov_pct, pie",
         )
         .eq("season", latest)
         .in("loose_key", [...looseToOriginal.keys()]);
