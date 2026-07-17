@@ -51,11 +51,14 @@ type Props = {
   onToggleQueue?: () => void;
 };
 
-const SEASON_LABEL: Record<number, string> = {
-  2023: "2022-23",
-  2024: "2023-24",
-  2025: "2024-25",
-};
+// season = NBA season-end year (2025 = 2024-25). Covers historical backfill
+// range plus a safety buffer so labels don't fall back to a bare year.
+const SEASON_LABEL: Record<number, string> = Object.fromEntries(
+  Array.from({ length: 16 }, (_, i) => {
+    const end = 2015 + i; // 2015 → 2030
+    return [end, `${end - 1}-${String(end).slice(-2)}`];
+  }),
+);
 
 type StatKey =
   | "pts"
@@ -69,7 +72,10 @@ type StatKey =
   | "fg_pct"
   | "fg3_pct"
   | "ft_pct"
-  | "ef_fg_pct";
+  | "ef_fg_pct"
+  | "ts_pct"
+  | "usg_pct"
+  | "pie";
 
 type StatMeta = {
   key: StatKey;
@@ -91,6 +97,9 @@ const STAT_OPTIONS: StatMeta[] = [
   { key: "fg3_pct", label: "3P%", isPct: true },
   { key: "ft_pct", label: "FT%", isPct: true },
   { key: "ef_fg_pct", label: "eFG%", isPct: true },
+  { key: "ts_pct", label: "True Shooting %", isPct: true },
+  { key: "usg_pct", label: "Usage %", isPct: true },
+  { key: "pie", label: "Player Impact Est.", isPct: true },
 ];
 
 const fmt = (n: number | null | undefined, digits = 1) =>
