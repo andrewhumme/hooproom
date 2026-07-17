@@ -8,6 +8,8 @@ import {
   listAdminUsers,
   deleteUser,
   deleteAllGuestUsers,
+  backfillHistoricalStats,
+  refreshAdvancedStatsNow,
   type AdminUserRow,
 } from "@/lib/admin.functions";
 import { AppHeader } from "@/components/AppHeader";
