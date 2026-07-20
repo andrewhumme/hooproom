@@ -12,7 +12,7 @@ import {
   refreshAdvancedStatsNow,
   type AdminUserRow,
 } from "@/lib/admin.functions";
-import { AppHeader } from "@/components/AppHeader";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -178,7 +178,6 @@ function AdminUsersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader />
       <main className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-6 flex items-center justify-between">
           <div>
