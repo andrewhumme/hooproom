@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
 import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin_'
 import { Route as DraftRoomIdSummaryRouteImport } from './routes/draft.$roomId_.summary'
 import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
 import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
@@ -56,6 +57,11 @@ const DraftRoomIdRoute = DraftRoomIdRouteImport.update({
 const AuthenticatedMeRoute = AuthenticatedMeRouteImport.update({
   id: '/me',
   path: '/me',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin_',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const DraftRoomIdSummaryRoute = DraftRoomIdSummaryRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
+  '/_authenticated/admin_': typeof AuthenticatedAdminRoute
   '/_authenticated/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby_/new': typeof LobbyNewRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/lobby'
+    | '/admin'
     | '/me'
     | '/draft/$roomId'
     | '/lobby/new'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/lobby'
+    | '/admin'
     | '/me'
     | '/draft/$roomId'
     | '/lobby/new'
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/lobby'
+    | '/_authenticated/admin_'
     | '/_authenticated/me'
     | '/draft/$roomId'
     | '/lobby_/new'
@@ -257,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin_': {
+      id: '/_authenticated/admin_'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/draft/$roomId_/summary': {
       id: '/draft/$roomId_/summary'
       path: '/draft/$roomId/summary'
@@ -310,11 +329,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedMeRoute: typeof AuthenticatedMeRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedMeRoute: AuthenticatedMeRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
 }
