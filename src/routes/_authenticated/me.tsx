@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import {
   Users,
 } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
+import { checkIsAdmin } from "@/lib/admin.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/me")({
@@ -68,11 +70,13 @@ type FormatFilter = "all" | "snake" | "auction";
 function MyDraftsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const checkAdmin = useServerFn(checkIsAdmin);
   const userId = user!.id;
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [metaByRoom, setMetaByRoom] = useState<Record<string, RoomMeta>>({});
   const [tab, setTab] = useState<"active" | "completed" | "profile">("active");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Filters / sort
   const [sort, setSort] = useState<SortKey>("recent");
@@ -134,6 +138,20 @@ function MyDraftsPage() {
     };
   }, [userId]);
 
+  useEffect(() => {
+    let mounted = true;
+    checkAdmin()
+      .then(({ isAdmin }) => {
+        if (mounted) setIsAdmin(isAdmin);
+      })
+      .catch(() => {
+        if (mounted) setIsAdmin(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [checkAdmin]);
+
   const hostedIds = useMemo(
     () => new Set(rooms.filter((r) => r.host_user_id === userId).map((r) => r.id)),
     [rooms, userId],
@@ -179,6 +197,11 @@ function MyDraftsPage() {
             Everything you've hosted or joined — jump back in, check results, or update your
             profile.
           </p>
+          {isAdmin && (
+            <Button asChild className="mt-5 font-bold">
+              <Link to="/admin/users">Admin tools</Link>
+            </Button>
+          )}
         </div>
       </section>
 
