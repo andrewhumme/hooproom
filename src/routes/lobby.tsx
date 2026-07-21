@@ -189,17 +189,14 @@ function LobbyPage() {
     };
   }, [authLoading]);
 
-  const handleHostChoice = (
-    path: "/lobby/new" | "/lobby/new-offline",
-    search?: { type: "mock" | "league" }
-  ) => {
+  const handleHostChoice = (path: "/lobby/new" | "/lobby/new-offline") => {
     if (!isReal) {
-      const redirect = search ? `${path}?type=${search.type}` : path;
-      navigate({ to: "/auth", search: { redirect } });
+      navigate({ to: "/auth", search: { redirect: path } });
       return;
     }
-    navigate({ to: path, search });
+    navigate({ to: path });
   };
+
 
   return (
     <div className="min-h-screen bg-background">
