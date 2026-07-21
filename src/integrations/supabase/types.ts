@@ -141,7 +141,7 @@ export type Database = {
           share_token: string
           team_name: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           draft_position?: number | null
@@ -153,7 +153,7 @@ export type Database = {
           share_token?: string
           team_name?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           draft_position?: number | null
@@ -165,7 +165,7 @@ export type Database = {
           share_token?: string
           team_name?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -790,7 +790,7 @@ export type Database = {
           share_token: string
           team_name: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         SetofOptions: {
           from: "*"

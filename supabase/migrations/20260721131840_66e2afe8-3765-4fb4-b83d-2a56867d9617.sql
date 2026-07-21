@@ -1,0 +1,1 @@
+ALTER TABLE public.draft_participants ALTER COLUMN user_id DROP NOT NULL;
