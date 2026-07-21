@@ -302,7 +302,8 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
   const handleClock = async (action: "start" | "pause" | "reset") => {
     if (!isHost) return;
     try {
-      await supabase.rpc("set_offline_clock" as never, {
+      const rpc = supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ error: { message?: string } | null }>;
+      await rpc("set_offline_clock", {
         _room_id: room.id,
         _running: action === "start",
         _reset: action === "reset",
