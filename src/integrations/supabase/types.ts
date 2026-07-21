@@ -136,30 +136,36 @@ export type Database = {
           id: string
           is_bot: boolean
           joined_at: string
+          owner_email: string | null
           room_id: string
+          share_token: string
           team_name: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           draft_position?: number | null
           id?: string
           is_bot?: boolean
           joined_at?: string
+          owner_email?: string | null
           room_id: string
+          share_token?: string
           team_name?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           draft_position?: number | null
           id?: string
           is_bot?: boolean
           joined_at?: string
+          owner_email?: string | null
           room_id?: string
+          share_token?: string
           team_name?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -306,12 +312,17 @@ export type Database = {
           auction_min_bid: number
           auction_nominations_per_team: number | null
           auto_start_at: string | null
+          clock_elapsed_ms: number
+          clock_running: boolean
+          clock_started_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
           draft_format: string
+          draft_mode: string
           host_user_id: string
           id: string
+          layout_preference: string | null
           league_id: string | null
           name: string
           paused_at: string | null
@@ -347,12 +358,17 @@ export type Database = {
           auction_min_bid?: number
           auction_nominations_per_team?: number | null
           auto_start_at?: string | null
+          clock_elapsed_ms?: number
+          clock_running?: boolean
+          clock_started_at?: string | null
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
           draft_format?: string
+          draft_mode?: string
           host_user_id: string
           id?: string
+          layout_preference?: string | null
           league_id?: string | null
           name: string
           paused_at?: string | null
@@ -388,12 +404,17 @@ export type Database = {
           auction_min_bid?: number
           auction_nominations_per_team?: number | null
           auto_start_at?: string | null
+          clock_elapsed_ms?: number
+          clock_running?: boolean
+          clock_started_at?: string | null
           completed_at?: string | null
           created_at?: string
           current_pick_number?: number
           draft_format?: string
+          draft_mode?: string
           host_user_id?: string
           id?: string
+          layout_preference?: string | null
           league_id?: string | null
           name?: string
           paused_at?: string | null
@@ -764,10 +785,12 @@ export type Database = {
           id: string
           is_bot: boolean
           joined_at: string
+          owner_email: string | null
           room_id: string
+          share_token: string
           team_name: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         SetofOptions: {
           from: "*"
@@ -866,12 +889,17 @@ export type Database = {
           auction_min_bid: number
           auction_nominations_per_team: number | null
           auto_start_at: string | null
+          clock_elapsed_ms: number
+          clock_running: boolean
+          clock_started_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
           draft_format: string
+          draft_mode: string
           host_user_id: string
           id: string
+          layout_preference: string | null
           league_id: string | null
           name: string
           paused_at: string | null
@@ -917,6 +945,55 @@ export type Database = {
         Returns: undefined
       }
       delete_stale_guests: { Args: never; Returns: number }
+      get_public_room_participants: {
+        Args: { _token: string }
+        Returns: {
+          draft_position: number
+          id: string
+          team_name: string
+        }[]
+      }
+      get_public_room_picks: {
+        Args: { _token: string }
+        Returns: {
+          auction_price: number | null
+          id: string
+          pick_number: number
+          picked_at: string
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          room_id: string
+          round: number
+          team_idx: number
+          user_id: string | null
+          was_autopick: boolean
+          was_keeper: boolean
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "draft_picks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_public_room_snapshot: {
+        Args: { _token: string }
+        Returns: {
+          current_pick_number: number
+          draft_mode: string
+          draft_position: number
+          participant_id: string
+          room_id: string
+          room_name: string
+          rounds: number
+          status: string
+          team_count: number
+          team_name: string
+        }[]
+      }
+      get_room_id_by_share_token: { Args: { _token: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -935,12 +1012,17 @@ export type Database = {
           auction_min_bid: number
           auction_nominations_per_team: number | null
           auto_start_at: string | null
+          clock_elapsed_ms: number
+          clock_running: boolean
+          clock_started_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
           draft_format: string
+          draft_mode: string
           host_user_id: string
           id: string
+          layout_preference: string | null
           league_id: string | null
           name: string
           paused_at: string | null
@@ -985,12 +1067,17 @@ export type Database = {
           auction_min_bid: number
           auction_nominations_per_team: number | null
           auto_start_at: string | null
+          clock_elapsed_ms: number
+          clock_running: boolean
+          clock_started_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
           draft_format: string
+          draft_mode: string
           host_user_id: string
           id: string
+          layout_preference: string | null
           league_id: string | null
           name: string
           paused_at: string | null
@@ -1076,12 +1163,17 @@ export type Database = {
           auction_min_bid: number
           auction_nominations_per_team: number | null
           auto_start_at: string | null
+          clock_elapsed_ms: number
+          clock_running: boolean
+          clock_started_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
           draft_format: string
+          draft_mode: string
           host_user_id: string
           id: string
+          layout_preference: string | null
           league_id: string | null
           name: string
           paused_at: string | null
@@ -1150,6 +1242,37 @@ export type Database = {
         }
       }
       lobby_autostart_due: { Args: never; Returns: number }
+      make_offline_pick: {
+        Args: {
+          _player_id: string
+          _player_name: string
+          _player_position: string
+          _player_team: string
+          _room_id: string
+        }
+        Returns: {
+          auction_price: number | null
+          id: string
+          pick_number: number
+          picked_at: string
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          room_id: string
+          round: number
+          team_idx: number
+          user_id: string | null
+          was_autopick: boolean
+          was_keeper: boolean
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draft_picks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       make_pick: {
         Args: {
           _autopick?: boolean
@@ -1193,12 +1316,17 @@ export type Database = {
           auction_min_bid: number
           auction_nominations_per_team: number | null
           auto_start_at: string | null
+          clock_elapsed_ms: number
+          clock_running: boolean
+          clock_started_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
           draft_format: string
+          draft_mode: string
           host_user_id: string
           id: string
+          layout_preference: string | null
           league_id: string | null
           name: string
           paused_at: string | null
@@ -1272,12 +1400,17 @@ export type Database = {
           auction_min_bid: number
           auction_nominations_per_team: number | null
           auto_start_at: string | null
+          clock_elapsed_ms: number
+          clock_running: boolean
+          clock_started_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
           draft_format: string
+          draft_mode: string
           host_user_id: string
           id: string
+          layout_preference: string | null
           league_id: string | null
           name: string
           paused_at: string | null
@@ -1311,6 +1444,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      set_offline_clock: {
+        Args: { _reset?: boolean; _room_id: string; _running: boolean }
+        Returns: undefined
+      }
       snake_autopick_due: { Args: never; Returns: number }
       snake_default_team: {
         Args: {
@@ -1331,12 +1468,17 @@ export type Database = {
           auction_min_bid: number
           auction_nominations_per_team: number | null
           auto_start_at: string | null
+          clock_elapsed_ms: number
+          clock_running: boolean
+          clock_started_at: string | null
           completed_at: string | null
           created_at: string
           current_pick_number: number
           draft_format: string
+          draft_mode: string
           host_user_id: string
           id: string
+          layout_preference: string | null
           league_id: string | null
           name: string
           paused_at: string | null
@@ -1378,6 +1520,7 @@ export type Database = {
         }
         Returns: number
       }
+      undo_last_offline_pick: { Args: { _room_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

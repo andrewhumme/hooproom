@@ -1,81 +1,79 @@
-# Better Roster Data: Historical Backfill + Advanced Stats
+## Offline Draft Mode
 
-Two independent workstreams. Ship #1 first (immediate value on the draft board), then layer #2 on top of the weekly cron already running.
+An in-person alternative to the live multiplayer flow. Host runs the whole draft from one device; other participants only need a link to see their roster.
 
-## 1. Historical backfill — 10 seasons from nbaapi.com
+### 1. Schema additions (one migration)
 
-**Goal:** Populate `player_season_stats` with seasons 2015-16 → 2024-25 (10 seasons) so the draft board and player modals can show multi-year trends, career averages, and consistency grades.
+Extend `draft_rooms`:
+- `draft_mode` text default `'online'` — `'online' | 'offline'`
+- `layout_preference` text nullable — `'board' | 'console'` (offline only)
+- `clock_running` boolean default false, `clock_started_at` timestamptz nullable — for the optional shared timer state (host-controlled, no autopick)
 
-**One-time job, no ongoing maintenance.**
+Extend `draft_participants`:
+- `owner_email` text nullable
+- `share_token` uuid default `gen_random_uuid()` unique — powers per-team read-only URL
+- Keep `user_id` nullable (already is) so offline "shadow" participants don't need accounts
 
-### Data
-- Source: `api.server.nbaapi.com/api/playertotals?season=YYYY` (already used for current season).
-- Regular season only (`isPlayoff !== true`) — same filter as `seasonRefresh.server.ts`.
-- Aggregate multi-team rows the same way (prefer `TOT`/`NTM` combined row).
-- Upsert on `(player_key, season)` — matches existing unique constraint, so re-runs are idempotent.
+New RLS: allow anon `SELECT` on `draft_participants`, `draft_picks`, `draft_pick_assignments` filtered by a `share_token` lookup via a `SECURITY DEFINER` function `get_room_by_share_token(uuid)`. This keeps the existing tight policies for authenticated users untouched.
 
-### Implementation
-- New helper in `src/lib/seasonRefresh.server.ts` (or a sibling `historicalBackfill.server.ts`): `backfillHistoricalSeasons(startSeason, endSeason)`. Reuses the existing `fetchSeason` + `aggregateBySeasonPlayer` + `toPerGameRow` functions — no duplicated logic.
-- New admin-only server function `backfillHistoricalStats` in `src/lib/admin.functions.ts` guarded by `requireSupabaseAuth` + `has_role(admin)` check. Runs the 10-season loop, returns per-season row counts. No cron — you trigger it once from the admin page.
-- Add a "Backfill historical stats" button to `src/routes/_authenticated/admin.users.tsx` (or a new admin sub-page) with a progress log.
+New RPC `make_offline_pick(room_id, participant_id, player_id, ...)`: `SECURITY DEFINER`, only callable by the room host, advances `current_pick_number`, inserts pick + assignment. Mirrors `make_pick` but bypasses "must be your turn's user_id" check.
 
-### Draft-board surfacing (light UI touch)
-- `PlayerStatsModal.tsx` already shows season rows — the extra seasons will appear automatically once backfilled.
-- Add a "3-yr avg" row in the modal header (simple average of the last 3 non-null seasons for PTS/REB/AST/3PM/STL/BLK) so it's visible without scrolling.
+New RPC `undo_last_pick(room_id)`: host-only, removes the last pick + assignment, decrements `current_pick_number`. Offline-only quality-of-life.
 
-## 2. Advanced stats enrichment — NBA CDN weekly cron
+### 2. Create-room flow (`/lobby/new`)
 
-**Goal:** Add TS%, USG%, and (optionally) per-36 minute stats to the current season so the draft board can show efficiency and role, not just raw counting stats.
+Add a mode toggle at the top: **Online (multiplayer)** vs **Offline (in person)**.
 
-### Data
-- Source: `stats.nba.com/stats/leaguedashplayerstats` with `MeasureType=Advanced` (TS%, USG%, PIE, AST%, TOV%, etc.) and `MeasureType=Base&PerMode=Per36` for per-36.
-- Free, no auth. Requires a `Referer: https://www.nba.com/` header — otherwise 403.
-- One request per measure type per season. Two requests per weekly run.
+When Offline is selected:
+- Show a **Team list editor**: rows of `{ name, email? }`. `team_count` auto-derives from the list length. Minimum 2, cap at 20. Remove the "invite others" hint.
+- Show a **Layout picker**: TV/Big-screen board or Tablet commissioner console.
+- Hide fields that don't apply: pick clock stays but is labelled "Optional shared timer — host controls start/pause".
+- Persist teams to `draft_participants` at room creation (with `user_id = null`, generated `share_token`, host record uses the actual user).
 
-### Schema
-New migration: extend `player_season_stats` with nullable columns:
-- `ts_pct numeric(4,3)` — true shooting %
-- `usg_pct numeric(4,3)` — usage rate
-- `ast_pct numeric(4,3)`
-- `tov_pct numeric(4,3)`
-- `pie numeric(4,3)` — player impact estimate
-- `nba_player_id integer` (already exists on `players` — join key)
+### 3. Draft room (`/draft/$roomId`)
 
-Mirror the same columns onto `player_season_snapshots` so weekly rank-movement works for advanced metrics too.
+Detect `draft_mode === 'offline'` early and branch to a dedicated `<OfflineDraftRoom>` component. Two sub-layouts:
 
-### Implementation
-- New helper `refreshAdvancedStats()` in `src/lib/seasonRefresh.server.ts`. Fetches NBA CDN, joins on `nba_player_id` (fallback to `loose_key` matched on player name), upserts the advanced columns onto the existing current-season row (does not create new rows).
-- Wire into the existing weekly cron: call `refreshAdvancedStats()` right after `refreshCurrentSeason()` inside `src/routes/api/public/hooks/refresh-season-stats.ts`. One cron job, two data pulls.
-- Snapshot: add advanced columns to the snapshot insert so trends work.
+**Board layout** (landscape/TV):
+- Massive draft board grid (rounds × teams) taking most of the viewport
+- Sticky top banner: "On the clock: **[Team name]** — Round X, Pick Y" + optional timer (Start / Pause / Reset)
+- Right rail: player search + one-tap "Draft to [Team]" button
+- Recent picks ticker along the bottom
 
-### Surfacing
-- `PlayerStatsModal.tsx`: add an "Advanced" tab or a small stat row (TS%, USG%, PIE).
-- Draft board list (`src/routes/draft.$roomId.tsx` players tab): add a toggle/column for TS% or USG% — helps identify efficient scorers vs. volume shooters at a glance.
+**Console layout** (tablet):
+- Big "On the clock" card up top with team name + timer
+- Player search dominates the middle, single "Draft" button
+- Collapsible current roster preview for the on-clock team
+- "Undo last pick" always visible
 
-## Technical section
+Both layouts share:
+- Position-eligibility filter (reuse existing slot logic; disable ineligible players for the current team)
+- "Copy roster link" button per team → `/roster/:share_token`
+- Timer: purely visual, no autopick; state persisted so it survives refresh
 
-### Files touched / created
-- `src/lib/seasonRefresh.server.ts` — extract `backfillHistoricalSeasons`, add `refreshAdvancedStats`.
-- `src/lib/admin.functions.ts` — new `backfillHistoricalStats` server fn (admin-gated).
-- `src/routes/_authenticated/admin.users.tsx` — add backfill trigger button + log output.
-- `src/routes/api/public/hooks/refresh-season-stats.ts` — chain the advanced refresh into the weekly run.
-- `src/components/PlayerStatsModal.tsx` — surface 3-year avg row + advanced metrics.
-- Migration: add advanced columns to `player_season_stats` and `player_season_snapshots`.
+### 4. Read-only team page (`/roster/:token`)
 
-### Guardrails
-- **Rate limiting:** historical backfill sleeps ~500ms between season fetches (10 seasons × ~5 pages ≈ 50 requests, done in ~30s). NBA CDN calls include the `Referer` header and one retry with backoff on 429.
-- **Idempotency:** both jobs use `upsert(..., { onConflict: '...' })` — safe to re-run.
-- **RLS unchanged:** stats tables are already public-read via `TO anon`; new columns inherit that policy.
+New public route (no auth). Shows:
+- Team name + who's on the clock right now + pick number
+- Their current roster with slot placement (reuse `assignPicksToSlots`)
+- Recent picks ticker
+- Realtime updates via existing `draft_picks` channel
 
-### Not in this plan (deliberately)
-- Paid feeds (Sportradar, SportsDataIO) — you already ruled those out for cost/maintenance.
-- Backfilling snapshots for past seasons — snapshots are for in-season rank tracking; historical seasons are point-in-time totals.
-- Career-arc UI (age curves, similarity scores) — that's a follow-up once the data is in.
+No draft actions; no queue in v1 (per answer #4).
 
-### Build order
-1. Historical backfill: helper + admin fn + admin UI trigger. Run it once, verify 10 seasons land.
-2. Advanced-stats migration + `refreshAdvancedStats` + wire into weekly cron. Manually POST the cron endpoint once to backfill this season.
-3. Surface both in `PlayerStatsModal` (3-yr avg row + advanced tab).
-4. Optional: TS%/USG% column toggle on the draft board players list.
+### 5. Summary + `/me` compatibility
 
-Steps 1–3 give you the meaningful data improvement. Step 4 is polish.
+- `/me` "Hosting" tab labels offline rooms with an **Offline** badge and hides "Waiting for players" progress (it's not applicable).
+- Summary page already works from picks/assignments — no changes needed beyond the badge.
+
+### Out of scope for this build
+
+- Emailing owner links (we surface + let host copy them; sending email is a separate turn)
+- Owner queues from the read-only page
+- Converting an offline room back to online mid-draft
+
+### Technical notes
+
+- All offline write paths go through `SECURITY DEFINER` RPCs → write policies stay locked (matches the pattern already ignored in the security scan).
+- No new server functions needed; everything is Supabase RPC + realtime.
+- Layout branching is a runtime prop, not a route split, so `/draft/$roomId` remains one URL.

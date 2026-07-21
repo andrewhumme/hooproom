@@ -13,6 +13,7 @@ import { Route as LobbyRouteImport } from './routes/lobby'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LobbyNewOfflineRouteImport } from './routes/lobby_.new-offline'
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
 import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
@@ -42,6 +43,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LobbyNewOfflineRoute = LobbyNewOfflineRouteImport.update({
+  id: '/lobby_/new-offline',
+  path: '/lobby/new-offline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LobbyNewRoute = LobbyNewRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
+  '/lobby/new-offline': typeof LobbyNewOfflineRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby/new': typeof LobbyNewRoute
+  '/lobby/new-offline': typeof LobbyNewOfflineRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/_authenticated/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/lobby_/new': typeof LobbyNewRoute
+  '/lobby_/new-offline': typeof LobbyNewOfflineRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/draft/$roomId'
     | '/lobby/new'
+    | '/lobby/new-offline'
     | '/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/draft/$roomId'
     | '/lobby/new'
+    | '/lobby/new-offline'
     | '/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/_authenticated/me'
     | '/draft/$roomId'
     | '/lobby_/new'
+    | '/lobby_/new-offline'
     | '/_authenticated/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   LobbyRoute: typeof LobbyRoute
   DraftRoomIdRoute: typeof DraftRoomIdRoute
   LobbyNewRoute: typeof LobbyNewRoute
+  LobbyNewOfflineRoute: typeof LobbyNewOfflineRoute
   ApiPublicAuctionTickRoute: typeof ApiPublicAuctionTickRoute
   ApiPublicLobbyTickRoute: typeof ApiPublicLobbyTickRoute
   ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lobby_/new-offline': {
+      id: '/lobby_/new-offline'
+      path: '/lobby/new-offline'
+      fullPath: '/lobby/new-offline'
+      preLoaderRoute: typeof LobbyNewOfflineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lobby_/new': {
@@ -350,6 +370,7 @@ const rootRouteChildren: RootRouteChildren = {
   LobbyRoute: LobbyRoute,
   DraftRoomIdRoute: DraftRoomIdRoute,
   LobbyNewRoute: LobbyNewRoute,
+  LobbyNewOfflineRoute: LobbyNewOfflineRoute,
   ApiPublicAuctionTickRoute: ApiPublicAuctionTickRoute,
   ApiPublicLobbyTickRoute: ApiPublicLobbyTickRoute,
   ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,
@@ -360,13 +381,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
