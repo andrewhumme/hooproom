@@ -103,11 +103,7 @@ function HostDraftMenu({ onSelect, size = "lg", className }: HostDraftMenuProps)
         {items.map(({ key, label, hint, icon: Icon, path, search }) => (
           <DropdownMenuItem
             key={key}
-            onClick={() =>
-              onSelect(
-                search ? `${path}?${new URLSearchParams(search as Record<string, string>).toString()}` : path
-              )
-            }
+            onClick={() => onSelect(path, search)}
             className="flex cursor-pointer items-start gap-3 p-3"
           >
             <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
