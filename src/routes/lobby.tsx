@@ -202,12 +202,16 @@ function LobbyPage() {
     };
   }, [authLoading]);
 
-  const handleHostChoice = (path: string) => {
+  const handleHostChoice = (
+    path: "/lobby/new" | "/lobby/new-offline",
+    search?: { type: "mock" | "league" }
+  ) => {
     if (!isReal) {
-      navigate({ to: "/auth", search: { redirect: path } });
+      const redirect = search ? `${path}?type=${search.type}` : path;
+      navigate({ to: "/auth", search: { redirect } });
       return;
     }
-    navigate({ to: path as "/lobby/new" | "/lobby/new-offline", search: path === "/lobby/new" ? { type: "mock" } : undefined });
+    navigate({ to: path, search });
   };
 
   return (
