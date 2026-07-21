@@ -133,26 +133,18 @@ function LobbyPage() {
     };
   }, [authLoading]);
 
-  const handleCreate = () => {
+  const handleHostChoice = (path: string) => {
     if (!isReal) {
-      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
+      navigate({ to: "/auth", search: { redirect: path } });
       return;
     }
-    navigate({ to: "/lobby/new" });
-  };
-
-  const handleCreateOffline = () => {
-    if (!isReal) {
-      navigate({ to: "/auth", search: { redirect: "/lobby/new-offline" } });
-      return;
-    }
-    navigate({ to: "/lobby/new-offline" });
+    navigate({ to: path as "/lobby/new" | "/lobby/new-offline", search: path === "/lobby/new" ? { type: "mock" } : undefined });
   };
 
   return (
     <div className="min-h-screen bg-background">
       <section className="border-b border-border bg-secondary text-secondary-foreground">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-10 lg:flex-row lg:items-center">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap asChild gap-6 px-6 py-10 lg:flex-row lg:items-center">
           <div>
             <div className="text-xs font-bold uppercase tracking-widest text-primary">
               Live Lobby
@@ -166,22 +158,7 @@ function LobbyPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Button
-              size="lg"
-              onClick={handleCreate}
-              className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
-            >
-              <Plus /> Host a draft
-              <ArrowRight />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={handleCreateOffline}
-              className="h-12 px-6 text-base font-bold"
-            >
-              <Users /> Host in person
-            </Button>
+            <HostDraftMenu onSelect={handleHostChoice} />
           </div>
         </div>
       </section>
