@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, LogOut, User, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, User, ChevronDown, Zap, MapPin } from "lucide-react";
 
 function PillNavLink({
   to,
@@ -56,8 +56,21 @@ function PillNavLink({
 export function Header() {
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileHostOpen, setMobileHostOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const isHome = pathname === "/";
+  const hostActive = pathname === "/lobby/new" || pathname === "/lobby/new-offline";
+
+  const goHost = (path: "/lobby/new" | "/lobby/new-offline") => {
+    setMobileOpen(false);
+    setMobileHostOpen(false);
+    if (!user) {
+      navigate({ to: "/auth", search: { redirect: path } });
+      return;
+    }
+    navigate({ to: path });
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/50 backdrop-blur-sm">
@@ -75,9 +88,55 @@ export function Header() {
           <PillNavLink to="/lobby" isActive={pathname === "/lobby"}>
             Browse drafts
           </PillNavLink>
-          <PillNavLink to="/lobby/new" isActive={pathname === "/lobby/new"}>
-            Start a draft
-          </PillNavLink>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className={[
+                  "group relative flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 outline-none",
+                  hostActive
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                ].join(" ")}
+              >
+                <span className="inline-flex items-center gap-1">
+                  Start a draft
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </span>
+                <span className="h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center rounded-full" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-72">
+              <DropdownMenuItem
+                onClick={() => goHost("/lobby/new")}
+                className="flex cursor-pointer items-start gap-3 p-3"
+              >
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <Zap className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-black">Online Draft</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Live multiplayer — mock or real league, everyone joins remotely.
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => goHost("/lobby/new-offline")}
+                className="flex cursor-pointer items-start gap-3 p-3"
+              >
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <MapPin className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-black">Offline Draft</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Host in person with a shared board and per-team links.
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {isHome ? (
             <PillNavLink href="#features">Features</PillNavLink>
           ) : (
@@ -144,13 +203,44 @@ export function Header() {
             >
               Browse drafts
             </Link>
-            <Link
-              to="/lobby/new"
-              onClick={() => setMobileOpen(false)}
-              className="text-[15px] font-medium text-muted-foreground hover:text-primary"
-            >
-              Start a draft
-            </Link>
+            <div>
+              <button
+                type="button"
+                onClick={() => setMobileHostOpen((o) => !o)}
+                className="flex w-full items-center justify-between text-[15px] font-medium text-muted-foreground hover:text-primary"
+              >
+                <span>Start a draft</span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${mobileHostOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {mobileHostOpen && (
+                <div className="mt-2 flex flex-col gap-2 pl-3">
+                  <button
+                    type="button"
+                    onClick={() => goHost("/lobby/new")}
+                    className="flex items-start gap-2 text-left text-[14px] font-medium text-muted-foreground hover:text-primary"
+                  >
+                    <Zap className="mt-0.5 h-4 w-4 text-primary" />
+                    <span>
+                      <span className="block font-bold text-foreground">Online Draft</span>
+                      <span className="block text-xs">Live multiplayer, everyone joins remotely.</span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goHost("/lobby/new-offline")}
+                    className="flex items-start gap-2 text-left text-[14px] font-medium text-muted-foreground hover:text-primary"
+                  >
+                    <MapPin className="mt-0.5 h-4 w-4 text-primary" />
+                    <span>
+                      <span className="block font-bold text-foreground">Offline Draft</span>
+                      <span className="block text-xs">Host in person with a shared board.</span>
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
             {isHome ? (
               <a
                 href="#features"
