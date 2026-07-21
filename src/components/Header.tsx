@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, LogOut, User, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, User, ChevronDown, Zap, MapPin } from "lucide-react";
 
 function PillNavLink({
   to,
