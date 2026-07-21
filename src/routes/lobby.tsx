@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowRight, Lock, Plus, Zap } from "lucide-react";
+import { ArrowRight, Lock, Plus, Users, Zap } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby")({
