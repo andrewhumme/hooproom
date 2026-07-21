@@ -105,6 +105,11 @@ type Room = {
   auto_start_at: string | null;
   scheduled_start_at: string | null;
   room_type: "mock" | "league";
+  draft_mode?: string | null;
+  layout_preference?: string | null;
+  clock_running?: boolean;
+  clock_started_at?: string | null;
+  clock_elapsed_ms?: number;
 };
 
 type Participant = {
