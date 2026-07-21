@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowRight, Lock, MapPin, Plus, Users, Zap } from "lucide-react";
+import { ArrowRight, Lock, MapPin, Plus, Zap } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby")({
