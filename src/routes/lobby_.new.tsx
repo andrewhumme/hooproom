@@ -11,7 +11,12 @@ import { Loader2 } from "lucide-react";
 import { DEFAULT_SLOTS, SLOT_KEYS, type SlotConfig, totalSlots } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 
+const lobbySearchSchema = z.object({
+  type: z.enum(["mock", "league"]).optional().default("mock"),
+});
+
 export const Route = createFileRoute("/lobby_/new")({
+  validateSearch: lobbySearchSchema,
   component: NewRoomPage,
   head: () => ({
     meta: [
