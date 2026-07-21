@@ -286,7 +286,8 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const { error } = await supabase.rpc("undo_last_offline_pick" as never, {
+      const rpc = supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ error: { message?: string } | null }>;
+      const { error } = await rpc("undo_last_offline_pick", {
         _room_id: room.id,
       });
       if (error) throw error;
