@@ -256,12 +256,14 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
     setError(null);
     try {
       // Reset clock on each pick
-      await supabase.rpc("set_offline_clock" as never, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rpc = supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ error: { message?: string } | null }>;
+      await rpc("set_offline_clock", {
         _room_id: room.id,
         _running: false,
         _reset: true,
       });
-      const { error: pickErr } = await supabase.rpc("make_offline_pick" as never, {
+      const { error: pickErr } = await rpc("make_offline_pick", {
         _room_id: room.id,
         _player_id: player.id,
         _player_name: player.name,
