@@ -207,9 +207,14 @@ function LobbyPage() {
                 Be the first — host a draft and share the link with your league.
               </p>
             </div>
-            <Button onClick={handleCreate} size="lg" className="font-bold">
-              <Plus /> Host a draft <ArrowRight />
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button onClick={handleCreate} size="lg" className="font-bold">
+                <Plus /> Host a draft <ArrowRight />
+              </Button>
+              <Button onClick={handleCreateOffline} variant="outline" size="lg" className="font-bold">
+                <Users /> Host in person
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border-2 border-border shadow-[var(--shadow-bold)]">
