@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowRight, Lock, Plus, Zap } from "lucide-react";
+import { ArrowRight, Lock, Plus, Users, Zap } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby")({
@@ -135,6 +135,14 @@ function LobbyPage() {
     navigate({ to: "/lobby/new" });
   };
 
+  const handleCreateOffline = () => {
+    if (!isReal) {
+      navigate({ to: "/auth", search: { redirect: "/lobby/new-offline" } });
+      return;
+    }
+    navigate({ to: "/lobby/new-offline" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <section className="border-b border-border bg-secondary text-secondary-foreground">
@@ -151,14 +159,24 @@ function LobbyPage() {
               then invite your league.
             </p>
           </div>
-          <Button
-            size="lg"
-            onClick={handleCreate}
-            className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
-          >
-            <Plus /> Host a draft
-            <ArrowRight />
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              size="lg"
+              onClick={handleCreate}
+              className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
+            >
+              <Plus /> Host a draft
+              <ArrowRight />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleCreateOffline}
+              className="h-12 px-6 text-base font-bold"
+            >
+              <Users /> Host in person
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -189,9 +207,14 @@ function LobbyPage() {
                 Be the first — host a draft and share the link with your league.
               </p>
             </div>
-            <Button onClick={handleCreate} size="lg" className="font-bold">
-              <Plus /> Host a draft <ArrowRight />
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button onClick={handleCreate} size="lg" className="font-bold">
+                <Plus /> Host a draft <ArrowRight />
+              </Button>
+              <Button onClick={handleCreateOffline} variant="outline" size="lg" className="font-bold">
+                <Users /> Host in person
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border-2 border-border shadow-[var(--shadow-bold)]">
