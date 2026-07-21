@@ -203,13 +203,44 @@ export function Header() {
             >
               Browse drafts
             </Link>
-            <Link
-              to="/lobby/new"
-              onClick={() => setMobileOpen(false)}
-              className="text-[15px] font-medium text-muted-foreground hover:text-primary"
-            >
-              Start a draft
-            </Link>
+            <div>
+              <button
+                type="button"
+                onClick={() => setMobileHostOpen((o) => !o)}
+                className="flex w-full items-center justify-between text-[15px] font-medium text-muted-foreground hover:text-primary"
+              >
+                <span>Start a draft</span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${mobileHostOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {mobileHostOpen && (
+                <div className="mt-2 flex flex-col gap-2 pl-3">
+                  <button
+                    type="button"
+                    onClick={() => goHost("/lobby/new")}
+                    className="flex items-start gap-2 text-left text-[14px] font-medium text-muted-foreground hover:text-primary"
+                  >
+                    <Zap className="mt-0.5 h-4 w-4 text-primary" />
+                    <span>
+                      <span className="block font-bold text-foreground">Online Draft</span>
+                      <span className="block text-xs">Live multiplayer, everyone joins remotely.</span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goHost("/lobby/new-offline")}
+                    className="flex items-start gap-2 text-left text-[14px] font-medium text-muted-foreground hover:text-primary"
+                  >
+                    <MapPin className="mt-0.5 h-4 w-4 text-primary" />
+                    <span>
+                      <span className="block font-bold text-foreground">Offline Draft</span>
+                      <span className="block text-xs">Host in person with a shared board.</span>
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
             {isHome ? (
               <a
                 href="#features"
