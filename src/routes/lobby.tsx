@@ -12,7 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowRight, Lock, Plus, Users, Zap } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowRight, Lock, MapPin, Plus, Users, Zap } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby")({
@@ -48,6 +54,71 @@ type Room = {
   created_at: string;
   participant_count?: number;
 };
+
+type HostDraftMenuProps = {
+  onSelect: (path: "/lobby/new" | "/lobby/new-offline", search?: { type: "mock" | "league" }) => void;
+  size?: "default" | "lg";
+  className?: string;
+};
+
+function HostDraftMenu({ onSelect, size = "lg", className }: HostDraftMenuProps) {
+  const items = [
+    {
+      key: "mock",
+      label: "Mock Draft",
+      hint: "Practice against bot fill — instant lobbies.",
+      icon: Zap,
+      path: "/lobby/new",
+      search: { type: "mock" },
+    },
+    {
+      key: "league",
+      label: "League Draft",
+      hint: "Real managers, scheduled start, private invites.",
+      icon: Users,
+      path: "/lobby/new",
+      search: { type: "league" },
+    },
+    {
+      key: "offline",
+      label: "Offline Draft",
+      hint: "Host in person with a shared board and per-team links.",
+      icon: MapPin,
+      path: "/lobby/new-offline",
+      search: undefined,
+    },
+  ] as const;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          size={size}
+          className={`h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)] ${className ?? ""}`}
+        >
+          <Plus /> Host a draft <ArrowRight />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-72">
+        {items.map(({ key, label, hint, icon: Icon, path, search }) => (
+          <DropdownMenuItem
+            key={key}
+            onClick={() => onSelect(path, search)}
+            className="flex cursor-pointer items-start gap-3 p-3"
+          >
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Icon className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="text-sm font-black">{label}</div>
+              <div className="text-xs font-medium text-muted-foreground">{hint}</div>
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function LobbyPage() {
   const { user, isGuest, loading: authLoading } = useAuth();
@@ -127,20 +198,16 @@ function LobbyPage() {
     };
   }, [authLoading]);
 
-  const handleCreate = () => {
+  const handleHostChoice = (
+    path: "/lobby/new" | "/lobby/new-offline",
+    search?: { type: "mock" | "league" }
+  ) => {
     if (!isReal) {
-      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
+      const redirect = search ? `${path}?type=${search.type}` : path;
+      navigate({ to: "/auth", search: { redirect } });
       return;
     }
-    navigate({ to: "/lobby/new" });
-  };
-
-  const handleCreateOffline = () => {
-    if (!isReal) {
-      navigate({ to: "/auth", search: { redirect: "/lobby/new-offline" } });
-      return;
-    }
-    navigate({ to: "/lobby/new-offline" });
+    navigate({ to: path, search });
   };
 
   return (
@@ -160,22 +227,7 @@ function LobbyPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Button
-              size="lg"
-              onClick={handleCreate}
-              className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
-            >
-              <Plus /> Host a draft
-              <ArrowRight />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={handleCreateOffline}
-              className="h-12 px-6 text-base font-bold"
-            >
-              <Users /> Host in person
-            </Button>
+            <HostDraftMenu onSelect={handleHostChoice} />
           </div>
         </div>
       </section>
@@ -207,14 +259,7 @@ function LobbyPage() {
                 Be the first — host a draft and share the link with your league.
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <Button onClick={handleCreate} size="lg" className="font-bold">
-                <Plus /> Host a draft <ArrowRight />
-              </Button>
-              <Button onClick={handleCreateOffline} variant="outline" size="lg" className="font-bold">
-                <Users /> Host in person
-              </Button>
-            </div>
+            <HostDraftMenu onSelect={handleHostChoice} size="lg" />
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border-2 border-border shadow-[var(--shadow-bold)]">

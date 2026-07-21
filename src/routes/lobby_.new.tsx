@@ -11,7 +11,12 @@ import { Loader2 } from "lucide-react";
 import { DEFAULT_SLOTS, SLOT_KEYS, type SlotConfig, totalSlots } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 
+const lobbySearchSchema = z.object({
+  type: z.enum(["mock", "league"]).optional().default("mock"),
+});
+
 export const Route = createFileRoute("/lobby_/new")({
+  validateSearch: lobbySearchSchema,
   component: NewRoomPage,
   head: () => ({
     meta: [
@@ -107,13 +112,14 @@ function NewRoomPage() {
   const { user, isGuest, loading: authLoading } = useAuth();
   const isReal = !!user && !isGuest;
   const navigate = useNavigate();
+  const { type } = Route.useSearch();
 
   // Gate: only real signed-in users can host a draft.
   useEffect(() => {
     if (!authLoading && !isReal) {
-      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
+      navigate({ to: "/auth", search: { redirect: `/lobby/new?type=${type}` } });
     }
-  }, [authLoading, isReal, navigate]);
+  }, [authLoading, isReal, navigate, type]);
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
@@ -134,9 +140,11 @@ function NewRoomPage() {
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
   const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(5 * 60);
-  const [roomType, setRoomType] = useState<"mock" | "league">("mock");
+  const [roomType, setRoomType] = useState<"mock" | "league">(type);
   const [scheduledStartAt, setScheduledStartAt] = useState<string>(""); // datetime-local value
-  const [visibility, setVisibility] = useState<"public" | "spectate" | "private">("public");
+  const [visibility, setVisibility] = useState<"public" | "spectate" | "private">(
+    type === "league" ? "private" : "public"
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
