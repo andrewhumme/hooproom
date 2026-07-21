@@ -11,6 +11,7 @@ import { ensureGuestSession } from "@/lib/guestSession";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
+import { OfflineDraftRoom } from "@/components/OfflineDraftRoom";
 import { DraftQueuePanel } from "@/components/DraftQueuePanel";
 import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
 import { DraftControlPanel } from "@/components/DraftControlPanel";
@@ -105,6 +106,11 @@ type Room = {
   auto_start_at: string | null;
   scheduled_start_at: string | null;
   room_type: "mock" | "league";
+  draft_mode?: string | null;
+  layout_preference?: string | null;
+  clock_running?: boolean;
+  clock_started_at?: string | null;
+  clock_elapsed_ms?: number;
 };
 
 type Participant = {
@@ -839,6 +845,19 @@ function DraftRoomPage() {
   }
 
   if (!room) return null;
+
+  // Offline / in-person drafts get their own host-console UI.
+  if (room.draft_mode === "offline" && room.status !== "waiting") {
+    return (
+      <OfflineDraftRoom
+        room={room as never}
+        participants={participants as never}
+        picks={picks as never}
+        isHost={room.host_user_id === user?.id}
+      />
+    );
+  }
+
 
   // Auction formats use a dedicated room UI for drafting/complete states.
   // The waiting room (lobby) is shared with the snake-draft UI below.
