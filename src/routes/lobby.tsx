@@ -56,7 +56,7 @@ type Room = {
 };
 
 type HostDraftMenuProps = {
-  onSelect: (path: "/lobby/new" | "/lobby/new-offline", search?: { type: "mock" | "league" }) => void;
+  onSelect: (path: "/lobby/new" | "/lobby/new-offline") => void;
   size?: "default" | "lg";
   className?: string;
 };
@@ -64,20 +64,11 @@ type HostDraftMenuProps = {
 function HostDraftMenu({ onSelect, size = "lg", className }: HostDraftMenuProps) {
   const items = [
     {
-      key: "mock",
-      label: "Mock Draft",
-      hint: "Practice against bot fill — instant lobbies.",
+      key: "online",
+      label: "Online Draft",
+      hint: "Live multiplayer — mock or real league, everyone joins remotely.",
       icon: Zap,
       path: "/lobby/new",
-      search: { type: "mock" },
-    },
-    {
-      key: "league",
-      label: "League Draft",
-      hint: "Real managers, scheduled start, private invites.",
-      icon: Users,
-      path: "/lobby/new",
-      search: { type: "league" },
     },
     {
       key: "offline",
@@ -85,7 +76,6 @@ function HostDraftMenu({ onSelect, size = "lg", className }: HostDraftMenuProps)
       hint: "Host in person with a shared board and per-team links.",
       icon: MapPin,
       path: "/lobby/new-offline",
-      search: undefined,
     },
   ] as const;
 
@@ -100,10 +90,10 @@ function HostDraftMenu({ onSelect, size = "lg", className }: HostDraftMenuProps)
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        {items.map(({ key, label, hint, icon: Icon, path, search }) => (
+        {items.map(({ key, label, hint, icon: Icon, path }) => (
           <DropdownMenuItem
             key={key}
-            onClick={() => onSelect(path, search)}
+            onClick={() => onSelect(path)}
             className="flex cursor-pointer items-start gap-3 p-3"
           >
             <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -119,6 +109,7 @@ function HostDraftMenu({ onSelect, size = "lg", className }: HostDraftMenuProps)
     </DropdownMenu>
   );
 }
+
 
 function LobbyPage() {
   const { user, isGuest, loading: authLoading } = useAuth();
