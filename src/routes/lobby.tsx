@@ -159,14 +159,24 @@ function LobbyPage() {
               then invite your league.
             </p>
           </div>
-          <Button
-            size="lg"
-            onClick={handleCreate}
-            className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
-          >
-            <Plus /> Host a draft
-            <ArrowRight />
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              size="lg"
+              onClick={handleCreate}
+              className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
+            >
+              <Plus /> Host a draft
+              <ArrowRight />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleCreateOffline}
+              className="h-12 px-6 text-base font-bold"
+            >
+              <Users /> Host in person
+            </Button>
+          </div>
         </div>
       </section>
 
