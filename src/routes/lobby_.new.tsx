@@ -112,6 +112,7 @@ function NewRoomPage() {
   const { user, isGuest, loading: authLoading } = useAuth();
   const isReal = !!user && !isGuest;
   const navigate = useNavigate();
+  const { type } = Route.useSearch();
 
   // Gate: only real signed-in users can host a draft.
   useEffect(() => {
@@ -139,9 +140,11 @@ function NewRoomPage() {
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
   const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(5 * 60);
-  const [roomType, setRoomType] = useState<"mock" | "league">("mock");
+  const [roomType, setRoomType] = useState<"mock" | "league">(type);
   const [scheduledStartAt, setScheduledStartAt] = useState<string>(""); // datetime-local value
-  const [visibility, setVisibility] = useState<"public" | "spectate" | "private">("public");
+  const [visibility, setVisibility] = useState<"public" | "spectate" | "private">(
+    type === "league" ? "private" : "public"
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
