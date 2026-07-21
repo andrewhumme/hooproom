@@ -56,8 +56,21 @@ function PillNavLink({
 export function Header() {
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileHostOpen, setMobileHostOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const isHome = pathname === "/";
+  const hostActive = pathname === "/lobby/new" || pathname === "/lobby/new-offline";
+
+  const goHost = (path: "/lobby/new" | "/lobby/new-offline") => {
+    setMobileOpen(false);
+    setMobileHostOpen(false);
+    if (!user) {
+      navigate({ to: "/auth", search: { redirect: path } });
+      return;
+    }
+    navigate({ to: path });
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/50 backdrop-blur-sm">
@@ -75,9 +88,55 @@ export function Header() {
           <PillNavLink to="/lobby" isActive={pathname === "/lobby"}>
             Browse drafts
           </PillNavLink>
-          <PillNavLink to="/lobby/new" isActive={pathname === "/lobby/new"}>
-            Start a draft
-          </PillNavLink>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className={[
+                  "group relative flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 outline-none",
+                  hostActive
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                ].join(" ")}
+              >
+                <span className="inline-flex items-center gap-1">
+                  Start a draft
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </span>
+                <span className="h-0.5 w-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center rounded-full" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-72">
+              <DropdownMenuItem
+                onClick={() => goHost("/lobby/new")}
+                className="flex cursor-pointer items-start gap-3 p-3"
+              >
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <Zap className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-black">Online Draft</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Live multiplayer — mock or real league, everyone joins remotely.
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => goHost("/lobby/new-offline")}
+                className="flex cursor-pointer items-start gap-3 p-3"
+              >
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <MapPin className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-black">Offline Draft</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Host in person with a shared board and per-team links.
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {isHome ? (
             <PillNavLink href="#features">Features</PillNavLink>
           ) : (
