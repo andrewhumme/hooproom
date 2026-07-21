@@ -11,6 +11,7 @@ import { ensureGuestSession } from "@/lib/guestSession";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
+import { OfflineDraftRoom } from "@/components/OfflineDraftRoom";
 import { DraftQueuePanel } from "@/components/DraftQueuePanel";
 import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
 import { DraftControlPanel } from "@/components/DraftControlPanel";
