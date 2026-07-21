@@ -846,6 +846,19 @@ function DraftRoomPage() {
 
   if (!room) return null;
 
+  // Offline / in-person drafts get their own host-console UI.
+  if (room.draft_mode === "offline" && room.status !== "waiting") {
+    return (
+      <OfflineDraftRoom
+        room={room as never}
+        participants={participants as never}
+        picks={picks as never}
+        isHost={room.host_user_id === user?.id}
+      />
+    );
+  }
+
+
   // Auction formats use a dedicated room UI for drafting/complete states.
   // The waiting room (lobby) is shared with the snake-draft UI below.
   const isAuctionFormat =
