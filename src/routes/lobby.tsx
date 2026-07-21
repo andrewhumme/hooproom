@@ -135,6 +135,14 @@ function LobbyPage() {
     navigate({ to: "/lobby/new" });
   };
 
+  const handleCreateOffline = () => {
+    if (!isReal) {
+      navigate({ to: "/auth", search: { redirect: "/lobby/new-offline" } });
+      return;
+    }
+    navigate({ to: "/lobby/new-offline" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <section className="border-b border-border bg-secondary text-secondary-foreground">
