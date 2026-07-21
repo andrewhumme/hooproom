@@ -55,6 +55,75 @@ type Room = {
   participant_count?: number;
 };
 
+type HostDraftMenuProps = {
+  onSelect: (path: string) => void;
+  size?: "default" | "lg";
+  className?: string;
+};
+
+function HostDraftMenu({ onSelect, size = "lg", className }: HostDraftMenuProps) {
+  const items = [
+    {
+      key: "mock",
+      label: "Mock Draft",
+      hint: "Practice against bot fill — instant lobbies.",
+      icon: Zap,
+      path: "/lobby/new",
+      search: { type: "mock" },
+    },
+    {
+      key: "league",
+      label: "League Draft",
+      hint: "Real managers, scheduled start, private invites.",
+      icon: Users,
+      path: "/lobby/new",
+      search: { type: "league" },
+    },
+    {
+      key: "offline",
+      label: "Offline Draft",
+      hint: "Host in person with a shared board and per-team links.",
+      icon: MapPin,
+      path: "/lobby/new-offline",
+      search: undefined,
+    },
+  ] as const;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          size={size}
+          className={`h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)] ${className ?? ""}`}
+        >
+          <Plus /> Host a draft <ArrowRight />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-72">
+        {items.map(({ key, label, hint, icon: Icon, path, search }) => (
+          <DropdownMenuItem
+            key={key}
+            onClick={() =>
+              onSelect(
+                search ? `${path}?${new URLSearchParams(search as Record<string, string>).toString()}` : path
+              )
+            }
+            className="flex cursor-pointer items-start gap-3 p-3"
+          >
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Icon className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="text-sm font-black">{label}</div>
+              <div className="text-xs font-medium text-muted-foreground">{hint}</div>
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function LobbyPage() {
   const { user, isGuest, loading: authLoading } = useAuth();
   const isReal = !!user && !isGuest;
