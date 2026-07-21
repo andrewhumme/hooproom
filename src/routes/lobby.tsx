@@ -56,7 +56,7 @@ type Room = {
 };
 
 type HostDraftMenuProps = {
-  onSelect: (path: string) => void;
+  onSelect: (path: "/lobby/new" | "/lobby/new-offline", search?: { type: "mock" | "league" }) => void;
   size?: "default" | "lg";
   className?: string;
 };
