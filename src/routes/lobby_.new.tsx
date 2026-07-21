@@ -117,9 +117,9 @@ function NewRoomPage() {
   // Gate: only real signed-in users can host a draft.
   useEffect(() => {
     if (!authLoading && !isReal) {
-      navigate({ to: "/auth", search: { redirect: "/lobby/new" } });
+      navigate({ to: "/auth", search: { redirect: `/lobby/new?type=${type}` } });
     }
-  }, [authLoading, isReal, navigate]);
+  }, [authLoading, isReal, navigate, type]);
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState<number>(12);
   const [pickClock, setPickClock] = useState<number>(60);
