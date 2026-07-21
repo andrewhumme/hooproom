@@ -325,23 +325,28 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
   };
 
   const exportBoard = () => {
-    downloadDraftXlsx({
-      roomName: room.name,
-      teamCount: room.team_count,
-      rounds: room.rounds,
-      scoringFormat: room.scoring_format,
-      picks: picks.map((p) => ({
+    downloadDraftXlsx(
+      {
+        roomName: room.name,
+        draftFormat: "offline",
+        scoringFormat: room.scoring_format,
+        teamCount: room.team_count,
+        rounds: room.rounds,
+        pickClockSec: room.pick_clock_sec,
+      },
+      picks.map((p) => ({
         pick_number: p.pick_number,
         round: p.round,
         team_idx: p.team_idx,
         team_name:
-          participants.find((x) => x.draft_position === p.team_idx)?.team_name ?? `Team ${p.team_idx}`,
+          participants.find((x) => x.draft_position === p.team_idx)?.team_name ??
+          `Team ${p.team_idx}`,
         player_name: p.player_name,
         player_position: p.player_position,
         player_team: p.player_team,
-        auction_price: null,
+        was_autopick: false,
       })),
-    });
+    );
   };
 
   const clockSec = Math.floor(displayElapsedMs / 1000);
