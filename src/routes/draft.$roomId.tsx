@@ -415,6 +415,9 @@ function DraftRoomPage() {
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
 
+  // Tab-title + favicon dot + chime when it becomes my turn.
+  useTurnAlert(isMyTurn, room?.draft_mode !== "offline");
+
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
 
   // Per-user draft queue. Realtime-synced; used as autopick source by the
