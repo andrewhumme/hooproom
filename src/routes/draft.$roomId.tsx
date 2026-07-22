@@ -16,6 +16,7 @@ import { DraftQueuePanel } from "@/components/DraftQueuePanel";
 import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
 import { DraftControlPanel } from "@/components/DraftControlPanel";
 import { useDraftQueue } from "@/hooks/useDraftQueue";
+import { useTurnAlert } from "@/hooks/useTurnAlert";
 import {
   Dialog,
   DialogContent,
@@ -413,6 +414,9 @@ function DraftRoomPage() {
 
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
+
+  // Tab-title + favicon dot + chime when it becomes my turn.
+  useTurnAlert(isMyTurn, room?.draft_mode !== "offline");
 
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
 
