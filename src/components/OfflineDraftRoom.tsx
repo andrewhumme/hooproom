@@ -604,6 +604,7 @@ function WaitingScreen({
   onStart,
   onCopyLink,
   copiedToken,
+  ownerEmails,
   navigate,
 }: {
   room: Room;
@@ -614,6 +615,7 @@ function WaitingScreen({
   onStart: () => void;
   onCopyLink: (token: string) => void;
   copiedToken: string | null;
+  ownerEmails: Record<string, string | null>;
   navigate: ReturnType<typeof useNavigate>;
 }) {
   const sorted = [...participants].sort(
