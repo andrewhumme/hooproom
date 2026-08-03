@@ -124,6 +124,13 @@ type Participant = {
   is_bot?: boolean;
 };
 
+// owner_email is intentionally excluded — it is host-only and not granted to
+// anon/authenticated clients at the database level.
+const PARTICIPANT_COLUMNS =
+  "id, room_id, user_id, draft_position, team_name, joined_at, updated_at, is_bot, share_token";
+
+
+
 type Pick = {
   id: string;
   pick_number: number;
