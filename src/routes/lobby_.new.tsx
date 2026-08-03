@@ -150,6 +150,7 @@ function NewRoomPage() {
   const [reversalsEnabled, setReversalsEnabled] = useState<boolean>(false);
   const [lobbyTimerSec, setLobbyTimerSec] = useState<number>(5 * 60);
   const [roomType, setRoomType] = useState<"mock" | "league">(type);
+  const [playerPool, setPlayerPool] = useState<"all" | "rookies">("all");
   const [scheduledStartAt, setScheduledStartAt] = useState<string>(""); // datetime-local value
   const [visibility, setVisibility] = useState<"public" | "spectate" | "private">(
     type === "league" ? "private" : "public"
