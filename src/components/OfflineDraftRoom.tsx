@@ -122,7 +122,9 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
     let cancelled = false;
     (async () => {
       try {
-        const list = await fetchActivePlayersServer();
+        const list = await fetchActivePlayersServer({
+          data: { pool: room.player_pool === "rookies" ? "rookies" : "all" },
+        });
         if (!cancelled) {
           setPlayers([...list].sort(compareByRank));
         }
@@ -135,7 +137,7 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [room.player_pool]);
 
   // Tick for clock display
   useEffect(() => {
