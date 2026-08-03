@@ -651,6 +651,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean
+          is_rookie: boolean
           last_name: string
           loose_key: string | null
           nba_player_id: number | null
@@ -670,6 +671,7 @@ export type Database = {
           full_name: string
           id?: string
           is_active?: boolean
+          is_rookie?: boolean
           last_name: string
           loose_key?: string | null
           nba_player_id?: number | null
@@ -689,6 +691,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean
+          is_rookie?: boolean
           last_name?: string
           loose_key?: string | null
           nba_player_id?: number | null
