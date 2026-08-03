@@ -447,6 +447,42 @@ function NewRoomPage() {
 
             {step === 2 && (
             <div>
+              <Label>Player pool</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Draft from the full NBA player pool, or run a rookies-only draft with just this year's rookie class.
+              </p>
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {POOL_OPTIONS.map((p) => {
+                  const active = playerPool === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setPlayerPool(p.value)}
+                      className={`rounded-md border-2 p-3 text-left transition ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="text-sm font-black uppercase tracking-wide">{p.label}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{p.hint}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              {playerPool === "rookies" && (
+                <p className="mt-2 rounded-md border-2 border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                  Rookie pools are small — keep teams × roster slots well under the size of the rookie class
+                  (roughly 60 players) so every team can fill out.
+                </p>
+              )}
+            </div>
+            )}
+
+            {step === 2 && (
+            <div>
+
               <Label>Draft format</Label>
               <p className="mt-1 text-xs text-muted-foreground">
                 Snake = sequential picks. Auction = nominations + bidding. Both run live or slow based on the clocks you choose below.
