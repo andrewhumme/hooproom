@@ -156,7 +156,57 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" })
       console.error("Player seed failed:", err);
     }
 
-    // 3) Last resort: static bundled pool (full pool only — no rookie data).
-    return rookiesOnly ? [] : buildFallbackPlayerPool();
+    // 3) Rookie fallback: derive from stats history (no season before the
+    //    latest one on record = rookie).
+    if (rookiesOnly) {
+      try {
+        await flagRookiesFromStats();
+        const { data: derived } = await query();
+        if (derived && derived.length > 0) return mapRows(derived as PlayerRow[]);
+      } catch (err) {
+        console.error("Rookie derivation failed:", err);
+      }
+      return [];
+    }
+
+    // 4) Last resort: static bundled pool.
+    return buildFallbackPlayerPool();
   });
+
+/**
+ * Fallback rookie detection when the NBA CDN index is unavailable: an active
+ * player with no season stats prior to the most recent season on record is
+ * treated as a rookie.
+ */
+async function flagRookiesFromStats(): Promise<void> {
+  const { data: seasonRows } = await supabaseAdmin
+    .from("player_season_stats")
+    .select("season")
+    .order("season", { ascending: false })
+    .limit(1);
+  const latestSeason = seasonRows?.[0]?.season;
+  if (!latestSeason) return;
+
+  const { data: priorRows } = await supabaseAdmin
+    .from("player_season_stats")
+    .select("loose_key, player_key")
+    .lt("season", latestSeason);
+  const veterans = new Set(
+    (priorRows ?? []).map((r) => r.loose_key ?? r.player_key).filter(Boolean) as string[],
+  );
+
+  const { data: activeRows } = await supabaseAdmin
+    .from("players")
+    .select("player_key, loose_key")
+    .eq("is_active", true);
+  if (!activeRows) return;
+
+  const rookieKeys = activeRows
+    .filter((p) => !veterans.has(p.loose_key ?? p.player_key))
+    .map((p) => p.player_key);
+  if (rookieKeys.length === 0) return;
+
+  await supabaseAdmin.from("players").update({ is_rookie: true }).in("player_key", rookieKeys);
+}
+
 
