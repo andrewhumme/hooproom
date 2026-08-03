@@ -56,6 +56,7 @@ const SCHEMA = z.object({
   auto_start_at: z.string().nullable(),
   scheduled_start_at: z.string().nullable(),
   room_type: z.enum(["mock", "league"]),
+  player_pool: z.enum(["all", "rookies"]),
   visibility: z.enum(["public", "spectate", "private"]),
 });
 
