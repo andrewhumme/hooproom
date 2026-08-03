@@ -61,6 +61,14 @@ const SCHEMA = z.object({
 });
 
 const TEAM_OPTIONS = [6, 8, 10, 12, 14] as const;
+const POOL_OPTIONS = [
+  { value: "all" as const, label: "All players", hint: "Every active NBA player" },
+  {
+    value: "rookies" as const,
+    label: "Rookies only",
+    hint: "This year's rookie class only — great for dynasty rookie drafts",
+  },
+];
 // Live presets (seconds) + slow presets (hours, stored as seconds)
 const FAST_CLOCK_OPTIONS = [
   { label: "30s", value: 30 },
