@@ -107,6 +107,7 @@ type Room = {
   auto_start_at: string | null;
   scheduled_start_at: string | null;
   room_type: "mock" | "league";
+  player_pool?: string | null;
   draft_mode?: string | null;
   layout_preference?: string | null;
   clock_running?: boolean;
