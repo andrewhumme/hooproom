@@ -391,6 +391,7 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
         onStart={handleStart}
         onCopyLink={copyRosterLink}
         copiedToken={copiedToken}
+        ownerEmails={ownerEmails}
         navigate={navigate}
       />
     );
