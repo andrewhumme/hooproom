@@ -243,6 +243,7 @@ function NewRoomPage() {
           ? new Date(scheduledStartAt).toISOString()
           : null,
       room_type: roomType,
+      player_pool: playerPool,
       visibility,
     });
     if (!parsed.success) {
