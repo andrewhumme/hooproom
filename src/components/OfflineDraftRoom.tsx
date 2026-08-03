@@ -67,7 +67,7 @@ type Participant = {
   user_id: string | null;
   draft_position: number | null;
   team_name: string;
-  owner_email: string | null;
+  owner_email?: string | null;
   share_token: string;
 };
 
@@ -657,8 +657,8 @@ function WaitingScreen({
                       </Badge>
                     )}
                   </div>
-                  {p.owner_email && (
-                    <div className="truncate text-xs text-muted-foreground">{p.owner_email}</div>
+                  {ownerEmails[p.id] && (
+                    <div className="truncate text-xs text-muted-foreground">{ownerEmails[p.id]}</div>
                   )}
                 </div>
                 <Button
