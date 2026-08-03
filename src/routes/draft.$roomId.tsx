@@ -107,6 +107,7 @@ type Room = {
   auto_start_at: string | null;
   scheduled_start_at: string | null;
   room_type: "mock" | "league";
+  player_pool?: string | null;
   draft_mode?: string | null;
   layout_preference?: string | null;
   clock_running?: boolean;
@@ -302,7 +303,9 @@ function DraftRoomPage() {
       const maxAttempts = 3;
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-          const list = await fetchActivePlayersServer();
+          const list = await fetchActivePlayersServer({
+            data: { pool: room.player_pool === "rookies" ? "rookies" : "all" },
+          });
           if (!cancelled) setPlayers(list);
           return;
         } catch (e) {

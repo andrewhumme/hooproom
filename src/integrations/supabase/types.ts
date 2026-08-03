@@ -329,6 +329,7 @@ export type Database = {
           paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
+          player_pool: string
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -375,6 +376,7 @@ export type Database = {
           paused_remaining_ms?: number | null
           pick_clock_sec: number
           pick_deadline?: string | null
+          player_pool?: string
           reversal_rounds?: number[]
           room_type?: string
           rounds: number
@@ -421,6 +423,7 @@ export type Database = {
           paused_remaining_ms?: number | null
           pick_clock_sec?: number
           pick_deadline?: string | null
+          player_pool?: string
           reversal_rounds?: number[]
           room_type?: string
           rounds?: number
@@ -642,10 +645,13 @@ export type Database = {
         Row: {
           bdl_player_id: number | null
           created_at: string
+          draft_year: number | null
           first_name: string
+          from_year: number | null
           full_name: string
           id: string
           is_active: boolean
+          is_rookie: boolean
           last_name: string
           loose_key: string | null
           nba_player_id: number | null
@@ -653,15 +659,19 @@ export type Database = {
           position: string | null
           team_abbreviation: string | null
           team_full_name: string | null
+          to_year: number | null
           updated_at: string
         }
         Insert: {
           bdl_player_id?: number | null
           created_at?: string
+          draft_year?: number | null
           first_name: string
+          from_year?: number | null
           full_name: string
           id?: string
           is_active?: boolean
+          is_rookie?: boolean
           last_name: string
           loose_key?: string | null
           nba_player_id?: number | null
@@ -669,15 +679,19 @@ export type Database = {
           position?: string | null
           team_abbreviation?: string | null
           team_full_name?: string | null
+          to_year?: number | null
           updated_at?: string
         }
         Update: {
           bdl_player_id?: number | null
           created_at?: string
+          draft_year?: number | null
           first_name?: string
+          from_year?: number | null
           full_name?: string
           id?: string
           is_active?: boolean
+          is_rookie?: boolean
           last_name?: string
           loose_key?: string | null
           nba_player_id?: number | null
@@ -685,6 +699,7 @@ export type Database = {
           position?: string | null
           team_abbreviation?: string | null
           team_full_name?: string | null
+          to_year?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -906,6 +921,7 @@ export type Database = {
           paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
+          player_pool: string
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1029,6 +1045,7 @@ export type Database = {
           paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
+          player_pool: string
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1084,6 +1101,7 @@ export type Database = {
           paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
+          player_pool: string
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1180,6 +1198,7 @@ export type Database = {
           paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
+          player_pool: string
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1333,6 +1352,7 @@ export type Database = {
           paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
+          player_pool: string
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1417,6 +1437,7 @@ export type Database = {
           paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
+          player_pool: string
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1485,6 +1506,7 @@ export type Database = {
           paused_remaining_ms: number | null
           pick_clock_sec: number
           pick_deadline: string | null
+          player_pool: string
           reversal_rounds: number[]
           room_type: string
           rounds: number
