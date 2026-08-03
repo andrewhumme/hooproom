@@ -187,11 +187,13 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     if (room.status === "waiting" || playersFetchedRef.current) return;
     playersFetchedRef.current = true;
     setPlayersLoading(true);
-    fetchActivePlayersServer()
+    fetchActivePlayersServer({
+      data: { pool: room.player_pool === "rookies" ? "rookies" : "all" },
+    })
       .then(setPlayers)
       .catch((e) => console.error(e))
       .finally(() => setPlayersLoading(false));
-  }, [room.status]);
+  }, [room.status, room.player_pool]);
 
   // Suggested auction values (z-score). Recompute when league shape changes.
   useEffect(() => {
