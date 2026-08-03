@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 
 type Room = {
+  player_pool?: string | null;
   id: string;
   name: string;
   host_user_id: string;
