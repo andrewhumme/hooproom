@@ -303,7 +303,9 @@ function DraftRoomPage() {
       const maxAttempts = 3;
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-          const list = await fetchActivePlayersServer();
+          const list = await fetchActivePlayersServer({
+            data: { pool: room.player_pool === "rookies" ? "rookies" : "all" },
+          });
           if (!cancelled) setPlayers(list);
           return;
         } catch (e) {
