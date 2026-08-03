@@ -124,6 +124,13 @@ type Participant = {
   is_bot?: boolean;
 };
 
+// owner_email is intentionally excluded — it is host-only and not granted to
+// anon/authenticated clients at the database level.
+const PARTICIPANT_COLUMNS =
+  "id, room_id, user_id, draft_position, team_name, joined_at, updated_at, is_bot, share_token";
+
+
+
 type Pick = {
   id: string;
   pick_number: number;
@@ -189,7 +196,7 @@ function DraftRoomPage() {
       await ensureGuestSession();
       const [r, p, pk] = await Promise.all([
         supabase.from("draft_rooms").select("*").eq("id", roomId).single(),
-        supabase.from("draft_participants").select("*").eq("room_id", roomId),
+        supabase.from("draft_participants").select(PARTICIPANT_COLUMNS).eq("room_id", roomId),
         supabase.from("draft_picks").select("*").eq("room_id", roomId).order("pick_number"),
       ]);
       if (!mounted) return;
@@ -219,7 +226,7 @@ function DraftRoomPage() {
         async () => {
           const { data } = await supabase
             .from("draft_participants")
-            .select("*")
+            .select(PARTICIPANT_COLUMNS)
             .eq("room_id", roomId);
           setParticipants((data ?? []) as Participant[]);
         }

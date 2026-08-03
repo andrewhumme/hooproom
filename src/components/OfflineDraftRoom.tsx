@@ -67,7 +67,7 @@ type Participant = {
   user_id: string | null;
   draft_position: number | null;
   team_name: string;
-  owner_email: string | null;
+  owner_email?: string | null;
   share_token: string;
 };
 
@@ -116,6 +116,29 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
   const [starting, setStarting] = useState(false);
   const [tick, setTick] = useState(0);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  // Owner emails are host-only and never exposed through table reads.
+  const [ownerEmails, setOwnerEmails] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    if (!isHost) {
+      setOwnerEmails({});
+      return;
+    }
+    let mounted = true;
+    supabase
+      .rpc("host_room_owner_emails", { _room_id: room.id })
+      .then(({ data }) => {
+        if (!mounted || !data) return;
+        const map: Record<string, string | null> = {};
+        for (const row of data as { participant_id: string; owner_email: string | null }[]) {
+          map[row.participant_id] = row.owner_email;
+        }
+        setOwnerEmails(map);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [isHost, room.id]);
 
   // Load player pool once
   useEffect(() => {
@@ -368,6 +391,7 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
         onStart={handleStart}
         onCopyLink={copyRosterLink}
         copiedToken={copiedToken}
+        ownerEmails={ownerEmails}
         navigate={navigate}
       />
     );
@@ -580,6 +604,7 @@ function WaitingScreen({
   onStart,
   onCopyLink,
   copiedToken,
+  ownerEmails,
   navigate,
 }: {
   room: Room;
@@ -590,6 +615,7 @@ function WaitingScreen({
   onStart: () => void;
   onCopyLink: (token: string) => void;
   copiedToken: string | null;
+  ownerEmails: Record<string, string | null>;
   navigate: ReturnType<typeof useNavigate>;
 }) {
   const sorted = [...participants].sort(
@@ -634,8 +660,8 @@ function WaitingScreen({
                       </Badge>
                     )}
                   </div>
-                  {p.owner_email && (
-                    <div className="truncate text-xs text-muted-foreground">{p.owner_email}</div>
+                  {ownerEmails[p.id] && (
+                    <div className="truncate text-xs text-muted-foreground">{ownerEmails[p.id]}</div>
                   )}
                 </div>
                 <Button

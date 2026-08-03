@@ -1165,6 +1165,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      host_room_owner_emails: {
+        Args: { _room_id: string }
+        Returns: {
+          owner_email: string
+          participant_id: string
+        }[]
+      }
       host_set_pick_clock: {
         Args: { _room_id: string; _seconds: number }
         Returns: undefined
@@ -1469,6 +1476,7 @@ export type Database = {
         Args: { _reset?: boolean; _room_id: string; _running: boolean }
         Returns: undefined
       }
+      shares_room_with: { Args: { _other_user_id: string }; Returns: boolean }
       snake_autopick_due: { Args: never; Returns: number }
       snake_default_team: {
         Args: {
