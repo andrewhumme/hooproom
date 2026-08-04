@@ -1,116 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { DraftablePlayer } from "@/lib/balldontlie";
-import { buildFallbackPlayerPool, playerKeyFromName, toDraftablePlayer } from "@/lib/playerPool";
+import { buildFallbackPlayerPool, toDraftablePlayer } from "@/lib/playerPool";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-type NbaIndexResponse = {
-  resultSets: Array<{
-    name: string;
-    headers: string[];
-    rowSet: Array<Array<string | number | null>>;
-  }>;
-};
-
-const POSITION_MAP: Record<string, string> = {
-  Guard: "G",
-  Forward: "F",
-  Center: "C",
-  "Guard-Forward": "G-F",
-  "Forward-Guard": "F-G",
-  "Forward-Center": "F-C",
-  "Center-Forward": "C-F",
-};
 
 const SELECT_COLS =
   "player_key, full_name, position, team_abbreviation, team_full_name, nba_player_id";
 
-function num(v: unknown): number | null {
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
 /**
- * Seed/refresh `public.players` from the NBA CDN player index. This is the
- * canonical source: it includes NBA's own PERSON_ID values which power the
- * headshot CDN, plus FROM_YEAR / DRAFT_YEAR which we use to flag rookies.
- *
- * We only keep players currently rostered to a team (TEAM_ABBREVIATION present).
+ * Seed/refresh `public.players` from NBA.com's player index (the CDN static
+ * index is 403 for us now). The index includes PERSON_ID for headshots plus
+ * FROM_YEAR / DRAFT_YEAR, and lists this year's draft class before they play.
  */
 async function seedPlayersFromNba(): Promise<void> {
-  const res = await fetch(
-    "https://cdn.nba.com/static/json/staticData/playerIndex.json",
-    { headers: { "User-Agent": "Mozilla/5.0", Referer: "https://www.nba.com/" } },
-  );
-  if (!res.ok) throw new Error(`NBA player index fetch failed: ${res.status}`);
-
-  const json = (await res.json()) as NbaIndexResponse;
-  const rs = json.resultSets?.[0];
-  if (!rs) throw new Error("NBA player index missing resultSets");
-
-  const idx: Record<string, number> = {};
-  rs.headers.forEach((h, i) => (idx[h] = i));
-
-  const seen = new Set<string>();
-  const rows = [];
-  for (const row of rs.rowSet) {
-    const teamAbbr = row[idx.TEAM_ABBREVIATION] as string | null;
-    const teamId = row[idx.TEAM_ID] as number | null;
-    if (!teamAbbr || !teamId) continue; // free agents — skip
-
-    const first = String(row[idx.PLAYER_FIRST_NAME] ?? "").trim();
-    const last = String(row[idx.PLAYER_LAST_NAME] ?? "").trim();
-    const fullName = `${first} ${last}`.trim();
-    if (!fullName) continue;
-
-    const key = playerKeyFromName(fullName);
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    const posRaw = (row[idx.POSITION] as string | null) ?? "";
-    const position = POSITION_MAP[posRaw] ?? (posRaw ? posRaw.slice(0, 3) : null);
-
-    rows.push({
-      player_key: key,
-      nba_player_id: row[idx.PERSON_ID] as number,
-      bdl_player_id: null as number | null,
-      first_name: first,
-      last_name: last,
-      full_name: fullName,
-      position,
-      team_abbreviation: teamAbbr,
-      team_full_name: `${row[idx.TEAM_CITY] ?? ""} ${row[idx.TEAM_NAME] ?? ""}`.trim(),
-      is_active: true,
-      from_year: num(row[idx.FROM_YEAR]),
-      to_year: num(row[idx.TO_YEAR]),
-      draft_year: num(row[idx.DRAFT_YEAR]),
-      is_rookie: false,
-    });
-  }
-
-  if (rows.length === 0) return;
-
-  // Rookie class = players whose first NBA season is the newest season present,
-  // or who were selected in the newest draft class present.
-  const latestFrom = Math.max(...rows.map((r) => r.from_year ?? 0));
-  const latestDraft = Math.max(...rows.map((r) => r.draft_year ?? 0));
-  for (const r of rows) {
-    r.is_rookie =
-      (latestFrom > 0 && r.from_year === latestFrom) ||
-      (latestDraft > 0 && r.draft_year === latestDraft && (r.from_year ?? latestFrom) >= latestDraft);
-  }
-
-  await supabaseAdmin
-    .from("players")
-    .upsert(rows, { onConflict: "player_key", ignoreDuplicates: false });
-
-  // Clear stale rookie flags on anyone the NBA index didn't cover.
-  await supabaseAdmin
-    .from("players")
-    .update({ is_rookie: false })
-    .is("from_year", null)
-    .eq("is_rookie", true);
+  const { syncPlayerIndex } = await import("@/lib/rookies.server");
+  await syncPlayerIndex();
 }
+
 
 type PlayerRow = {
   player_key: string;
@@ -150,31 +56,40 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" })
       return q.order("full_name", { ascending: true });
     };
 
-    // Rookie flags come from NBA.com's rookie leaderboard. Refresh them
-    // whenever a rookies-only pool is requested but nothing is flagged, or the
-    // flags look implausible (a real rookie class is a small slice of the pool).
+    // Rookie flags come from NBA.com's player index. Refresh them whenever the
+    // rookies-only pool is requested and the flags are missing, implausible
+    // (a real class is a small slice of the pool), or belong to a past season.
     if (rookiesOnly) {
-      const { count: rookieCount } = await supabaseAdmin
+      const now = new Date();
+      const startYear =
+        now.getUTCMonth() + 1 >= 8 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+      const { data: rookieRows } = await supabaseAdmin
         .from("players")
-        .select("player_key", { count: "exact", head: true })
+        .select("player_key, from_year, draft_year")
         .eq("is_active", true)
         .eq("is_rookie", true);
       const { count: totalCount } = await supabaseAdmin
         .from("players")
         .select("player_key", { count: "exact", head: true })
         .eq("is_active", true);
-      const implausible =
-        !rookieCount || (totalCount ? rookieCount / totalCount > 0.35 : false);
-      if (implausible) {
+      const rookieCount = rookieRows?.length ?? 0;
+      const currentClass = (rookieRows ?? []).some(
+        (r) => (r.from_year ?? r.draft_year ?? 0) >= startYear,
+      );
+      const stale =
+        rookieCount === 0 ||
+        !currentClass ||
+        (totalCount ? rookieCount / totalCount > 0.35 : false);
+      if (stale) {
         try {
           const { refreshRookieFlags } = await import("@/lib/rookies.server");
           await refreshRookieFlags();
         } catch (err) {
           console.error("Rookie flag refresh failed:", err);
         }
-
       }
     }
+
 
 
     // 1) Read from our DB (canonical source, no rate limits).
