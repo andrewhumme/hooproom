@@ -251,7 +251,24 @@ function AdminUsersPage() {
                     {dataBusy === "advanced" ? "Refreshing…" : "Refresh now"}
                   </Button>
                 </div>
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Rookie flags</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Recompute which active players count as rookies (used by the
+                    rookies-only draft pool) from NBA.com's rookie leaderboard.
+                    Re-run at the start of each season.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRefreshRookies}
+                    disabled={dataBusy !== null}
+                  >
+                    {dataBusy === "rookies" ? "Refreshing…" : "Refresh rookie flags"}
+                  </Button>
+                </div>
               </div>
+
               {dataLog.length > 0 && (
                 <pre className="max-h-64 overflow-auto rounded-md border border-border bg-muted/30 p-3 text-[11px] leading-relaxed">
                   {dataLog.join("\n")}
