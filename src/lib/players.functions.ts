@@ -167,10 +167,12 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" })
         !rookieCount || (totalCount ? rookieCount / totalCount > 0.35 : false);
       if (implausible) {
         try {
+          const { refreshRookieFlags } = await import("@/lib/rookies.server");
           await refreshRookieFlags();
         } catch (err) {
           console.error("Rookie flag refresh failed:", err);
         }
+
       }
     }
 
