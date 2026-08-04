@@ -10,6 +10,7 @@ import {
   deleteAllGuestUsers,
   backfillHistoricalStats,
   refreshAdvancedStatsNow,
+  refreshRookieFlagsNow,
   type AdminUserRow,
 } from "@/lib/admin.functions";
 
@@ -48,6 +49,7 @@ function AdminUsersPage() {
   const removeGuests = useServerFn(deleteAllGuestUsers);
   const backfill = useServerFn(backfillHistoricalStats);
   const refreshAdvanced = useServerFn(refreshAdvancedStatsNow);
+  const refreshRookies = useServerFn(refreshRookieFlagsNow);
 
   const [status, setStatus] = useState<"loading" | "denied" | "ok">("loading");
   const [users, setUsers] = useState<AdminUserRow[]>([]);
@@ -56,7 +58,7 @@ function AdminUsersPage() {
   const [pendingDelete, setPendingDelete] = useState<AdminUserRow | null>(null);
   const [confirmPurge, setConfirmPurge] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [dataBusy, setDataBusy] = useState<"backfill" | "advanced" | null>(null);
+  const [dataBusy, setDataBusy] = useState<"backfill" | "advanced" | "rookies" | null>(null);
   const [dataLog, setDataLog] = useState<string[]>([]);
 
   function appendLog(line: string) {
@@ -103,6 +105,23 @@ function AdminUsersPage() {
     }
   }
 
+
+  async function handleRefreshRookies() {
+    setDataBusy("rookies");
+    appendLog("Recomputing rookie flags from NBA.com…");
+    try {
+      const res = await refreshRookies();
+      appendLog(`Rookie flags updated: ${res.rookies} active rookies.`);
+      if (res.rookies > 0) toast.success(`${res.rookies} rookies flagged`);
+      else toast.error("No rookies returned by NBA.com");
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      appendLog(`Rookie refresh failed: ${m}`);
+      toast.error(m);
+    } finally {
+      setDataBusy(null);
+    }
+  }
 
   const guestCount = useMemo(() => users.filter((u) => u.is_guest).length, [users]);
 
@@ -251,7 +270,24 @@ function AdminUsersPage() {
                     {dataBusy === "advanced" ? "Refreshing…" : "Refresh now"}
                   </Button>
                 </div>
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Rookie flags</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Recompute which active players count as rookies (used by the
+                    rookies-only draft pool) from NBA.com's rookie leaderboard.
+                    Re-run at the start of each season.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRefreshRookies}
+                    disabled={dataBusy !== null}
+                  >
+                    {dataBusy === "rookies" ? "Refreshing…" : "Refresh rookie flags"}
+                  </Button>
+                </div>
               </div>
+
               {dataLog.length > 0 && (
                 <pre className="max-h-64 overflow-auto rounded-md border border-border bg-muted/30 p-3 text-[11px] leading-relaxed">
                   {dataLog.join("\n")}

@@ -128,3 +128,19 @@ export const refreshAdvancedStatsNow = createServerFn({ method: "POST" })
     const { refreshAdvancedStats } = await import("@/lib/seasonRefresh.server");
     return await refreshAdvancedStats();
   });
+
+/** Recompute which active players are rookies (NBA.com rookie leaderboard). */
+export const refreshRookieFlagsNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
+    const { refreshRookieFlags } = await import("@/lib/rookies.server");
+    const rookies = await refreshRookieFlags();
+    return { rookies };
+  });
+
