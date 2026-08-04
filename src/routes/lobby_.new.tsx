@@ -524,10 +524,11 @@ function NewRoomPage() {
               </div>
               {playerPool === "rookies" && (
                 <p className="mt-2 rounded-md border-2 border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
-                  Rookie pools are small — keep teams × roster slots well under the size of the rookie class
-                  (roughly 60 players) so every team can fill out.
+                  Rookie pools are small{poolSize ? ` — ${poolSize} players this year` : ""}. Roster
+                  slots are capped automatically so teams × rounds fits the pool.
                 </p>
               )}
+
             </div>
             )}
 
