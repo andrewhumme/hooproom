@@ -203,11 +203,44 @@ export async function syncPlayerIndex(): Promise<Array<Record<string, unknown>>>
   }
   if (rows.length === 0) return [];
 
+  // Chunked upsert: `nba_player_id` is UNIQUE, so a single stale row can fail
+  // an entire batch. Retry failed batches row-by-row so one bad row can't
+  // silently drop the whole roster refresh (that's how this year's draft class
+  // went missing).
+  let written = 0;
+  for (let i = 0; i < rows.length; i += 200) {
+    const batch = rows.slice(i, i + 200);
+    const { error } = await supabaseAdmin
+      .from("players")
+      .upsert(batch as never, { onConflict: "player_key", ignoreDuplicates: false });
+    if (!error) {
+      written += batch.length;
+      continue;
+    }
+    console.error("Player upsert batch failed, retrying rows:", error.message);
+    for (const row of batch) {
+      const { error: rowErr } = await supabaseAdmin
+        .from("players")
+        .upsert(row as never, { onConflict: "player_key", ignoreDuplicates: false });
+      if (rowErr) {
+        // Almost always a nba_player_id collision with a renamed key: fall back
+        // to an update keyed on the NBA id.
+        const { error: fixErr } = await supabaseAdmin
+          .from("players")
+          .update(row as never)
+          .eq("nba_player_id", row.nba_player_id as number);
+        if (fixErr) console.error(`Player row failed (${row.full_name}):`, rowErr.message);
+        else written += 1;
+      } else {
+        written += 1;
+      }
+    }
+  }
+  if (written === 0) return [];
+
   // Anyone rostered last sync but missing from the current index is inactive.
   const keys = new Set(rows.map((r) => r.player_key as string));
-  await supabaseAdmin
-    .from("players")
-    .upsert(rows as never, { onConflict: "player_key", ignoreDuplicates: false });
+
 
   const { data: existing } = await supabaseAdmin
     .from("players")
