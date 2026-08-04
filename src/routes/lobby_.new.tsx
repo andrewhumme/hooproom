@@ -191,10 +191,50 @@ function NewRoomPage() {
     ? "auction_slow"
     : draftFormat;
 
+  // How many draftable players the chosen pool actually has
+  const [poolSize, setPoolSize] = useState<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let q = supabase
+        .from("players")
+        .select("player_key", { count: "exact", head: true })
+        .eq("is_active", true);
+      if (playerPool === "rookies") q = q.eq("is_rookie", true);
+      const { count } = await q;
+      if (!cancelled) setPoolSize(typeof count === "number" ? count : null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [playerPool]);
+
+  const maxRounds = poolSize ? Math.max(1, Math.floor(poolSize / teamCount)) : null;
+
+  // Auto-shrink roster slots so teams × rounds never exceeds the player pool.
+  const TRIM_ORDER = ["BN", "FLX", "F", "G", "C", "PF", "SF", "SG", "PG"] as const;
+  useEffect(() => {
+    if (!maxRounds) return;
+    setSlots((prev) => {
+      let total = totalSlots(prev);
+      if (total <= maxRounds) return prev;
+      const next = { ...prev };
+      for (const k of TRIM_ORDER) {
+        while (total > maxRounds && next[k] > 0) {
+          next[k] -= 1;
+          total -= 1;
+        }
+        if (total <= maxRounds) break;
+      }
+      return next;
+    });
+  }, [maxRounds]);
+
   // Drop any reversal rounds outside the valid range when slots change
   useEffect(() => {
     setReversalRounds((prev) => prev.filter((r) => r >= 2 && r <= rounds - 1));
   }, [rounds]);
+
 
   const toggleReversal = (r: number) => {
     setReversalRounds((prev) =>
