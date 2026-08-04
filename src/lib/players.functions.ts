@@ -103,6 +103,13 @@ async function seedPlayersFromNba(): Promise<void> {
   await supabaseAdmin
     .from("players")
     .upsert(rows, { onConflict: "player_key", ignoreDuplicates: false });
+
+  // Clear stale rookie flags on anyone the NBA index didn't cover.
+  await supabaseAdmin
+    .from("players")
+    .update({ is_rookie: false })
+    .is("from_year", null)
+    .eq("is_rookie", true);
 }
 
 type PlayerRow = {
@@ -143,11 +150,36 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" })
       return q.order("full_name", { ascending: true });
     };
 
+    // Rookie flags come from NBA.com's rookie leaderboard. Refresh them
+    // whenever a rookies-only pool is requested but nothing is flagged, or the
+    // flags look implausible (a real rookie class is a small slice of the pool).
+    if (rookiesOnly) {
+      const { count: rookieCount } = await supabaseAdmin
+        .from("players")
+        .select("player_key", { count: "exact", head: true })
+        .eq("is_active", true)
+        .eq("is_rookie", true);
+      const { count: totalCount } = await supabaseAdmin
+        .from("players")
+        .select("player_key", { count: "exact", head: true })
+        .eq("is_active", true);
+      const implausible =
+        !rookieCount || (totalCount ? rookieCount / totalCount > 0.35 : false);
+      if (implausible) {
+        try {
+          await refreshRookieFlags();
+        } catch (err) {
+          console.error("Rookie flag refresh failed:", err);
+        }
+      }
+    }
+
+
     // 1) Read from our DB (canonical source, no rate limits).
     const { data: rows, error } = await query();
     if (!error && rows && rows.length > 0) return mapRows(rows as PlayerRow[]);
 
-    // 2) Empty (or rookie flags never computed) — seed/refresh from NBA CDN.
+    // 2) Empty — seed/refresh from NBA CDN and retry.
     try {
       await seedPlayersFromNba();
       const { data: seeded } = await query();
@@ -156,57 +188,13 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" })
       console.error("Player seed failed:", err);
     }
 
-    // 3) Rookie fallback: derive from stats history (no season before the
-    //    latest one on record = rookie).
-    if (rookiesOnly) {
-      try {
-        await flagRookiesFromStats();
-        const { data: derived } = await query();
-        if (derived && derived.length > 0) return mapRows(derived as PlayerRow[]);
-      } catch (err) {
-        console.error("Rookie derivation failed:", err);
-      }
-      return [];
-    }
+    // No rookie fallback: guessing from stats history over-flags veterans and
+    // silently turns a rookie draft into a full-pool draft.
+    if (rookiesOnly) return [];
 
-    // 4) Last resort: static bundled pool.
+    // 3) Last resort: static bundled pool.
     return buildFallbackPlayerPool();
   });
 
-/**
- * Fallback rookie detection when the NBA CDN index is unavailable: an active
- * player with no season stats prior to the most recent season on record is
- * treated as a rookie.
- */
-async function flagRookiesFromStats(): Promise<void> {
-  const { data: seasonRows } = await supabaseAdmin
-    .from("player_season_stats")
-    .select("season")
-    .order("season", { ascending: false })
-    .limit(1);
-  const latestSeason = seasonRows?.[0]?.season;
-  if (!latestSeason) return;
-
-  const { data: priorRows } = await supabaseAdmin
-    .from("player_season_stats")
-    .select("loose_key, player_key")
-    .lt("season", latestSeason);
-  const veterans = new Set(
-    (priorRows ?? []).map((r) => r.loose_key ?? r.player_key).filter(Boolean) as string[],
-  );
-
-  const { data: activeRows } = await supabaseAdmin
-    .from("players")
-    .select("player_key, loose_key")
-    .eq("is_active", true);
-  if (!activeRows) return;
-
-  const rookieKeys = activeRows
-    .filter((p) => !veterans.has(p.loose_key ?? p.player_key))
-    .map((p) => p.player_key);
-  if (rookieKeys.length === 0) return;
-
-  await supabaseAdmin.from("players").update({ is_rookie: true }).in("player_key", rookieKeys);
-}
 
 
