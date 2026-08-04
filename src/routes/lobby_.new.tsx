@@ -626,10 +626,17 @@ function NewRoomPage() {
                       value={slots[k]}
                       onChange={(e) => {
                         const cap = k === "BN" ? 15 : 10;
-                        setSlots((s) => ({
-                          ...s,
-                          [k]: Math.max(0, Math.min(cap, parseInt(e.target.value || "0", 10))),
-                        }));
+                        setSlots((s) => {
+                          const others = totalSlots(s) - s[k];
+                          const poolCap = maxRounds ? Math.max(0, maxRounds - others) : cap;
+                          return {
+                            ...s,
+                            [k]: Math.max(
+                              0,
+                              Math.min(cap, poolCap, parseInt(e.target.value || "0", 10)),
+                            ),
+                          };
+                        });
                       }}
                       className="mt-1 h-9 px-0 text-center font-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
@@ -638,7 +645,15 @@ function NewRoomPage() {
               </div>
               <p className="mt-2 text-xs font-semibold text-muted-foreground">
                 {rounds} rounds · {teamCount * rounds} total picks
+                {poolSize ? ` · ${poolSize} players in pool` : ""}
               </p>
+              {maxRounds && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Max {maxRounds} rounds with {teamCount} teams from this pool — roster slots
+                  shrink automatically if they don't fit.
+                </p>
+              )}
+
             </div>
             )}
 
