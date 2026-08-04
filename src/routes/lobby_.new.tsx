@@ -169,6 +169,9 @@ function NewRoomPage() {
     if (s === 3) {
       if (!name.trim() || name.trim().length < 2) return "Give your room a name (2+ characters).";
       if (rounds < 1) return "Add at least one roster slot.";
+      if (poolSize && teamCount * rounds > poolSize)
+        return `Only ${poolSize} players in this pool — reduce teams or roster slots.`;
+
     }
     return null;
   };
@@ -191,10 +194,50 @@ function NewRoomPage() {
     ? "auction_slow"
     : draftFormat;
 
+  // How many draftable players the chosen pool actually has
+  const [poolSize, setPoolSize] = useState<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let q = supabase
+        .from("players")
+        .select("player_key", { count: "exact", head: true })
+        .eq("is_active", true);
+      if (playerPool === "rookies") q = q.eq("is_rookie", true);
+      const { count } = await q;
+      if (!cancelled) setPoolSize(typeof count === "number" ? count : null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [playerPool]);
+
+  const maxRounds = poolSize ? Math.max(1, Math.floor(poolSize / teamCount)) : null;
+
+  // Auto-shrink roster slots so teams × rounds never exceeds the player pool.
+  const TRIM_ORDER = ["BN", "FLX", "F", "G", "C", "PF", "SF", "SG", "PG"] as const;
+  useEffect(() => {
+    if (!maxRounds) return;
+    setSlots((prev) => {
+      let total = totalSlots(prev);
+      if (total <= maxRounds) return prev;
+      const next = { ...prev };
+      for (const k of TRIM_ORDER) {
+        while (total > maxRounds && next[k] > 0) {
+          next[k] -= 1;
+          total -= 1;
+        }
+        if (total <= maxRounds) break;
+      }
+      return next;
+    });
+  }, [maxRounds]);
+
   // Drop any reversal rounds outside the valid range when slots change
   useEffect(() => {
     setReversalRounds((prev) => prev.filter((r) => r >= 2 && r <= rounds - 1));
   }, [rounds]);
+
 
   const toggleReversal = (r: number) => {
     setReversalRounds((prev) =>
@@ -484,10 +527,11 @@ function NewRoomPage() {
               </div>
               {playerPool === "rookies" && (
                 <p className="mt-2 rounded-md border-2 border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
-                  Rookie pools are small — keep teams × roster slots well under the size of the rookie class
-                  (roughly 60 players) so every team can fill out.
+                  Rookie pools are small{poolSize ? ` — ${poolSize} players this year` : ""}. Roster
+                  slots are capped automatically so teams × rounds fits the pool.
                 </p>
               )}
+
             </div>
             )}
 
@@ -586,10 +630,17 @@ function NewRoomPage() {
                       value={slots[k]}
                       onChange={(e) => {
                         const cap = k === "BN" ? 15 : 10;
-                        setSlots((s) => ({
-                          ...s,
-                          [k]: Math.max(0, Math.min(cap, parseInt(e.target.value || "0", 10))),
-                        }));
+                        setSlots((s) => {
+                          const others = totalSlots(s) - s[k];
+                          const poolCap = maxRounds ? Math.max(0, maxRounds - others) : cap;
+                          return {
+                            ...s,
+                            [k]: Math.max(
+                              0,
+                              Math.min(cap, poolCap, parseInt(e.target.value || "0", 10)),
+                            ),
+                          };
+                        });
                       }}
                       className="mt-1 h-9 px-0 text-center font-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
@@ -598,7 +649,15 @@ function NewRoomPage() {
               </div>
               <p className="mt-2 text-xs font-semibold text-muted-foreground">
                 {rounds} rounds · {teamCount * rounds} total picks
+                {poolSize ? ` · ${poolSize} players in pool` : ""}
               </p>
+              {maxRounds && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Max {maxRounds} rounds with {teamCount} teams from this pool — roster slots
+                  shrink automatically if they don't fit.
+                </p>
+              )}
+
             </div>
             )}
 
