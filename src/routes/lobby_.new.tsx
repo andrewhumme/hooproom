@@ -169,6 +169,9 @@ function NewRoomPage() {
     if (s === 3) {
       if (!name.trim() || name.trim().length < 2) return "Give your room a name (2+ characters).";
       if (rounds < 1) return "Add at least one roster slot.";
+      if (poolSize && teamCount * rounds > poolSize)
+        return `Only ${poolSize} players in this pool — reduce teams or roster slots.`;
+
     }
     return null;
   };
