@@ -727,6 +727,30 @@ function NewRoomPage() {
               </div>
             )}
 
+            {step === 2 && draftFormat === "snake" && (
+              <div>
+                <Label>Keepers</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Turn this on if teams keep players from last season. Keeper tools only show
+                  up in the draft lobby when enabled.
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <ClockChip
+                    label="No keepers"
+                    active={!keepersEnabled}
+                    onClick={() => setKeepersEnabled(false)}
+                  />
+                  <ClockChip
+                    label="Use keepers"
+                    active={keepersEnabled}
+                    onClick={() => setKeepersEnabled(true)}
+                  />
+                </div>
+              </div>
+            )}
+
+
+
             {step === 2 && isAuction && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4 space-y-4">
                 <div>
