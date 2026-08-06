@@ -228,6 +228,7 @@ export function RoomCommissionerTools({
       )}
 
       {/* ─── Custom Picks ─── */}
+      {isSnake && (
       <Card className="overflow-hidden border-2">
         <button
           onClick={() => setPicksOpen((v) => !v)}
