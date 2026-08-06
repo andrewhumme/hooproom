@@ -26,6 +26,17 @@ import { getAuctionValuesServer } from "@/lib/auctionValues.functions";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import { compareByRank } from "@/lib/playerRankings";
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
+import {
+  fetchLatestStatsForPlayersServer,
+  type PlayerSeasonStats,
+} from "@/lib/playerStats.functions";
+import {
+  CategoryHeatmap,
+  computeTeamTotals,
+  StatCell,
+  STAT_COLUMNS,
+  type TeamCategoryTotals,
+} from "@/components/CategoryHeatmap";
 
 const looseKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
 import {
