@@ -66,6 +66,7 @@ type Room = {
   draft_format: string;
   status: "waiting" | "drafting" | "paused" | "complete";
   paused_at?: string | null;
+  warmup_until?: string | null;
   scoring_format: string;
   auction_budget: number;
   auction_min_bid: number;
