@@ -957,6 +957,17 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                     </Button>
                   ))}
                 </div>
+                <Button
+                  onClick={() =>
+                    setStatsShade((m) => (m === "heatmap" ? "plain" : "heatmap"))
+                  }
+                  size="sm"
+                  variant={statsShade === "heatmap" ? "default" : "outline"}
+                  className="font-bold"
+                  title="Toggle per-player stat heatmap"
+                >
+                  <Flame className="h-3 w-3" /> Stats
+                </Button>
               </div>
 
               {playersLoading ? (
