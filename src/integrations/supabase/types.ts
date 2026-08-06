@@ -735,6 +735,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          keeper_price: number | null
           keeper_round: number | null
           player_id: string
           player_name: string
@@ -747,6 +748,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          keeper_price?: number | null
           keeper_round?: number | null
           player_id: string
           player_name: string
@@ -759,6 +761,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          keeper_price?: number | null
           keeper_round?: number | null
           player_id?: string
           player_name?: string
@@ -1240,40 +1243,74 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      insert_auction_keepers: { Args: { _room_id: string }; Returns: undefined }
       insert_room_keepers: { Args: { _room_id: string }; Returns: undefined }
       keeper_remove: {
         Args: { _player_id: string; _room_id: string }
         Returns: undefined
       }
-      keeper_upsert: {
-        Args: {
-          _keeper_round: number
-          _player_id: string
-          _player_name: string
-          _player_position: string
-          _player_team: string
-          _room_id: string
-          _team_idx: number
-        }
-        Returns: {
-          created_at: string
-          id: string
-          keeper_round: number | null
-          player_id: string
-          player_name: string
-          player_position: string | null
-          player_team: string | null
-          room_id: string
-          team_idx: number
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "room_keepers"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      keeper_upsert:
+        | {
+            Args: {
+              _keeper_round: number
+              _player_id: string
+              _player_name: string
+              _player_position: string
+              _player_team: string
+              _room_id: string
+              _team_idx: number
+            }
+            Returns: {
+              created_at: string
+              id: string
+              keeper_price: number | null
+              keeper_round: number | null
+              player_id: string
+              player_name: string
+              player_position: string | null
+              player_team: string | null
+              room_id: string
+              team_idx: number
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "room_keepers"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              _keeper_price?: number
+              _keeper_round: number
+              _player_id: string
+              _player_name: string
+              _player_position: string
+              _player_team: string
+              _room_id: string
+              _team_idx: number
+            }
+            Returns: {
+              created_at: string
+              id: string
+              keeper_price: number | null
+              keeper_round: number | null
+              player_id: string
+              player_name: string
+              player_position: string | null
+              player_team: string | null
+              room_id: string
+              team_idx: number
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "room_keepers"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       lobby_autostart_due: { Args: never; Returns: number }
       make_offline_pick: {
         Args: {
