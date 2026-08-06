@@ -168,6 +168,7 @@ export function RoomCommissionerTools({
       )}
 
       {/* ─── Keepers ─── */}
+      {keepersEnabled && (
       <Card className="overflow-hidden border-2">
         <button
           onClick={() => setKeepersOpen((v) => !v)}
