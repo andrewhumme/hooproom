@@ -39,6 +39,14 @@ import {
 import { type DraftablePlayer } from "@/lib/balldontlie";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { fetchLatestStatsForPlayersServer, type PlayerSeasonStats } from "@/lib/playerStats.functions";
+import {
+  CategoryHeatmap,
+  computeTeamTotals,
+  StatCell as Stat,
+  STAT_COLUMNS,
+  type StatKey,
+  type TeamCategoryTotals,
+} from "@/components/CategoryHeatmap";
 import { compareByRank } from "@/lib/playerRankings";
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
 import { assignPicksToSlots, buildSlotSpots, eligibleSlotsForPosition, totalSlots, type SlotConfig, type SlotKey } from "@/lib/rosterSlots";
