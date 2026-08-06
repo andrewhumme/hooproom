@@ -37,6 +37,7 @@ import {
   STAT_COLUMNS,
   type TeamCategoryTotals,
 } from "@/components/CategoryHeatmap";
+import { useWarmup, WarmupBanner } from "@/components/WarmupCountdown";
 
 const looseKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
 import {
@@ -65,6 +66,7 @@ type Room = {
   draft_format: string;
   status: "waiting" | "drafting" | "paused" | "complete";
   paused_at?: string | null;
+  warmup_until?: string | null;
   scoring_format: string;
   auction_budget: number;
   auction_min_bid: number;
@@ -182,6 +184,10 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const isDrafting = room.status === "drafting";
   const isHost = !!userId && userId === room.host_user_id;
   const isPaused = room.status === "paused";
+
+  // Pre-draft warm-up countdown (2 min after the room opens).
+  const warmup = useWarmup(room.warmup_until);
+  const inWarmup = isDrafting && warmup.active;
 
   // Auto-flash the summary page when the auction wraps up.
   const flashedSummaryRef = useRef(false);
@@ -335,7 +341,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   // ---- drive bot nominations + bids every few seconds so bots act in real time ----
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || inWarmup) return;
     if (room.status !== "drafting") return;
     let cancelled = false;
     const runBots = async () => {
@@ -350,7 +356,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [room.id, room.status, isPaused]);
+  }, [room.id, room.status, isPaused, inWarmup]);
 
   // ---- per-team budgets / rosters ----
   const teamSpent = useMemo(() => {
@@ -412,6 +418,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const isMyNomination =
     !!myTeamIdx &&
     isDrafting &&
+    !inWarmup &&
     canNominateMore &&
     myActiveNomCount < perTeamConcurrent &&
     myQuotaRemaining > 0 &&
@@ -520,6 +527,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   const handleBid = useCallback(
     async (nomId: string, amount: number) => {
+      if (inWarmup) return;
       setActionBusy(true);
       setError(null);
       const { error } = await supabase.rpc("auction_bid", {
@@ -530,7 +538,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       if (error) setError(error.message);
       else setBidAmountByNom((prev) => ({ ...prev, [nomId]: "" }));
     },
-    []
+    [inWarmup]
   );
 
   const handlePauseToggle = async () => {
@@ -699,6 +707,12 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           </div>
         </div>
       </div>
+
+      {inWarmup && (
+        <div className="mx-auto max-w-7xl px-4 pt-4 lg:px-6">
+          <WarmupBanner secondsLeft={warmup.secondsLeft} label="Auction begins in" />
+        </div>
+      )}
 
       <main className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
         {error && (

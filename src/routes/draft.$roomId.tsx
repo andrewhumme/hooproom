@@ -17,6 +17,7 @@ import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
 import { DraftControlPanel } from "@/components/DraftControlPanel";
 import { useDraftQueue } from "@/hooks/useDraftQueue";
 import { useTurnAlert } from "@/hooks/useTurnAlert";
+import { useWarmup, WarmupBanner } from "@/components/WarmupCountdown";
 import {
   Dialog,
   DialogContent,
@@ -94,6 +95,7 @@ type Room = {
   current_pick_number: number;
   pick_deadline: string | null;
   paused_at: string | null;
+  warmup_until?: string | null;
   draft_format: string;
   auction_budget: number;
   auction_min_bid: number;
@@ -422,8 +424,15 @@ function DraftRoomPage() {
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
 
+  // Pre-draft warm-up: after a draft starts there's a 2-minute countdown
+  // before the first pick is live.
+  const warmup = useWarmup(room?.warmup_until);
+  const inWarmup = isDrafting && warmup.active;
+  const canPick = isMyTurn && !inWarmup;
+
   // Tab-title + favicon dot + chime when it becomes my turn.
-  useTurnAlert(isMyTurn, room?.draft_mode !== "offline");
+  useTurnAlert(canPick, room?.draft_mode !== "offline");
+
 
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
 
@@ -773,7 +782,7 @@ function DraftRoomPage() {
 
   const handlePick = useCallback(
     async (player: DraftablePlayer) => {
-      if (!isMyTurn || !room) return;
+      if (!canPick || !room) return;
       if (!canFitPlayer(player.position)) {
         setError(`No open roster slot for a ${player.position || "this"} player`);
         return;
@@ -791,7 +800,7 @@ function DraftRoomPage() {
       setActionBusy(false);
       if (error) setError(error.message);
     },
-    [isMyTurn, room, canFitPlayer]
+    [canPick, room, canFitPlayer]
   );
 
   const handleCopyLink = async () => {
@@ -936,7 +945,8 @@ function DraftRoomPage() {
                 })}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                No lobby timer — the commissioner starts the draft manually once everyone's in.
+                The draft room opens automatically at this time — or whenever the commissioner
+                starts it. A 2-minute countdown runs before the first pick.
               </p>
             </Card>
           )}
@@ -1331,6 +1341,12 @@ function DraftRoomPage() {
         </div>
       </div>
 
+      {inWarmup && (
+        <div className="mx-auto max-w-7xl px-6 pt-4">
+          <WarmupBanner secondsLeft={warmup.secondsLeft} />
+        </div>
+      )}
+
       {/* Draft order strip — shows pick order, highlights current team */}
       <div className="border-b border-border bg-card">
         <div className="mx-auto max-w-7xl px-6 py-3">
@@ -1711,11 +1727,13 @@ function DraftRoomPage() {
                             <Button
                               size="sm"
                               onClick={() => handlePick(p)}
-                              disabled={!isMyTurn || actionBusy || !fits}
+                              disabled={!canPick || actionBusy || !fits}
                               className="h-7 px-2.5 text-xs font-bold"
-                              variant={isMyTurn && fits ? "default" : "outline"}
+                              variant={canPick && fits ? "default" : "outline"}
                               title={
-                                !fits
+                                inWarmup
+                                  ? "Draft hasn't started yet"
+                                  : !fits
                                   ? `No open roster slot for a ${p.position || "this"} player`
                                   : undefined
                               }
@@ -1916,7 +1934,7 @@ function DraftRoomPage() {
               }
             : null
         }
-        canDraft={isMyTurn && !!statsPlayer && !takenIds.has(statsPlayer.id)}
+        canDraft={canPick && !!statsPlayer && !takenIds.has(statsPlayer.id)}
         draftBusy={actionBusy}
         showQueue={isJoined}
         isQueued={!!statsPlayer && queuedIds.has(statsPlayer.id)}
