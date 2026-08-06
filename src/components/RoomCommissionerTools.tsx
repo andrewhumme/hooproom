@@ -192,7 +192,9 @@ export function RoomCommissionerTools({
             <div>
               <div className="text-sm font-black">Keepers</div>
               <div className="text-[11px] text-muted-foreground">
-                Lock players to teams before the draft.{" "}
+                {isAuction
+                  ? "Lock players to teams and set their salary — it comes off that team's budget. "
+                  : "Lock players to teams before the draft. "}
                 {keepers.length > 0 && (
                   <span className="font-bold text-foreground">
                     {keepers.length} set
@@ -216,6 +218,8 @@ export function RoomCommissionerTools({
             participants={participants}
             players={players}
             teamName={teamName}
+            isAuction={isAuction}
+            auctionBudget={auctionBudget}
             onError={setError}
             onChanged={load}
           />
