@@ -23,6 +23,7 @@ type Keeper = {
   player_position: string | null;
   player_team: string | null;
   keeper_round: number | null;
+  keeper_price: number | null;
 };
 
 type PickAssignment = {
