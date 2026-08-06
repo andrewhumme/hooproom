@@ -183,6 +183,10 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const isHost = !!userId && userId === room.host_user_id;
   const isPaused = room.status === "paused";
 
+  // Pre-draft warm-up countdown (2 min after the room opens).
+  const warmup = useWarmup(room.warmup_until);
+  const inWarmup = isDrafting && warmup.active;
+
   // Auto-flash the summary page when the auction wraps up.
   const flashedSummaryRef = useRef(false);
   useEffect(() => {
