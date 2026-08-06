@@ -462,6 +462,42 @@ function KeepersPanel({
                             {k.player_team ?? "—"} · {k.player_position ?? "—"}
                           </div>
                         </div>
+                        {isAuction ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs font-black text-muted-foreground">$</span>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={auctionBudget}
+                              className="h-7 w-20 text-xs"
+                              value={priceDrafts[k.id] ?? String(k.keeper_price ?? 1)}
+                              onChange={(e) =>
+                                setPriceDrafts((d) => ({ ...d, [k.id]: e.target.value }))
+                              }
+                              onBlur={(e) => {
+                                const price = Math.max(0, Math.round(Number(e.target.value) || 0));
+                                setPriceDrafts((d) => {
+                                  const next = { ...d };
+                                  delete next[k.id];
+                                  return next;
+                                });
+                                if (price === (k.keeper_price ?? null)) return;
+                                upsert(
+                                  teamIdx,
+                                  {
+                                    id: k.player_id,
+                                    name: k.player_name,
+                                    position: k.player_position ?? "",
+                                    team: k.player_team ?? "",
+                                    teamFull: k.player_team ?? "",
+                                  },
+                                  null,
+                                  price,
+                                );
+                              }}
+                            />
+                          </div>
+                        ) : (
                         <Select
                           value={k.keeper_round === null ? "none" : String(k.keeper_round)}
                           onValueChange={(v) => {
@@ -491,6 +527,7 @@ function KeepersPanel({
                             ))}
                           </SelectContent>
                         </Select>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
