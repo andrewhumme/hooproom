@@ -1720,11 +1720,13 @@ function DraftRoomPage() {
                             <Button
                               size="sm"
                               onClick={() => handlePick(p)}
-                              disabled={!isMyTurn || actionBusy || !fits}
+                              disabled={!canPick || actionBusy || !fits}
                               className="h-7 px-2.5 text-xs font-bold"
-                              variant={isMyTurn && fits ? "default" : "outline"}
+                              variant={canPick && fits ? "default" : "outline"}
                               title={
-                                !fits
+                                inWarmup
+                                  ? "Draft hasn't started yet"
+                                  : !fits
                                   ? `No open roster slot for a ${p.position || "this"} player`
                                   : undefined
                               }
