@@ -76,6 +76,7 @@ export function RoomCommissionerTools({
   rounds,
   reversalRounds,
   draftFormat,
+  keepersEnabled = false,
   participants,
   players,
 }: Props) {
