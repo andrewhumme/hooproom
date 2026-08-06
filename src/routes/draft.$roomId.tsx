@@ -800,7 +800,7 @@ function DraftRoomPage() {
       setActionBusy(false);
       if (error) setError(error.message);
     },
-    [isMyTurn, room, canFitPlayer]
+    [canPick, room, canFitPlayer]
   );
 
   const handleCopyLink = async () => {
