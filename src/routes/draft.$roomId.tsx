@@ -945,7 +945,8 @@ function DraftRoomPage() {
                 })}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                No lobby timer — the commissioner starts the draft manually once everyone's in.
+                The draft room opens automatically at this time — or whenever the commissioner
+                starts it. A 2-minute countdown runs before the first pick.
               </p>
             </Card>
           )}
