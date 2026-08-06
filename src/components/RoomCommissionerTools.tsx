@@ -335,6 +335,8 @@ function KeepersPanel({
   participants,
   players,
   teamName,
+  isAuction = false,
+  auctionBudget = 200,
   onError,
   onChanged,
 }: {
@@ -345,11 +347,14 @@ function KeepersPanel({
   participants: Participant[];
   players: DraftablePlayer[];
   teamName: (idx: number) => string;
+  isAuction?: boolean;
+  auctionBudget?: number;
   onError: (msg: string | null) => void;
   onChanged: () => void | Promise<void>;
 }) {
   const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
 
   const keepersByTeam = useMemo(() => {
     const m = new Map<number, Keeper[]>();
@@ -375,6 +380,7 @@ function KeepersPanel({
     teamIdx: number,
     player: DraftablePlayer,
     keeperRound: number | null,
+    keeperPrice: number | null = null,
   ) => {
     onError(null);
     const { error } = await supabase.rpc("keeper_upsert", {
@@ -385,10 +391,12 @@ function KeepersPanel({
       _player_position: player.position ?? null,
       _player_team: player.team ?? null,
       _keeper_round: keeperRound as number,
-    });
+      ...(isAuction ? { _keeper_price: keeperPrice ?? 1 } : {}),
+    } as never);
     if (error) { onError(error.message); return; }
     await onChanged();
   };
+
 
   const remove = async (playerId: string) => {
     onError(null);
