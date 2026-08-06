@@ -79,6 +79,7 @@ export function RoomCommissionerTools({
   reversalRounds,
   draftFormat,
   keepersEnabled = false,
+  auctionBudget = 200,
   participants,
   players,
 }: Props) {
@@ -90,6 +91,7 @@ export function RoomCommissionerTools({
   const [error, setError] = useState<string | null>(null);
 
   const isSnake = draftFormat === "snake";
+  const isAuction = draftFormat === "auction" || draftFormat === "auction_slow";
 
   // Map slot (1..N) → participant; falls back to "Team N" when unfilled
   const participantBySlot = useMemo(() => {
