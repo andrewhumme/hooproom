@@ -322,6 +322,7 @@ export type Database = {
           draft_mode: string
           host_user_id: string
           id: string
+          keepers_enabled: boolean
           layout_preference: string | null
           league_id: string | null
           name: string
@@ -369,6 +370,7 @@ export type Database = {
           draft_mode?: string
           host_user_id: string
           id?: string
+          keepers_enabled?: boolean
           layout_preference?: string | null
           league_id?: string | null
           name: string
@@ -416,6 +418,7 @@ export type Database = {
           draft_mode?: string
           host_user_id?: string
           id?: string
+          keepers_enabled?: boolean
           layout_preference?: string | null
           league_id?: string | null
           name?: string
@@ -914,6 +917,7 @@ export type Database = {
           draft_mode: string
           host_user_id: string
           id: string
+          keepers_enabled: boolean
           layout_preference: string | null
           league_id: string | null
           name: string
@@ -1038,6 +1042,7 @@ export type Database = {
           draft_mode: string
           host_user_id: string
           id: string
+          keepers_enabled: boolean
           layout_preference: string | null
           league_id: string | null
           name: string
@@ -1094,6 +1099,7 @@ export type Database = {
           draft_mode: string
           host_user_id: string
           id: string
+          keepers_enabled: boolean
           layout_preference: string | null
           league_id: string | null
           name: string
@@ -1198,6 +1204,7 @@ export type Database = {
           draft_mode: string
           host_user_id: string
           id: string
+          keepers_enabled: boolean
           layout_preference: string | null
           league_id: string | null
           name: string
@@ -1352,6 +1359,7 @@ export type Database = {
           draft_mode: string
           host_user_id: string
           id: string
+          keepers_enabled: boolean
           layout_preference: string | null
           league_id: string | null
           name: string
@@ -1437,6 +1445,7 @@ export type Database = {
           draft_mode: string
           host_user_id: string
           id: string
+          keepers_enabled: boolean
           layout_preference: string | null
           league_id: string | null
           name: string
@@ -1507,6 +1516,7 @@ export type Database = {
           draft_mode: string
           host_user_id: string
           id: string
+          keepers_enabled: boolean
           layout_preference: string | null
           league_id: string | null
           name: string

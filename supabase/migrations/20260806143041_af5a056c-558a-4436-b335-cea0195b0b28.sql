@@ -1,0 +1,1 @@
+ALTER TABLE public.draft_rooms ADD COLUMN IF NOT EXISTS keepers_enabled boolean NOT NULL DEFAULT false;
