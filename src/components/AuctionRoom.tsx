@@ -341,7 +341,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   // ---- drive bot nominations + bids every few seconds so bots act in real time ----
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || inWarmup) return;
     if (room.status !== "drafting") return;
     let cancelled = false;
     const runBots = async () => {
