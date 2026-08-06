@@ -356,7 +356,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [room.id, room.status, isPaused]);
+  }, [room.id, room.status, isPaused, inWarmup]);
 
   // ---- per-team budgets / rosters ----
   const teamSpent = useMemo(() => {
