@@ -282,6 +282,7 @@ export function toDraftablePlayer(input: {
   teamFull?: string | null;
   nbaPlayerId?: number | null;
   playerKey?: string | null;
+  draftNumber?: number | null;
 }): DraftablePlayer {
   const name = input.name.trim();
   return {
@@ -291,6 +292,7 @@ export function toDraftablePlayer(input: {
     team: input.team?.trim() || "—",
     teamFull: input.teamFull?.trim() || "Unknown team",
     nbaPlayerId: input.nbaPlayerId ?? null,
+    draftNumber: input.draftNumber ?? null,
   };
 }
 

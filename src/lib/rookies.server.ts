@@ -105,6 +105,8 @@ async function fetchPlayerIndex(season: string) {
       from_year: num(row[idx.FROM_YEAR]),
       to_year: num(row[idx.TO_YEAR]),
       draft_year: num(row[idx.DRAFT_YEAR]),
+      draft_round: num(row[idx.DRAFT_ROUND]),
+      draft_number: num(row[idx.DRAFT_NUMBER]),
       is_rookie: false,
     });
   }
