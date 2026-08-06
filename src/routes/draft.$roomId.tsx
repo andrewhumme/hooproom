@@ -1927,7 +1927,7 @@ function DraftRoomPage() {
               }
             : null
         }
-        canDraft={isMyTurn && !!statsPlayer && !takenIds.has(statsPlayer.id)}
+        canDraft={canPick && !!statsPlayer && !takenIds.has(statsPlayer.id)}
         draftBusy={actionBusy}
         showQueue={isJoined}
         isQueued={!!statsPlayer && queuedIds.has(statsPlayer.id)}
