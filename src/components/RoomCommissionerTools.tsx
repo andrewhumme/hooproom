@@ -415,6 +415,7 @@ function KeepersPanel({
         const name = teamName(teamIdx);
         const teamKeepers = keepersByTeam.get(teamIdx) ?? [];
         const isOpen = expandedTeam === teamIdx;
+        const teamSpend = teamKeepers.reduce((sum, k) => sum + (k.keeper_price ?? 0), 0);
         return (
           <div key={teamIdx}>
             <button
@@ -429,6 +430,11 @@ function KeepersPanel({
                 {teamKeepers.length > 0 && (
                   <Badge variant="secondary" className="text-[10px] font-black">
                     {teamKeepers.length} keeper{teamKeepers.length === 1 ? "" : "s"}
+                  </Badge>
+                )}
+                {isAuction && teamKeepers.length > 0 && (
+                  <Badge variant="outline" className="text-[10px] font-black">
+                    ${teamSpend} kept · ${auctionBudget - teamSpend} left
                   </Badge>
                 )}
               </div>
