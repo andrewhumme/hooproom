@@ -651,6 +651,8 @@ export type Database = {
         Row: {
           bdl_player_id: number | null
           created_at: string
+          draft_number: number | null
+          draft_round: number | null
           draft_year: number | null
           first_name: string
           from_year: number | null
@@ -671,6 +673,8 @@ export type Database = {
         Insert: {
           bdl_player_id?: number | null
           created_at?: string
+          draft_number?: number | null
+          draft_round?: number | null
           draft_year?: number | null
           first_name: string
           from_year?: number | null
@@ -691,6 +695,8 @@ export type Database = {
         Update: {
           bdl_player_id?: number | null
           created_at?: string
+          draft_number?: number | null
+          draft_round?: number | null
           draft_year?: number | null
           first_name?: string
           from_year?: number | null
