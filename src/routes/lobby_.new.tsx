@@ -289,6 +289,7 @@ function NewRoomPage() {
           : null,
       room_type: roomType,
       player_pool: playerPool,
+      keepers_enabled: !isAuction && keepersEnabled,
       visibility,
     });
     if (!parsed.success) {
