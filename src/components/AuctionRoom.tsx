@@ -527,6 +527,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
 
   const handleBid = useCallback(
     async (nomId: string, amount: number) => {
+      if (inWarmup) return;
       setActionBusy(true);
       setError(null);
       const { error } = await supabase.rpc("auction_bid", {
@@ -537,7 +538,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       if (error) setError(error.message);
       else setBidAmountByNom((prev) => ({ ...prev, [nomId]: "" }));
     },
-    []
+    [inWarmup]
   );
 
   const handlePauseToggle = async () => {
