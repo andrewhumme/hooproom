@@ -350,6 +350,7 @@ export type Database = {
           team_count: number
           updated_at: string
           visibility: string
+          warmup_until: string | null
         }
         Insert: {
           auction_antisnipe_threshold_sec?: number | null
@@ -398,6 +399,7 @@ export type Database = {
           team_count: number
           updated_at?: string
           visibility?: string
+          warmup_until?: string | null
         }
         Update: {
           auction_antisnipe_threshold_sec?: number | null
@@ -446,6 +448,7 @@ export type Database = {
           team_count?: number
           updated_at?: string
           visibility?: string
+          warmup_until?: string | null
         }
         Relationships: []
       }
@@ -948,6 +951,7 @@ export type Database = {
           team_count: number
           updated_at: string
           visibility: string
+          warmup_until: string | null
         }
         SetofOptions: {
           from: "*"
@@ -960,7 +964,10 @@ export type Database = {
         Args: { _room: Database["public"]["Tables"]["draft_rooms"]["Row"] }
         Returns: number
       }
-      auto_fill_and_start: { Args: { _room_id: string }; Returns: undefined }
+      auto_fill_and_start: {
+        Args: { _fill_bots?: boolean; _room_id: string }
+        Returns: undefined
+      }
       can_view_room: { Args: { _room_id: string }; Returns: boolean }
       claim_admin_if_unclaimed: { Args: never; Returns: boolean }
       claim_draft_position: {
@@ -1073,6 +1080,7 @@ export type Database = {
           team_count: number
           updated_at: string
           visibility: string
+          warmup_until: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1130,6 +1138,7 @@ export type Database = {
           team_count: number
           updated_at: string
           visibility: string
+          warmup_until: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1235,6 +1244,7 @@ export type Database = {
           team_count: number
           updated_at: string
           visibility: string
+          warmup_until: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1424,6 +1434,7 @@ export type Database = {
           team_count: number
           updated_at: string
           visibility: string
+          warmup_until: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1510,6 +1521,7 @@ export type Database = {
           team_count: number
           updated_at: string
           visibility: string
+          warmup_until: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1581,6 +1593,7 @@ export type Database = {
           team_count: number
           updated_at: string
           visibility: string
+          warmup_until: string | null
         }
         SetofOptions: {
           from: "*"
