@@ -418,6 +418,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const isMyNomination =
     !!myTeamIdx &&
     isDrafting &&
+    !inWarmup &&
     canNominateMore &&
     myActiveNomCount < perTeamConcurrent &&
     myQuotaRemaining > 0 &&
