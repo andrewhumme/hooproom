@@ -123,9 +123,18 @@ export function rankOf(playerName: string): number {
   return RANK_INDEX.get(playerName.toLowerCase()) ?? 9999;
 }
 
-export function compareByRank(a: { name: string }, b: { name: string }): number {
+export function compareByRank(
+  a: { name: string; draftNumber?: number | null },
+  b: { name: string; draftNumber?: number | null }
+): number {
   const ra = rankOf(a.name);
   const rb = rankOf(b.name);
   if (ra !== rb) return ra - rb;
+  // Unranked players (e.g. a rookie-only pool): order by NBA draft slot.
+  if (ra === 9999 && (a.draftNumber != null || b.draftNumber != null)) {
+    const da = a.draftNumber ?? 9999;
+    const db = b.draftNumber ?? 9999;
+    if (da !== db) return da - db;
+  }
   return a.name.localeCompare(b.name);
 }

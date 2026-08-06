@@ -16,6 +16,7 @@ export type DraftablePlayer = {
   team: string;
   teamFull: string;
   nbaPlayerId?: number | null; // NBA stats id used for CDN headshots
+  draftNumber?: number | null; // overall NBA draft pick (null = undrafted)
 };
 
 const BDL_BASE = "https://api.balldontlie.io/v1";

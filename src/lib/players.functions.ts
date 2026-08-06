@@ -5,7 +5,7 @@ import { buildFallbackPlayerPool, toDraftablePlayer } from "@/lib/playerPool";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const SELECT_COLS =
-  "player_key, full_name, position, team_abbreviation, team_full_name, nba_player_id";
+  "player_key, full_name, position, team_abbreviation, team_full_name, nba_player_id, draft_number";
 
 /**
  * Seed/refresh `public.players` from NBA.com's player index (the CDN static
@@ -25,6 +25,7 @@ type PlayerRow = {
   team_abbreviation: string | null;
   team_full_name: string | null;
   nba_player_id: number | null;
+  draft_number: number | null;
 };
 
 function mapRows(rows: PlayerRow[]): DraftablePlayer[] {
@@ -36,6 +37,7 @@ function mapRows(rows: PlayerRow[]): DraftablePlayer[] {
       teamFull: p.team_full_name,
       nbaPlayerId: p.nba_player_id,
       playerKey: p.player_key,
+      draftNumber: p.draft_number,
     }),
   );
 }
@@ -52,7 +54,13 @@ export const fetchActivePlayersServer = createServerFn({ method: "GET" })
 
     const query = () => {
       let q = supabaseAdmin.from("players").select(SELECT_COLS).eq("is_active", true);
-      if (rookiesOnly) q = q.eq("is_rookie", true);
+      if (rookiesOnly) {
+        // Rookie drafts follow NBA draft order; undrafted rookies go last.
+        return q
+          .eq("is_rookie", true)
+          .order("draft_number", { ascending: true, nullsFirst: false })
+          .order("full_name", { ascending: true });
+      }
       return q.order("full_name", { ascending: true });
     };
 
