@@ -423,8 +423,15 @@ function DraftRoomPage() {
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
 
+  // Pre-draft warm-up: after a draft starts there's a 2-minute countdown
+  // before the first pick is live.
+  const warmup = useWarmup(room?.warmup_until);
+  const inWarmup = isDrafting && warmup.active;
+  const canPick = isMyTurn && !inWarmup;
+
   // Tab-title + favicon dot + chime when it becomes my turn.
-  useTurnAlert(isMyTurn, room?.draft_mode !== "offline");
+  useTurnAlert(canPick, room?.draft_mode !== "offline");
+
 
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
 
