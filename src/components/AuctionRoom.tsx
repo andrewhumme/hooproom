@@ -43,6 +43,7 @@ import {
   ArrowLeft,
   Clock,
   DollarSign,
+  Flame,
   Download,
   Gavel,
   Loader2,
