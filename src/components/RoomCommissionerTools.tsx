@@ -208,6 +208,7 @@ export function RoomCommissionerTools({
           />
         )}
       </Card>
+      )}
 
       {/* ─── Custom Picks ─── */}
       <Card className="overflow-hidden border-2">
