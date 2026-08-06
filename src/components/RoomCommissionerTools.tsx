@@ -45,6 +45,7 @@ type Props = {
   rounds: number;
   reversalRounds: number[];
   draftFormat: string;
+  keepersEnabled?: boolean;
   participants: Participant[];
   players: DraftablePlayer[];
 };
@@ -75,6 +76,7 @@ export function RoomCommissionerTools({
   rounds,
   reversalRounds,
   draftFormat,
+  keepersEnabled = false,
   participants,
   players,
 }: Props) {
@@ -166,6 +168,7 @@ export function RoomCommissionerTools({
       )}
 
       {/* ─── Keepers ─── */}
+      {keepersEnabled && (
       <Card className="overflow-hidden border-2">
         <button
           onClick={() => setKeepersOpen((v) => !v)}
@@ -205,6 +208,7 @@ export function RoomCommissionerTools({
           />
         )}
       </Card>
+      )}
 
       {/* ─── Custom Picks ─── */}
       <Card className="overflow-hidden border-2">
