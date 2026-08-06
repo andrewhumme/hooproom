@@ -708,6 +708,12 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
         </div>
       </div>
 
+      {inWarmup && (
+        <div className="mx-auto max-w-7xl px-4 pt-4 lg:px-6">
+          <WarmupBanner secondsLeft={warmup.secondsLeft} label="Auction begins in" />
+        </div>
+      )}
+
       <main className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
         {error && (
           <div className="mb-4 rounded-md border-2 border-destructive/30 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive">
