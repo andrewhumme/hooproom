@@ -970,7 +970,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                     return (
                     <li
                       key={pl.id}
-                      className="flex items-center justify-between gap-2 px-3 py-1.5 hover:bg-muted/50"
+                      className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 px-3 py-1.5 hover:bg-muted/50"
                     >
                       <button
                         type="button"
