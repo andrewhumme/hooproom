@@ -94,6 +94,7 @@ type Room = {
   current_pick_number: number;
   pick_deadline: string | null;
   paused_at: string | null;
+  warmup_until?: string | null;
   draft_format: string;
   auction_budget: number;
   auction_min_bid: number;
