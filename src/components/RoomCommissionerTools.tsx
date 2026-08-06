@@ -154,14 +154,23 @@ export function RoomCommissionerTools({
   const orderChangedSinceLock =
     orderFinalized && lockedSignature !== null && lockedSignature !== orderSignature;
 
-  if (!isSnake) {
+  if (!isSnake && !isAuction) {
     return (
       <Card className="mt-6 border-2 border-dashed p-6 text-sm text-muted-foreground">
-        Keepers and custom pick assignments are coming to auction drafts. For
-        now they're available in snake drafts only.
+        Keepers and custom pick assignments aren't available in this draft format.
       </Card>
     );
   }
+
+  if (isAuction && !keepersEnabled) {
+    return (
+      <Card className="mt-6 border-2 border-dashed p-6 text-sm text-muted-foreground">
+        Custom pick assignments are coming to auction drafts. Turn on keepers when
+        creating the room to manage kept players and salaries here.
+      </Card>
+    );
+  }
+
 
   return (
     <div className="mt-6 space-y-4">
