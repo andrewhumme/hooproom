@@ -26,12 +26,24 @@ import { getAuctionValuesServer } from "@/lib/auctionValues.functions";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import { compareByRank } from "@/lib/playerRankings";
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
+import {
+  fetchLatestStatsForPlayersServer,
+  type PlayerSeasonStats,
+} from "@/lib/playerStats.functions";
+import {
+  CategoryHeatmap,
+  computeTeamTotals,
+  StatCell,
+  STAT_COLUMNS,
+  type TeamCategoryTotals,
+} from "@/components/CategoryHeatmap";
 
 const looseKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
 import {
   ArrowLeft,
   Clock,
   DollarSign,
+  Flame,
   Download,
   Gavel,
   Loader2,
@@ -154,6 +166,8 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
   const [nomViewMode, setNomViewMode] = useState<"condensed" | "expanded" | "all">("expanded");
   const [nomPage, setNomPage] = useState(0);
   const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
+  const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
+  const [statsShade, setStatsShade] = useState<"plain" | "heatmap">("plain");
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">(
     "players"
   );
@@ -437,6 +451,50 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       .sort(compareByRank)
       .slice(0, 200);
   }, [players, draftedIds, onBlockIds, posFilter, search]);
+
+  // ---- season stats for heatmaps ----
+  useEffect(() => {
+    if (players.length === 0) return;
+    let cancelled = false;
+    fetchLatestStatsForPlayersServer({ data: { playerKeys: players.map((p) => p.id) } })
+      .then((map) => {
+        if (!cancelled) setLatestStats(map);
+      })
+      .catch((e) => console.error("latest stats fetch failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, [players]);
+
+  // Per-stat max across visible players (shades the player-pool heatmap).
+  const statMax = useMemo(() => {
+    const max: Record<string, number> = {};
+    for (const col of STAT_COLUMNS) max[col.key] = 0;
+    for (const p of filteredPlayers) {
+      const s = latestStats[p.id];
+      if (!s) continue;
+      for (const col of STAT_COLUMNS) {
+        const v = s[col.key] as number | null | undefined;
+        if (v != null && v > max[col.key]) max[col.key] = v;
+      }
+    }
+    return max;
+  }, [filteredPlayers, latestStats]);
+
+  // Per-team category totals (My Team heatmap ranks against the league).
+  const teamTotalsByIdx = useMemo(() => {
+    const byTeam = new Map<number, Pick[]>();
+    for (const pk of picks) {
+      const arr = byTeam.get(pk.team_idx) ?? [];
+      arr.push(pk);
+      byTeam.set(pk.team_idx, arr);
+    }
+    const out = new Map<number, TeamCategoryTotals>();
+    for (const [idx, ps] of byTeam) out.set(idx, computeTeamTotals(ps, latestStats));
+    return out;
+  }, [picks, latestStats]);
+
+  const myTotals = myTeamIdx ? (teamTotalsByIdx.get(myTeamIdx) ?? null) : null;
 
   // ---- handlers ----
   const handleNominate = useCallback(
@@ -957,6 +1015,17 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                     </Button>
                   ))}
                 </div>
+                <Button
+                  onClick={() =>
+                    setStatsShade((m) => (m === "heatmap" ? "plain" : "heatmap"))
+                  }
+                  size="sm"
+                  variant={statsShade === "heatmap" ? "default" : "outline"}
+                  className="font-bold"
+                  title="Toggle per-player stat heatmap"
+                >
+                  <Flame className="h-3 w-3" /> Stats
+                </Button>
               </div>
 
               {playersLoading ? (
@@ -970,7 +1039,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                     return (
                     <li
                       key={pl.id}
-                      className="flex items-center justify-between gap-2 px-3 py-1.5 hover:bg-muted/50"
+                      className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 px-3 py-1.5 hover:bg-muted/50"
                     >
                       <button
                         type="button"
@@ -1014,7 +1083,23 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           </Button>
                         ) : null}
                       </div>
+                      {statsShade === "heatmap" && (
+                        <div className="order-last flex w-full shrink-0 items-stretch overflow-x-auto rounded-md border border-border/70 bg-background/70 text-[11px] font-bold tabular-nums">
+                          {STAT_COLUMNS.map((col, ci) => (
+                            <StatCell
+                              key={col.key}
+                              label={col.label}
+                              value={latestStats[pl.id]?.[col.key] as number | null | undefined}
+                              max={statMax[col.key]}
+                              mode="heatmap"
+                              decimals={col.decimals}
+                              divider={ci !== 0}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </li>
+
                     );
                   })}
                   {filteredPlayers.length === 0 && (
@@ -1069,6 +1154,14 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                     {myPickCount}/{totalSlots}
                   </span>
                 </div>
+                {myTotals && myPicks.length > 0 && (
+                  <div className="-mx-4 mb-3">
+                    <CategoryHeatmap
+                      totals={myTotals}
+                      allTotals={Array.from(teamTotalsByIdx.values())}
+                    />
+                  </div>
+                )}
                 {myPicks.length === 0 ? (
                   <div className="text-sm italic text-muted-foreground">
                     No picks yet
