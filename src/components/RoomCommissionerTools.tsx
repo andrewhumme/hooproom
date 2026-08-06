@@ -45,6 +45,7 @@ type Props = {
   rounds: number;
   reversalRounds: number[];
   draftFormat: string;
+  keepersEnabled?: boolean;
   participants: Participant[];
   players: DraftablePlayer[];
 };
