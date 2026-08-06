@@ -289,7 +289,7 @@ function NewRoomPage() {
           : null,
       room_type: roomType,
       player_pool: playerPool,
-      keepers_enabled: !isAuction && keepersEnabled,
+      keepers_enabled: keepersEnabled,
       visibility,
     });
     if (!parsed.success) {
@@ -727,12 +727,15 @@ function NewRoomPage() {
               </div>
             )}
 
-            {step === 2 && draftFormat === "snake" && (
+            {step === 2 && (
               <div>
                 <Label>Keepers</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Turn this on if teams keep players from last season. Keeper tools only show
                   up in the draft lobby when enabled.
+                  {isAuction
+                    ? " In auction leagues you'll set a salary for each keeper, which is deducted from that team's budget."
+                    : ""}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <ClockChip
