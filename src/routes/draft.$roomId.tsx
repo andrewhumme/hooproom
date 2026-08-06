@@ -782,7 +782,7 @@ function DraftRoomPage() {
 
   const handlePick = useCallback(
     async (player: DraftablePlayer) => {
-      if (!isMyTurn || !room) return;
+      if (!canPick || !room) return;
       if (!canFitPlayer(player.position)) {
         setError(`No open roster slot for a ${player.position || "this"} player`);
         return;
