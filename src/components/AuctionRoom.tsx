@@ -1069,6 +1069,14 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                     {myPickCount}/{totalSlots}
                   </span>
                 </div>
+                {myTotals && myPicks.length > 0 && (
+                  <div className="-mx-4 mb-3">
+                    <CategoryHeatmap
+                      totals={myTotals}
+                      allTotals={Array.from(teamTotalsByIdx.values())}
+                    />
+                  </div>
+                )}
                 {myPicks.length === 0 ? (
                   <div className="text-sm italic text-muted-foreground">
                     No picks yet
