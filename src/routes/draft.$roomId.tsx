@@ -1340,6 +1340,12 @@ function DraftRoomPage() {
         </div>
       </div>
 
+      {inWarmup && (
+        <div className="mx-auto max-w-7xl px-6 pt-4">
+          <WarmupBanner secondsLeft={warmup.secondsLeft} />
+        </div>
+      )}
+
       {/* Draft order strip — shows pick order, highlights current team */}
       <div className="border-b border-border bg-card">
         <div className="mx-auto max-w-7xl px-6 py-3">
