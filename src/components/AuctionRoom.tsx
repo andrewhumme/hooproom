@@ -1014,7 +1014,23 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                           </Button>
                         ) : null}
                       </div>
+                      {statsShade === "heatmap" && (
+                        <div className="order-last flex w-full shrink-0 items-stretch overflow-x-auto rounded-md border border-border/70 bg-background/70 text-[11px] font-bold tabular-nums">
+                          {STAT_COLUMNS.map((col, ci) => (
+                            <StatCell
+                              key={col.key}
+                              label={col.label}
+                              value={latestStats[pl.id]?.[col.key] as number | null | undefined}
+                              max={statMax[col.key]}
+                              mode="heatmap"
+                              decimals={col.decimals}
+                              divider={ci !== 0}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </li>
+
                     );
                   })}
                   {filteredPlayers.length === 0 && (
