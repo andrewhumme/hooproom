@@ -23,6 +23,7 @@ type Keeper = {
   player_position: string | null;
   player_team: string | null;
   keeper_round: number | null;
+  keeper_price: number | null;
 };
 
 type PickAssignment = {
@@ -46,6 +47,7 @@ type Props = {
   reversalRounds: number[];
   draftFormat: string;
   keepersEnabled?: boolean;
+  auctionBudget?: number;
   participants: Participant[];
   players: DraftablePlayer[];
 };
@@ -77,6 +79,7 @@ export function RoomCommissionerTools({
   reversalRounds,
   draftFormat,
   keepersEnabled = false,
+  auctionBudget = 200,
   participants,
   players,
 }: Props) {
@@ -88,6 +91,7 @@ export function RoomCommissionerTools({
   const [error, setError] = useState<string | null>(null);
 
   const isSnake = draftFormat === "snake";
+  const isAuction = draftFormat === "auction" || draftFormat === "auction_slow";
 
   // Map slot (1..N) → participant; falls back to "Team N" when unfilled
   const participantBySlot = useMemo(() => {
@@ -150,14 +154,23 @@ export function RoomCommissionerTools({
   const orderChangedSinceLock =
     orderFinalized && lockedSignature !== null && lockedSignature !== orderSignature;
 
-  if (!isSnake) {
+  if (!isSnake && !isAuction) {
     return (
       <Card className="mt-6 border-2 border-dashed p-6 text-sm text-muted-foreground">
-        Keepers and custom pick assignments are coming to auction drafts. For
-        now they're available in snake drafts only.
+        Keepers and custom pick assignments aren't available in this draft format.
       </Card>
     );
   }
+
+  if (isAuction && !keepersEnabled) {
+    return (
+      <Card className="mt-6 border-2 border-dashed p-6 text-sm text-muted-foreground">
+        Custom pick assignments are coming to auction drafts. Turn on keepers when
+        creating the room to manage kept players and salaries here.
+      </Card>
+    );
+  }
+
 
   return (
     <div className="mt-6 space-y-4">
@@ -179,7 +192,9 @@ export function RoomCommissionerTools({
             <div>
               <div className="text-sm font-black">Keepers</div>
               <div className="text-[11px] text-muted-foreground">
-                Lock players to teams before the draft.{" "}
+                {isAuction
+                  ? "Lock players to teams and set their salary — it comes off that team's budget. "
+                  : "Lock players to teams before the draft. "}
                 {keepers.length > 0 && (
                   <span className="font-bold text-foreground">
                     {keepers.length} set
@@ -203,6 +218,8 @@ export function RoomCommissionerTools({
             participants={participants}
             players={players}
             teamName={teamName}
+            isAuction={isAuction}
+            auctionBudget={auctionBudget}
             onError={setError}
             onChanged={load}
           />
@@ -211,6 +228,7 @@ export function RoomCommissionerTools({
       )}
 
       {/* ─── Custom Picks ─── */}
+      {isSnake && (
       <Card className="overflow-hidden border-2">
         <button
           onClick={() => setPicksOpen((v) => !v)}
@@ -303,6 +321,7 @@ export function RoomCommissionerTools({
           </div>
         )}
       </Card>
+      )}
     </div>
   );
 }
@@ -316,6 +335,8 @@ function KeepersPanel({
   participants,
   players,
   teamName,
+  isAuction = false,
+  auctionBudget = 200,
   onError,
   onChanged,
 }: {
@@ -326,11 +347,14 @@ function KeepersPanel({
   participants: Participant[];
   players: DraftablePlayer[];
   teamName: (idx: number) => string;
+  isAuction?: boolean;
+  auctionBudget?: number;
   onError: (msg: string | null) => void;
   onChanged: () => void | Promise<void>;
 }) {
   const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
 
   const keepersByTeam = useMemo(() => {
     const m = new Map<number, Keeper[]>();
@@ -356,6 +380,7 @@ function KeepersPanel({
     teamIdx: number,
     player: DraftablePlayer,
     keeperRound: number | null,
+    keeperPrice: number | null = null,
   ) => {
     onError(null);
     const { error } = await supabase.rpc("keeper_upsert", {
@@ -366,10 +391,12 @@ function KeepersPanel({
       _player_position: player.position ?? null,
       _player_team: player.team ?? null,
       _keeper_round: keeperRound as number,
-    });
+      ...(isAuction ? { _keeper_price: keeperPrice ?? 1 } : {}),
+    } as never);
     if (error) { onError(error.message); return; }
     await onChanged();
   };
+
 
   const remove = async (playerId: string) => {
     onError(null);
@@ -388,6 +415,7 @@ function KeepersPanel({
         const name = teamName(teamIdx);
         const teamKeepers = keepersByTeam.get(teamIdx) ?? [];
         const isOpen = expandedTeam === teamIdx;
+        const teamSpend = teamKeepers.reduce((sum, k) => sum + (k.keeper_price ?? 0), 0);
         return (
           <div key={teamIdx}>
             <button
@@ -402,6 +430,11 @@ function KeepersPanel({
                 {teamKeepers.length > 0 && (
                   <Badge variant="secondary" className="text-[10px] font-black">
                     {teamKeepers.length} keeper{teamKeepers.length === 1 ? "" : "s"}
+                  </Badge>
+                )}
+                {isAuction && teamKeepers.length > 0 && (
+                  <Badge variant="outline" className="text-[10px] font-black">
+                    ${teamSpend} kept · ${auctionBudget - teamSpend} left
                   </Badge>
                 )}
               </div>
@@ -429,6 +462,42 @@ function KeepersPanel({
                             {k.player_team ?? "—"} · {k.player_position ?? "—"}
                           </div>
                         </div>
+                        {isAuction ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs font-black text-muted-foreground">$</span>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={auctionBudget}
+                              className="h-7 w-20 text-xs"
+                              value={priceDrafts[k.id] ?? String(k.keeper_price ?? 1)}
+                              onChange={(e) =>
+                                setPriceDrafts((d) => ({ ...d, [k.id]: e.target.value }))
+                              }
+                              onBlur={(e) => {
+                                const price = Math.max(0, Math.round(Number(e.target.value) || 0));
+                                setPriceDrafts((d) => {
+                                  const next = { ...d };
+                                  delete next[k.id];
+                                  return next;
+                                });
+                                if (price === (k.keeper_price ?? null)) return;
+                                upsert(
+                                  teamIdx,
+                                  {
+                                    id: k.player_id,
+                                    name: k.player_name,
+                                    position: k.player_position ?? "",
+                                    team: k.player_team ?? "",
+                                    teamFull: k.player_team ?? "",
+                                  },
+                                  null,
+                                  price,
+                                );
+                              }}
+                            />
+                          </div>
+                        ) : (
                         <Select
                           value={k.keeper_round === null ? "none" : String(k.keeper_round)}
                           onValueChange={(v) => {
@@ -458,6 +527,7 @@ function KeepersPanel({
                             ))}
                           </SelectContent>
                         </Select>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"

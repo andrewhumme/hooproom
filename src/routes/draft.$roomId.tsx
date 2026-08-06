@@ -1120,6 +1120,7 @@ function DraftRoomPage() {
               reversalRounds={room.reversal_rounds ?? []}
               draftFormat={room.draft_format}
               keepersEnabled={(room as { keepers_enabled?: boolean }).keepers_enabled ?? false}
+              auctionBudget={room.auction_budget ?? 200}
               participants={participants.map((p) => ({
                 id: p.id,
                 team_name: p.team_name,
