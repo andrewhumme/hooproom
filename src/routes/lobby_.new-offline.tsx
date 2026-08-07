@@ -146,12 +146,29 @@ function NewOfflineRoomPage() {
         user_id: idx === 0 ? currentUser.id : null,
         draft_position: idx + 1,
         team_name: t.name,
-        owner_email: t.email || null,
       }));
-      const { error: partErr } = await supabase
+      const { data: inserted, error: partErr } = await supabase
         .from("draft_participants")
-        .insert(participantRows);
+        .insert(participantRows)
+        .select("id, draft_position");
       if (partErr) throw partErr;
+
+      // Contact emails live in a host-only table so spectators can't read them.
+      const contactRows = (inserted ?? [])
+        .map((p) => {
+          const team = validTeams[(p.draft_position ?? 0) - 1];
+          return team?.email
+            ? { participant_id: p.id, room_id: room.id, owner_email: team.email }
+            : null;
+        })
+        .filter((r): r is { participant_id: string; room_id: string; owner_email: string } => !!r);
+      if (contactRows.length > 0) {
+        const { error: contactErr } = await supabase
+          .from("draft_participant_contacts")
+          .insert(contactRows);
+        if (contactErr) throw contactErr;
+      }
+
 
       navigate({ to: "/draft/$roomId", params: { roomId: room.id } });
     } catch (err) {
