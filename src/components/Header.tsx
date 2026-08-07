@@ -77,9 +77,13 @@ export function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-lg">
-            H
-          </div>
+          <img
+            src="/favicon.png"
+            alt="HoopRoom orange H logo"
+            className="h-9 w-9 rounded-lg"
+            width={36}
+            height={36}
+          />
           <span className="text-xl font-black tracking-tight">HoopRoom</span>
         </Link>
 
