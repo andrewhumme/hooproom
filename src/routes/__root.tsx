@@ -1,9 +1,11 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
 
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
+import { initGA, trackPageView } from "@/lib/analytics";
+import { useEffect } from "react";
 
 function NotFoundComponent() {
   return (
@@ -73,6 +75,16 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const location = useLocation();
+
+  useEffect(() => {
+    initGA();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname, location.search]);
+
   return (
     <AuthProvider>
       <div className="flex min-h-screen flex-col">
