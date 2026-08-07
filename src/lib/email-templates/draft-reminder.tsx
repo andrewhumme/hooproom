@@ -6,11 +6,14 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
+
+const LOGO_URL = "https://hooproom.app/email-logo.png";
 
 interface DraftReminderProps {
   managerName?: string;
@@ -40,6 +43,13 @@ export function DraftReminderEmail({
       <Body style={{ backgroundColor: "#0b0b0d", fontFamily: "Helvetica, Arial, sans-serif", margin: 0 }}>
         <Container style={{ maxWidth: "560px", margin: "0 auto", padding: "32px 24px" }}>
           <Section style={{ textAlign: "center", marginBottom: "24px" }}>
+            <Img
+              src={LOGO_URL}
+              width="48"
+              height="48"
+              alt="HoopRoom"
+              style={{ borderRadius: "12px", display: "inline-block", margin: "0 auto 10px" }}
+            />
             <Text style={{ color: orange, fontSize: "24px", fontWeight: 700, letterSpacing: "-0.5px", margin: 0 }}>
               HoopRoom
             </Text>
@@ -83,9 +93,18 @@ export function DraftReminderEmail({
             </Button>
           </Section>
           <Hr style={{ borderColor: "#26262b", margin: "24px 0" }} />
-          <Text style={{ color: "#6b6b73", fontSize: "12px", textAlign: "center", margin: 0 }}>
-            HoopRoom — NBA fantasy drafts
-          </Text>
+          <Section style={{ textAlign: "center" }}>
+            <Img
+              src={LOGO_URL}
+              width="24"
+              height="24"
+              alt="HoopRoom"
+              style={{ borderRadius: "6px", display: "inline-block", opacity: 0.7 }}
+            />
+            <Text style={{ color: "#6b6b73", fontSize: "12px", textAlign: "center", margin: "8px 0 0" }}>
+              HoopRoom — NBA fantasy drafts
+            </Text>
+          </Section>
         </Container>
       </Body>
     </Html>
