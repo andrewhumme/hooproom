@@ -15,15 +15,19 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyNewOfflineRouteImport } from './routes/lobby_.new-offline'
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
 import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin_'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DraftRoomIdSummaryRouteImport } from './routes/draft.$roomId_.summary'
 import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
 import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
 import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
 import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicHooksRefreshSeasonStatsRouteImport } from './routes/api/public/hooks/refresh-season-stats'
 
@@ -56,6 +60,11 @@ const LobbyNewRoute = LobbyNewRouteImport.update({
   path: '/lobby/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DraftRoomIdRoute = DraftRoomIdRouteImport.update({
   id: '/draft/$roomId',
   path: '/draft/$roomId',
@@ -70,6 +79,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin_',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DraftRoomIdSummaryRoute = DraftRoomIdSummaryRouteImport.update({
   id: '/draft/$roomId_/summary',
@@ -101,6 +115,18 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
@@ -121,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby/new': typeof LobbyNewRoute
   '/lobby/new-offline': typeof LobbyNewOfflineRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -129,8 +156,11 @@ export interface FileRoutesByFullPath {
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -139,6 +169,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby/new': typeof LobbyNewRoute
   '/lobby/new-offline': typeof LobbyNewOfflineRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -147,8 +178,11 @@ export interface FileRoutesByTo {
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -159,6 +193,7 @@ export interface FileRoutesById {
   '/_authenticated/admin_': typeof AuthenticatedAdminRoute
   '/_authenticated/me': typeof AuthenticatedMeRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby_/new': typeof LobbyNewRoute
   '/lobby_/new-offline': typeof LobbyNewOfflineRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -167,8 +202,11 @@ export interface FileRoutesById {
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId_/summary': typeof DraftRoomIdSummaryRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -179,6 +217,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/me'
     | '/draft/$roomId'
+    | '/email/unsubscribe'
     | '/lobby/new'
     | '/lobby/new-offline'
     | '/admin/users'
@@ -187,8 +226,11 @@ export interface FileRouteTypes {
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/draft/$roomId/summary'
+    | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -197,6 +239,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/me'
     | '/draft/$roomId'
+    | '/email/unsubscribe'
     | '/lobby/new'
     | '/lobby/new-offline'
     | '/admin/users'
@@ -205,8 +248,11 @@ export interface FileRouteTypes {
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/draft/$roomId/summary'
+    | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
   id:
     | '__root__'
     | '/'
@@ -216,6 +262,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin_'
     | '/_authenticated/me'
     | '/draft/$roomId'
+    | '/email/unsubscribe'
     | '/lobby_/new'
     | '/lobby_/new-offline'
     | '/_authenticated/admin/users'
@@ -224,8 +271,11 @@ export interface FileRouteTypes {
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/draft/$roomId_/summary'
+    | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -234,6 +284,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   LobbyRoute: typeof LobbyRoute
   DraftRoomIdRoute: typeof DraftRoomIdRoute
+  EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LobbyNewRoute: typeof LobbyNewRoute
   LobbyNewOfflineRoute: typeof LobbyNewOfflineRoute
   ApiPublicAuctionTickRoute: typeof ApiPublicAuctionTickRoute
@@ -241,8 +292,11 @@ export interface RootRouteChildren {
   ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
   ApiPublicSnakeTickRoute: typeof ApiPublicSnakeTickRoute
   DraftRoomIdSummaryRoute: typeof DraftRoomIdSummaryRoute
+  LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksRefreshSeasonStatsRoute: typeof ApiPublicHooksRefreshSeasonStatsRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
+  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -289,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LobbyNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/draft/$roomId': {
       id: '/draft/$roomId'
       path: '/draft/$roomId'
@@ -309,6 +370,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/draft/$roomId_/summary': {
       id: '/draft/$roomId_/summary'
@@ -352,6 +420,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
       path: '/lovable/email/queue/process'
@@ -390,6 +472,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   LobbyRoute: LobbyRoute,
   DraftRoomIdRoute: DraftRoomIdRoute,
+  EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LobbyNewRoute: LobbyNewRoute,
   LobbyNewOfflineRoute: LobbyNewOfflineRoute,
   ApiPublicAuctionTickRoute: ApiPublicAuctionTickRoute,
@@ -397,8 +480,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,
   ApiPublicSnakeTickRoute: ApiPublicSnakeTickRoute,
   DraftRoomIdSummaryRoute: DraftRoomIdSummaryRoute,
+  LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksRefreshSeasonStatsRoute: ApiPublicHooksRefreshSeasonStatsRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
+  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
