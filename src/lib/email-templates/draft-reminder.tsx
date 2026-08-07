@@ -43,6 +43,13 @@ export function DraftReminderEmail({
       <Body style={{ backgroundColor: "#0b0b0d", fontFamily: "Helvetica, Arial, sans-serif", margin: 0 }}>
         <Container style={{ maxWidth: "560px", margin: "0 auto", padding: "32px 24px" }}>
           <Section style={{ textAlign: "center", marginBottom: "24px" }}>
+            <Img
+              src={LOGO_URL}
+              width="48"
+              height="48"
+              alt="HoopRoom"
+              style={{ borderRadius: "12px", display: "inline-block", margin: "0 auto 10px" }}
+            />
             <Text style={{ color: orange, fontSize: "24px", fontWeight: 700, letterSpacing: "-0.5px", margin: 0 }}>
               HoopRoom
             </Text>
