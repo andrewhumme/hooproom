@@ -50,13 +50,7 @@ function TermsPage() {
           </p>
 
           <h2 className="text-lg font-bold text-foreground">Contact</h2>
-          <p>
-            Questions about these terms? Reach out via{" "}
-            <Link to="/contact" className="text-primary hover:underline">
-              our contact page
-            </Link>
-            .
-          </p>
+          <p>Questions about these terms? Reach out through your HoopRoom account settings.</p>
         </section>
       </div>
     </main>

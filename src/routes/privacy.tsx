@@ -55,13 +55,7 @@ function PrivacyPage() {
           </p>
 
           <h2 className="text-lg font-bold text-foreground">Contact</h2>
-          <p>
-            For privacy-related questions, please reach out via{" "}
-            <Link to="/contact" className="text-primary hover:underline">
-              our contact page
-            </Link>
-            .
-          </p>
+          <p>For privacy-related questions, please reach out through your HoopRoom account settings.</p>
         </section>
       </div>
     </main>
