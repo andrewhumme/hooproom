@@ -231,19 +231,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-background">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
-          <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground text-xs font-black">
-              H
-            </div>
-            <span className="font-bold text-foreground">HoopRoom</span>
-            <span>· Built for hoopheads.</span>
-          </div>
-          <div>© {new Date().getFullYear()} HoopRoom</div>
-        </div>
-      </footer>
     </div>
   );
 }
