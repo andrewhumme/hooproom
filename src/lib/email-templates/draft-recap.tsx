@@ -100,9 +100,18 @@ export function DraftRecapEmail({
             </Section>
           </Section>
           <Hr style={{ borderColor: "#26262b", margin: "24px 0" }} />
-          <Text style={{ color: "#6b6b73", fontSize: "12px", textAlign: "center", margin: 0 }}>
-            HoopRoom — NBA fantasy drafts
-          </Text>
+          <Section style={{ textAlign: "center" }}>
+            <Img
+              src={LOGO_URL}
+              width="24"
+              height="24"
+              alt="HoopRoom"
+              style={{ borderRadius: "6px", display: "inline-block", opacity: 0.7 }}
+            />
+            <Text style={{ color: "#6b6b73", fontSize: "12px", textAlign: "center", margin: "8px 0 0" }}>
+              HoopRoom — NBA fantasy drafts
+            </Text>
+          </Section>
         </Container>
       </Body>
     </Html>
