@@ -6,6 +6,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
   Row,
   Column,
@@ -13,6 +14,8 @@ import {
   Text,
 } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
+
+const LOGO_URL = "https://hooproom.app/email-logo.png";
 
 interface RosterPick {
   round?: number;
