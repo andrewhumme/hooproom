@@ -54,21 +54,9 @@ function Landing() {
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
               NBA Season 25-26 · Build Your Draft, Your Way
             </div>
-            <div className="mb-5 flex items-center gap-4">
-              <img
-                src="/favicon.png"
-                alt="HoopRoom orange H logo"
-                width={72}
-                height={72}
-                className="h-16 w-16 rounded-xl md:h-[72px] md:w-[72px]"
-              />
-              <h1 className="text-5xl font-black leading-none tracking-tight md:text-7xl">
-                HoopRoom
-              </h1>
-            </div>
-            <h2 className="max-w-2xl text-3xl font-black leading-tight md:text-5xl">
+            <h1 className="max-w-2xl text-3xl font-black leading-tight md:text-5xl">
               Custom NBA fantasy basketball drafts, built your way.
-            </h2>
+            </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground md:text-xl">
               HoopRoom is a web app for creating and running NBA fantasy basketball
               drafts. Host snake or auction drafts live, over multiple days, or in
