@@ -97,7 +97,50 @@ function Landing() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* About — explains the app purpose (name + logo + what it does) */}
+      <section id="about" className="border-t-2 border-border bg-card">
+        <div className="mx-auto max-w-4xl px-6 py-16">
+          <div className="flex items-center gap-4">
+            <img
+              src="/favicon.png"
+              alt="HoopRoom logo"
+              width={56}
+              height={56}
+              className="h-14 w-14 rounded-xl"
+            />
+            <div>
+              <h2 className="text-3xl font-black tracking-tight md:text-4xl">About HoopRoom</h2>
+              <p className="text-xs font-bold uppercase tracking-widest text-primary">
+                hooproom.app
+              </p>
+            </div>
+          </div>
+          <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+            <strong className="text-foreground">HoopRoom</strong> is a free web app for running
+            NBA fantasy basketball drafts. Commissioners create a draft room, invite their
+            league, and run a live snake draft, an auction draft, a multi-day slow draft, or an
+            in-person offline draft — with fully customizable roster slots, pick clocks, budgets
+            and keepers. When the draft ends, every team's results can be exported to CSV and
+            imported into whatever platform the league plays on.
+          </p>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            Signing in with Google is used only to create your HoopRoom account so we can save
+            the drafts you host or join, your team rosters, and your personal player rankings.
+            We request your basic profile and email address only — HoopRoom never posts on your
+            behalf and never accesses any other Google data. See our{" "}
+            <Link to="/privacy" className="font-semibold text-primary underline">
+              Privacy Policy
+            </Link>{" "}
+            and{" "}
+            <Link to="/terms" className="font-semibold text-primary underline">
+              Terms of Service
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
+
       <section id="features" className="border-y-4 border-secondary bg-secondary text-secondary-foreground">
         <div className="mx-auto max-w-7xl px-6 py-20">
           <div className="mb-12 max-w-2xl">

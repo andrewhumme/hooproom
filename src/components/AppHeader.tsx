@@ -11,11 +11,16 @@ export function AppHeader({ active }: { active?: "home" | "lobby" | "me" }) {
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-black">
-            H
-          </div>
+          <img
+            src="/favicon.png"
+            alt="HoopRoom logo"
+            className="h-8 w-8 rounded-md"
+            width={32}
+            height={32}
+          />
           <span className="text-lg font-black tracking-tight">HoopRoom</span>
         </Link>
+
         <nav className="hidden items-center gap-8 text-sm font-semibold md:flex">
           <Link to="/" className={active === "home" ? "text-primary" : "hover:text-primary"}>
             Home
