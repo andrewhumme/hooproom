@@ -24,6 +24,7 @@ import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed
 import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
 import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicHooksRefreshSeasonStatsRouteImport } from './routes/api/public/hooks/refresh-season-stats'
 
 const LobbyRoute = LobbyRouteImport.update({
@@ -100,6 +101,12 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRefreshSeasonStatsRoute =
   ApiPublicHooksRefreshSeasonStatsRouteImport.update({
     id: '/api/public/hooks/refresh-season-stats',
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -140,6 +148,7 @@ export interface FileRoutesByTo {
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -159,6 +168,7 @@ export interface FileRoutesById {
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/draft/$roomId_/summary': typeof DraftRoomIdSummaryRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/api/public/snake-tick'
     | '/draft/$roomId/summary'
     | '/api/public/hooks/refresh-season-stats'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/api/public/snake-tick'
     | '/draft/$roomId/summary'
     | '/api/public/hooks/refresh-season-stats'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -213,6 +225,7 @@ export interface FileRouteTypes {
     | '/api/public/snake-tick'
     | '/draft/$roomId_/summary'
     | '/api/public/hooks/refresh-season-stats'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -229,6 +242,7 @@ export interface RootRouteChildren {
   ApiPublicSnakeTickRoute: typeof ApiPublicSnakeTickRoute
   DraftRoomIdSummaryRoute: typeof DraftRoomIdSummaryRoute
   ApiPublicHooksRefreshSeasonStatsRoute: typeof ApiPublicHooksRefreshSeasonStatsRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -338,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/refresh-season-stats': {
       id: '/api/public/hooks/refresh-season-stats'
       path: '/api/public/hooks/refresh-season-stats'
@@ -377,7 +398,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSnakeTickRoute: ApiPublicSnakeTickRoute,
   DraftRoomIdSummaryRoute: DraftRoomIdSummaryRoute,
   ApiPublicHooksRefreshSeasonStatsRoute: ApiPublicHooksRefreshSeasonStatsRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
