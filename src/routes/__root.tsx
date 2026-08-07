@@ -75,6 +75,16 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const location = useLocation();
+
+  useEffect(() => {
+    initGA();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname, location.search]);
+
   return (
     <AuthProvider>
       <div className="flex min-h-screen flex-col">
