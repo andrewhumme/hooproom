@@ -130,13 +130,51 @@ export type Database = {
           },
         ]
       }
+      draft_participant_contacts: {
+        Row: {
+          created_at: string
+          owner_email: string | null
+          participant_id: string
+          room_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          owner_email?: string | null
+          participant_id: string
+          room_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          owner_email?: string | null
+          participant_id?: string
+          room_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draft_participant_contacts_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: true
+            referencedRelation: "draft_participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draft_participant_contacts_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "draft_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       draft_participants: {
         Row: {
           draft_position: number | null
           id: string
           is_bot: boolean
           joined_at: string
-          owner_email: string | null
           room_id: string
           share_token: string
           team_name: string
@@ -148,7 +186,6 @@ export type Database = {
           id?: string
           is_bot?: boolean
           joined_at?: string
-          owner_email?: string | null
           room_id: string
           share_token?: string
           team_name?: string
@@ -160,7 +197,6 @@ export type Database = {
           id?: string
           is_bot?: boolean
           joined_at?: string
-          owner_email?: string | null
           room_id?: string
           share_token?: string
           team_name?: string
@@ -815,7 +851,6 @@ export type Database = {
           id: string
           is_bot: boolean
           joined_at: string
-          owner_email: string | null
           room_id: string
           share_token: string
           team_name: string
