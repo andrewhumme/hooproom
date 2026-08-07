@@ -78,6 +78,19 @@ function RootComponent() {
       <div className="flex min-h-screen flex-col">
         <Header />
         <Outlet />
+        <footer className="border-t border-border bg-background px-6 py-6">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-sm text-muted-foreground md:flex-row">
+            <p>© {new Date().getFullYear()} HoopRoom. All rights reserved.</p>
+            <div className="flex items-center gap-6">
+              <Link to="/terms" className="hover:text-foreground">
+                Terms of Service
+              </Link>
+              <Link to="/privacy" className="hover:text-foreground">
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
+        </footer>
       </div>
     </AuthProvider>
   );
