@@ -1,55 +1,30 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Guest session helper — testing mode only.
+ * Guest (spectator) session helper.
  *
- * Lazily creates a throwaway Supabase account on first use and stashes the
- * credentials in localStorage so the same browser reuses the same identity
- * across reloads. This lets users host & join drafts without a real signup
- * flow. Auto-confirm email is enabled at the project level so signup
- * immediately yields a usable session.
+ * Uses Supabase anonymous sign-in so someone can watch/join a draft without
+ * creating a real account. The session persists in this browser like any other
+ * session; a localStorage marker flags it as a guest so the app can restrict
+ * guests from account-only surfaces (/me, hosting, etc.).
  *
- * Replace with real auth before launch.
+ * Real accounts go through email/password signup with email confirmation.
  */
 
 const STORAGE_KEY = "hoopRoom.guestCreds.v1";
 
-interface GuestCreds {
-  email: string;
-  password: string;
-  displayName: string;
-}
-
-function readCreds(): GuestCreds | null {
-  if (typeof window === "undefined") return null;
+function markGuest() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as GuestCreds;
-  } catch {
-    return null;
-  }
-}
-
-function writeCreds(creds: GuestCreds) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
-}
-
-function makeCreds(): GuestCreds {
-  const id = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-  return {
-    email: `guest_${id}@hooproom.test`,
-    password: crypto.randomUUID() + crypto.randomUUID(),
-    displayName: `Guest-${id.slice(0, 4).toUpperCase()}`,
-  };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ anonymous: true }));
+  } catch {}
 }
 
 let pending: Promise<void> | null = null;
 
 /**
- * Ensure there's an authenticated Supabase session in this browser. If a guest
- * account already exists in localStorage, sign in with it. Otherwise create one.
- * Safe to call concurrently — duplicate calls share the same in-flight promise.
+ * Ensure there's an authenticated Supabase session in this browser. Reuses an
+ * existing session (guest or real) when present, otherwise creates an
+ * anonymous guest session. Safe to call concurrently.
  */
 export async function ensureGuestSession(): Promise<void> {
   const { data } = await supabase.auth.getSession();
@@ -58,36 +33,9 @@ export async function ensureGuestSession(): Promise<void> {
 
   pending = (async () => {
     try {
-      let creds = readCreds();
-
-      if (creds) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: creds.email,
-          password: creds.password,
-        });
-        if (!error) return;
-        // Stale creds (project reset, deleted user) — fall through and recreate.
-      }
-
-      creds = makeCreds();
-      const { error: signUpErr } = await supabase.auth.signUp({
-        email: creds.email,
-        password: creds.password,
-        options: { data: { display_name: creds.displayName } },
-      });
-      if (signUpErr) throw signUpErr;
-      writeCreds(creds);
-
-      // signUp returns a session when auto-confirm is on, but in case the SDK
-      // didn't store it, sign in explicitly.
-      const { data: after } = await supabase.auth.getSession();
-      if (!after.session) {
-        const { error: signInErr } = await supabase.auth.signInWithPassword({
-          email: creds.email,
-          password: creds.password,
-        });
-        if (signInErr) throw signInErr;
-      }
+      const { data: anon, error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      if (anon.session) markGuest();
     } finally {
       pending = null;
     }
