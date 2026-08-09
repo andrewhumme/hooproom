@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LobbyRouteImport } from './routes/lobby'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -32,6 +33,8 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicHooksRefreshSeasonStatsRouteImport } from './routes/api/public/hooks/refresh-season-stats'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
@@ -42,6 +45,11 @@ const UnsubscribeRoute = UnsubscribeRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -151,6 +159,16 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksRefreshSeasonStatsRoute =
   ApiPublicHooksRefreshSeasonStatsRouteImport.update({
     id: '/api/public/hooks/refresh-season-stats',
@@ -163,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -179,6 +198,8 @@ export interface FileRoutesByFullPath {
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -188,6 +209,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -204,6 +226,8 @@ export interface FileRoutesByTo {
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -215,6 +239,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/admin_': typeof AuthenticatedAdminRoute
@@ -231,6 +256,8 @@ export interface FileRoutesById {
   '/draft/$roomId_/summary': typeof DraftRoomIdSummaryRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -242,6 +269,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/lobby'
     | '/privacy'
+    | '/reset-password'
     | '/terms'
     | '/unsubscribe'
     | '/admin'
@@ -258,6 +286,8 @@ export interface FileRouteTypes {
     | '/draft/$roomId/summary'
     | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -267,6 +297,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/lobby'
     | '/privacy'
+    | '/reset-password'
     | '/terms'
     | '/unsubscribe'
     | '/admin'
@@ -283,6 +314,8 @@ export interface FileRouteTypes {
     | '/draft/$roomId/summary'
     | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -293,6 +326,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/lobby'
     | '/privacy'
+    | '/reset-password'
     | '/terms'
     | '/unsubscribe'
     | '/_authenticated/admin_'
@@ -309,6 +343,8 @@ export interface FileRouteTypes {
     | '/draft/$roomId_/summary'
     | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -320,6 +356,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   LobbyRoute: typeof LobbyRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   DraftRoomIdRoute: typeof DraftRoomIdRoute
@@ -333,6 +370,8 @@ export interface RootRouteChildren {
   DraftRoomIdSummaryRoute: typeof DraftRoomIdSummaryRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksRefreshSeasonStatsRoute: typeof ApiPublicHooksRefreshSeasonStatsRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
@@ -352,6 +391,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -501,6 +547,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/refresh-season-stats': {
       id: '/api/public/hooks/refresh-season-stats'
       path: '/api/public/hooks/refresh-season-stats'
@@ -532,6 +592,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   LobbyRoute: LobbyRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   DraftRoomIdRoute: DraftRoomIdRoute,
@@ -545,6 +606,8 @@ const rootRouteChildren: RootRouteChildren = {
   DraftRoomIdSummaryRoute: DraftRoomIdSummaryRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksRefreshSeasonStatsRoute: ApiPublicHooksRefreshSeasonStatsRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
@@ -552,13 +615,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
