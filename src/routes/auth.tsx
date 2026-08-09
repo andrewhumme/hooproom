@@ -35,6 +35,8 @@ function AuthPage() {
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [mode, setMode] = useState<"credentials" | "forgot">("credentials");
 
   // If a guest session is active when the user lands here, sign it out so the
   // sign-in form takes over cleanly (otherwise the guest session immediately
