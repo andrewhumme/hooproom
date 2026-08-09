@@ -31,7 +31,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "hooproom"
+const SITE_NAME = "HoopRoom"
 const SENDER_DOMAIN = "notify.hooproom.app"
 const ROOT_DOMAIN = "hooproom.app"
 const FROM_DOMAIN = "notify.hooproom.app"
