@@ -58,6 +58,7 @@ function AuthPage() {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNotice(null);
     setBusy(true);
     try {
       // Sign out any existing guest session so the real account takes over cleanly.
@@ -68,7 +69,7 @@ function AuthPage() {
       clearGuestMarker();
 
       if (tab === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -77,6 +78,11 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        if (!data.session) {
+          setNotice(
+            `Check ${email} for a confirmation link to finish creating your account.`,
+          );
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -88,12 +94,36 @@ function AuthPage() {
           ? "Wrong email or password."
           : msg.includes("already registered")
             ? "That email is already registered. Try signing in instead."
-            : msg,
+            : msg.includes("Email not confirmed")
+              ? "Confirm your email first — check your inbox for the link we sent."
+              : msg,
       );
     } finally {
       setBusy(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setNotice(null);
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setNotice(
+        `If an account exists for ${email}, a password reset link is on its way.`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send the reset email.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+
 
 
   return (
