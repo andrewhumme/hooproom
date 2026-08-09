@@ -138,31 +138,18 @@ function AuthPage() {
           </div>
 
           <div className="rounded-2xl border-2 border-border bg-card p-6 shadow-[var(--shadow-bold)]">
-            <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign in</TabsTrigger>
-                <TabsTrigger value="signup">Create account</TabsTrigger>
-              </TabsList>
-
-              <form onSubmit={handleEmailAuth} className="mt-6 space-y-4">
-                <TabsContent value="signup" className="m-0 space-y-4">
-                  <div>
-                    <Label htmlFor="display_name">Display name</Label>
-                    <Input
-                      id="display_name"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="courtsidekev"
-                      maxLength={40}
-                      className="mt-1.5"
-                    />
-                  </div>
-                </TabsContent>
-
+            {mode === "forgot" ? (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <h2 className="text-lg font-bold">Reset your password</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    We'll email you a link to set a new one.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="reset_email">Email</Label>
                   <Input
-                    id="email"
+                    id="reset_email"
                     type="email"
                     required
                     value={email}
@@ -173,34 +160,126 @@ function AuthPage() {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    autoComplete={tab === "signup" ? "new-password" : "current-password"}
-                    className="mt-1.5"
-                  />
-                </div>
-
                 {error && (
                   <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                     {error}
                   </div>
                 )}
+                {notice && (
+                  <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+                    {notice}
+                  </div>
+                )}
 
                 <Button type="submit" className="h-11 w-full font-bold" disabled={busy}>
                   {busy && <Loader2 className="animate-spin" />}
-                  {tab === "signup" ? "Create account" : "Sign in"}
+                  Send reset link
                 </Button>
+                <button
+                  type="button"
+                  className="w-full text-center text-sm font-semibold text-muted-foreground hover:text-primary"
+                  onClick={() => {
+                    setMode("credentials");
+                    setError(null);
+                    setNotice(null);
+                  }}
+                >
+                  Back to sign in
+                </button>
               </form>
-            </Tabs>
+            ) : (
+              <Tabs
+                value={tab}
+                onValueChange={(v) => {
+                  setTab(v as "signin" | "signup");
+                  setError(null);
+                  setNotice(null);
+                }}
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="signin">Sign in</TabsTrigger>
+                  <TabsTrigger value="signup">Create account</TabsTrigger>
+                </TabsList>
+
+                <form onSubmit={handleEmailAuth} className="mt-6 space-y-4">
+                  <TabsContent value="signup" className="m-0 space-y-4">
+                    <div>
+                      <Label htmlFor="display_name">Display name</Label>
+                      <Input
+                        id="display_name"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="courtsidekev"
+                        maxLength={40}
+                        className="mt-1.5"
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@email.com"
+                      autoComplete="email"
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      {tab === "signin" && (
+                        <button
+                          type="button"
+                          className="text-xs font-semibold text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            setMode("forgot");
+                            setError(null);
+                            setNotice(null);
+                          }}
+                        >
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
+                    <Input
+                      id="password"
+                      type="password"
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      autoComplete={tab === "signup" ? "new-password" : "current-password"}
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                      {error}
+                    </div>
+                  )}
+                  {notice && (
+                    <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+                      {notice}
+                    </div>
+                  )}
+
+                  <Button type="submit" className="h-11 w-full font-bold" disabled={busy}>
+                    {busy && <Loader2 className="animate-spin" />}
+                    {tab === "signup" ? "Create account" : "Sign in"}
+                  </Button>
+                </form>
+              </Tabs>
+            )}
           </div>
+
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
             By continuing, you agree to HoopRoom's terms and privacy policy.
