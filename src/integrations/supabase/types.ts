@@ -1192,6 +1192,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      hoop_z_scores: {
+        Args: { _format?: string }
+        Returns: {
+          loose_key: string
+          z: number
+        }[]
+      }
       host_adjust_clock: {
         Args: { _delta_sec: number; _room_id: string }
         Returns: {
