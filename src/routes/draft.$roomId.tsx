@@ -179,6 +179,8 @@ function DraftRoomPage() {
   const [posFilter, setPosFilter] = useState<string>("ALL");
   const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
+  const [hoopRanks, setHoopRanks] = useState<RankMap>({});
+
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
   const [statsShade, setStatsShade] = useState<"zebra" | "heatmap">("zebra");
