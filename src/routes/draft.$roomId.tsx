@@ -185,7 +185,7 @@ function DraftRoomPage() {
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
   const [statsShade, setStatsShade] = useState<"zebra" | "heatmap">("zebra");
   const [sortKey, setSortKey] = useState<SortKey>("rank");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const [presentUserIds, setPresentUserIds] = useState<Set<string>>(new Set());
 
