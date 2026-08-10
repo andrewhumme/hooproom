@@ -481,8 +481,20 @@ function DraftRoomPage() {
         q ? p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q) : true
       );
 
+    const hasRanks = Object.keys(hoopRanks).length > 0;
+    // HoopRank first (data-driven z-scores); fall back to the curated list for
+    // players with no season stats, or before the ranks have loaded.
+    const byRank = (a: DraftablePlayer, b: DraftablePlayer) => {
+      if (!hasRanks) return compareByRank(a, b);
+      const ra = hoopRankOf(hoopRanks, a.id);
+      const rb = hoopRankOf(hoopRanks, b.id);
+      if (ra !== rb) return ra - rb;
+      return compareByRank(a, b);
+    };
+
     if (sortKey === "rank") {
-      filtered.sort(compareByRank);
+      filtered.sort(byRank);
+      if (sortDir === "desc") filtered.reverse();
     } else {
       const dir = sortDir === "asc" ? 1 : -1;
       filtered.sort((a, b) => {
@@ -491,13 +503,14 @@ function DraftRoomPage() {
         const va = sa ? (sa[sortKey] as number | null | undefined) : null;
         const vb = sb ? (sb[sortKey] as number | null | undefined) : null;
         // Missing values always sort to the bottom regardless of direction.
-        if (va == null && vb == null) return compareByRank(a, b);
+        if (va == null && vb == null) return byRank(a, b);
         if (va == null) return 1;
         if (vb == null) return -1;
-        if (va === vb) return compareByRank(a, b);
+        if (va === vb) return byRank(a, b);
         return (va < vb ? -1 : 1) * dir;
       });
     }
+
     return filtered.slice(0, 200);
   }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats]);
 
