@@ -217,7 +217,9 @@ function NewRoomPage() {
   const maxRounds = poolSize ? Math.max(1, Math.floor(poolSize / teamCount)) : null;
 
   // Auto-shrink roster slots so teams × rounds never exceeds the player pool.
-  const TRIM_ORDER = ["BN", "FLX", "F", "G", "C", "PF", "SF", "SG", "PG"] as const;
+  // Trim bench and positional slots first — a host's FLEX choices are kept last
+  // so an all-FLEX roster survives the auto-shrink.
+  const TRIM_ORDER = ["BN", "F", "G", "C", "PF", "SF", "SG", "PG", "FLX"] as const;
   useEffect(() => {
     if (!maxRounds) return;
     setSlots((prev) => {
