@@ -482,9 +482,17 @@ function DraftRoomPage() {
       );
 
     const hasRanks = Object.keys(hoopRanks).length > 0;
-    // HoopRank first (data-driven z-scores); fall back to the curated list for
-    // players with no season stats, or before the ranks have loaded.
+    const rookiePool = room?.player_pool === "rookies";
+    // Rookie drafts follow real NBA draft order (rookies have no NBA stats yet,
+    // so z-scores would be meaningless). Otherwise HoopRank first (data-driven
+    // z-scores), falling back to the curated list when stats are missing.
     const byRank = (a: DraftablePlayer, b: DraftablePlayer) => {
+      if (rookiePool) {
+        const da = a.draftNumber ?? 9999;
+        const db = b.draftNumber ?? 9999;
+        if (da !== db) return da - db;
+        return a.name.localeCompare(b.name);
+      }
       if (!hasRanks) return compareByRank(a, b);
       const ra = hoopRankOf(hoopRanks, a.id);
       const rb = hoopRankOf(hoopRanks, b.id);
