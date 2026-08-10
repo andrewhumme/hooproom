@@ -1709,7 +1709,24 @@ function DraftRoomPage() {
                         className="flex min-w-0 flex-1 items-center gap-2 text-left transition hover:opacity-80"
                         title="View season stats"
                       >
+                        {(() => {
+                          const r = hoopRankOf(hoopRanks, p.id);
+                          const z = hoopZOf(hoopRanks, p.id);
+                          return (
+                            <span
+                              className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-muted-foreground"
+                              title={
+                                r === UNRANKED
+                                  ? "No HoopRank — not enough recent stats"
+                                  : `HoopRank #${r} · z ${z!.toFixed(2)}`
+                              }
+                            >
+                              {r === UNRANKED ? "—" : r}
+                            </span>
+                          );
+                        })()}
                         <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} shape="square" size={26} />
+
                         <div className="min-w-0 leading-tight">
                           <div className="truncate text-xs font-bold underline-offset-2 hover:underline">
                             {p.name}
