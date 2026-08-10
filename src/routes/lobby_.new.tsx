@@ -217,7 +217,9 @@ function NewRoomPage() {
   const maxRounds = poolSize ? Math.max(1, Math.floor(poolSize / teamCount)) : null;
 
   // Auto-shrink roster slots so teams × rounds never exceeds the player pool.
-  const TRIM_ORDER = ["BN", "FLX", "F", "G", "C", "PF", "SF", "SG", "PG"] as const;
+  // Trim bench and positional slots first — a host's FLEX choices are kept last
+  // so an all-FLEX roster survives the auto-shrink.
+  const TRIM_ORDER = ["BN", "F", "G", "C", "PF", "SF", "SG", "PG", "FLX"] as const;
   useEffect(() => {
     if (!maxRounds) return;
     setSlots((prev) => {
@@ -618,8 +620,32 @@ function NewRoomPage() {
             <div>
               <Label>Roster slots</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Players auto-fill the first matching slot. G = any guard, F = any forward, FLX = any position.
+                Players auto-fill the first matching slot. G = any guard, F = any forward, FLX = any position (no positional limits).
               </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-[11px] font-black uppercase"
+                  onClick={() => {
+                    const target = maxRounds ? Math.min(totalSlots(slots), maxRounds) : totalSlots(slots);
+                    setSlots({ PG: 0, SG: 0, G: 0, SF: 0, PF: 0, F: 0, C: 0, FLX: Math.max(1, target), BN: 0 });
+                  }}
+                >
+                  All FLEX
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-[11px] font-black uppercase"
+                  onClick={() => setSlots(DEFAULT_SLOTS)}
+                >
+                  Standard
+                </Button>
+              </div>
+
               <div className="mt-2 grid grid-cols-5 gap-1.5 sm:grid-cols-9">
                 {SLOT_KEYS.map((k) => (
                   <div key={k} className="rounded-md border-2 border-border bg-card p-1.5">
