@@ -49,6 +49,9 @@ import {
   type TeamCategoryTotals,
 } from "@/components/CategoryHeatmap";
 import { compareByRank } from "@/lib/playerRankings";
+import { getPlayerRanksServer } from "@/lib/playerRanking.functions";
+import { hoopRankOf, hoopZOf, UNRANKED, type RankMap } from "@/lib/playerRanking";
+
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
 import { assignPicksToSlots, buildSlotSpots, eligibleSlotsForPosition, totalSlots, type SlotConfig, type SlotKey } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
@@ -176,11 +179,13 @@ function DraftRoomPage() {
   const [posFilter, setPosFilter] = useState<string>("ALL");
   const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
+  const [hoopRanks, setHoopRanks] = useState<RankMap>({});
+
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
   const [statsShade, setStatsShade] = useState<"zebra" | "heatmap">("zebra");
   const [sortKey, setSortKey] = useState<SortKey>("rank");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const [presentUserIds, setPresentUserIds] = useState<Set<string>>(new Set());
 
@@ -352,6 +357,9 @@ function DraftRoomPage() {
     };
   }, [players]);
 
+
+
+
   // ------- Derived: participant-by-position, current slot, on-the-clock -------
   const meParticipant = useMemo(
     () => participants.find((p) => p.user_id === user?.id) ?? null,
@@ -421,6 +429,25 @@ function DraftRoomPage() {
   );
   const totalPicks = room ? room.team_count * rosterSlotCount : 0;
 
+  // HoopRank — z-score based ranking tuned to this room's scoring format.
+  const scoringFormat = room?.scoring_format;
+  const teamCount = room?.team_count;
+  useEffect(() => {
+    if (!scoringFormat || !teamCount || !rosterSlotCount) return;
+    let cancelled = false;
+    getPlayerRanksServer({
+      data: { scoringFormat, teamCount, rosterSize: rosterSlotCount },
+    })
+      .then((m) => {
+        if (!cancelled) setHoopRanks(m);
+      })
+      .catch((e: unknown) => console.error("hoop ranks failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, [scoringFormat, teamCount, rosterSlotCount]);
+
+
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
 
@@ -454,8 +481,20 @@ function DraftRoomPage() {
         q ? p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q) : true
       );
 
+    const hasRanks = Object.keys(hoopRanks).length > 0;
+    // HoopRank first (data-driven z-scores); fall back to the curated list for
+    // players with no season stats, or before the ranks have loaded.
+    const byRank = (a: DraftablePlayer, b: DraftablePlayer) => {
+      if (!hasRanks) return compareByRank(a, b);
+      const ra = hoopRankOf(hoopRanks, a.id);
+      const rb = hoopRankOf(hoopRanks, b.id);
+      if (ra !== rb) return ra - rb;
+      return compareByRank(a, b);
+    };
+
     if (sortKey === "rank") {
-      filtered.sort(compareByRank);
+      filtered.sort(byRank);
+      if (sortDir === "desc") filtered.reverse();
     } else {
       const dir = sortDir === "asc" ? 1 : -1;
       filtered.sort((a, b) => {
@@ -464,15 +503,16 @@ function DraftRoomPage() {
         const va = sa ? (sa[sortKey] as number | null | undefined) : null;
         const vb = sb ? (sb[sortKey] as number | null | undefined) : null;
         // Missing values always sort to the bottom regardless of direction.
-        if (va == null && vb == null) return compareByRank(a, b);
+        if (va == null && vb == null) return byRank(a, b);
         if (va == null) return 1;
         if (vb == null) return -1;
-        if (va === vb) return compareByRank(a, b);
+        if (va === vb) return byRank(a, b);
         return (va < vb ? -1 : 1) * dir;
       });
     }
+
     return filtered.slice(0, 200);
-  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats]);
+  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats, hoopRanks]);
 
   // ------- Roster-fit eligibility for the current user's remaining slots -------
   // A player is "fittable" if any of my open slots can accept them per the same
@@ -1618,7 +1658,11 @@ function DraftRoomPage() {
                       sortKey === "rank" ? "text-primary" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    Player {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3 text-orange-500" /> : ""}
+                    <span title="HoopRank — z-score rating across your league's scoring categories">
+                      HoopRank · Player
+                    </span>{" "}
+                    {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3 text-orange-500" /> : ""}
+
                   </button>
                   <div className="flex shrink-0 items-stretch rounded-md border border-border/70 bg-muted/20">
                     {STAT_COLUMNS.map((col, idx) => {
@@ -1669,7 +1713,24 @@ function DraftRoomPage() {
                         className="flex min-w-0 flex-1 items-center gap-2 text-left transition hover:opacity-80"
                         title="View season stats"
                       >
+                        {(() => {
+                          const r = hoopRankOf(hoopRanks, p.id);
+                          const z = hoopZOf(hoopRanks, p.id);
+                          return (
+                            <span
+                              className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-muted-foreground"
+                              title={
+                                r === UNRANKED
+                                  ? "No HoopRank — not enough recent stats"
+                                  : `HoopRank #${r} · z ${z!.toFixed(2)}`
+                              }
+                            >
+                              {r === UNRANKED ? "—" : r}
+                            </span>
+                          );
+                        })()}
                         <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} shape="square" size={26} />
+
                         <div className="min-w-0 leading-tight">
                           <div className="truncate text-xs font-bold underline-offset-2 hover:underline">
                             {p.name}

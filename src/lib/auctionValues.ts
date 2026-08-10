@@ -104,48 +104,47 @@ export type ValueRow = {
   breakdown: Partial<Record<CatKey, number>>;
 };
 
-export function computeAuctionValues(
-  stats: StatRow[],
-  league: LeagueShape,
-): Map<string, ValueRow> {
-  const out = new Map<string, ValueRow>();
-  if (stats.length === 0) return out;
+export type ZRow = {
+  player_key: string;
+  z: number;
+  breakdown: Partial<Record<CatKey, number>>;
+};
 
-  const cats = categoriesFor(league.scoringFormat);
-  const N = league.teamCount * league.rosterSize; // draftable pool size
+/**
+ * Core z-score engine. Standardizes each scoring category across a qualified
+ * player pool and sums the per-category z-scores into a single rating.
+ * Percentage categories are volume-weighted (impact = (pct - leagueAvg) * attempts)
+ * so a 90% FT shooter on 1 attempt/game doesn't outrank a high-volume star.
+ * Turnovers are inverted (fewer is better). Returns rows sorted best → worst.
+ */
+export function computeZTotals(
+  stats: StatRow[],
+  scoringFormat: string,
+  poolSize: number,
+): ZRow[] {
+  if (stats.length === 0) return [];
+  const cats = categoriesFor(scoringFormat);
 
   // Filter to qualified players: at least 20 games OR 12+ mpg.
   // Keeps the z-score baseline meaningful.
   const qualified = stats.filter(
     (s) => (s.games_played ?? 0) >= 20 || (s.minutes_per_game ?? 0) >= 12,
   );
-  if (qualified.length === 0) return out;
+  if (qualified.length === 0) return [];
 
-  // Take the top ~N*2.5 by minutes as the value pool — bench fillers shouldn't
+  // Take the top players by minutes as the value pool — bench fillers shouldn't
   // skew league means upward, but we need enough depth for replacement level.
   const pool = qualified
     .slice()
     .sort((a, b) => (b.minutes_per_game ?? 0) - (a.minutes_per_game ?? 0))
-    .slice(0, Math.min(qualified.length, Math.max(N * 3, 200)));
+    .slice(0, Math.min(qualified.length, Math.max(poolSize, 200)));
 
-  // Compute per-cat z (volume-weighted for percentages).
-  const catImpacts: Record<CatKey, number[]> = {
-    pts: [],
-    reb: [],
-    ast: [],
-    stl: [],
-    blk: [],
-    fg3m: [],
-    fg_pct: [],
-    ft_pct: [],
-    tov: [],
-  };
-
+  // Compute per-cat impact (volume-weighted for percentages).
+  const catImpacts = {} as Record<CatKey, number[]>;
   for (const cat of cats) {
     const isPct = cat === "fg_pct" || cat === "ft_pct";
     if (isPct) {
       const leagueAvgPct = mean(pool.map((p) => getRaw(p, cat)));
-      // impact = (player_pct - league_pct) * attempts_per_game
       catImpacts[cat] = pool.map(
         (p) => (getRaw(p, cat) - leagueAvgPct) * getVolume(p, cat),
       );
@@ -155,17 +154,7 @@ export function computeAuctionValues(
   }
 
   // Standardize each cat across pool.
-  const zPerCat: Record<CatKey, number[]> = {
-    pts: [],
-    reb: [],
-    ast: [],
-    stl: [],
-    blk: [],
-    fg3m: [],
-    fg_pct: [],
-    ft_pct: [],
-    tov: [],
-  };
+  const zPerCat = {} as Record<CatKey, number[]>;
   for (const cat of cats) {
     const xs = catImpacts[cat];
     const mu = mean(xs);
@@ -174,7 +163,7 @@ export function computeAuctionValues(
   }
 
   // Total Z per player (TOV inverted).
-  const totals = pool.map((p, i) => {
+  const totals: ZRow[] = pool.map((p, i) => {
     let z = 0;
     const breakdown: Partial<Record<CatKey, number>> = {};
     for (const cat of cats) {
@@ -185,6 +174,20 @@ export function computeAuctionValues(
     }
     return { player_key: p.player_key, z, breakdown };
   });
+
+  totals.sort((a, b) => b.z - a.z);
+  return totals;
+}
+
+export function computeAuctionValues(
+  stats: StatRow[],
+  league: LeagueShape,
+): Map<string, ValueRow> {
+  const out = new Map<string, ValueRow>();
+  const N = league.teamCount * league.rosterSize; // draftable pool size
+  const totals = computeZTotals(stats, league.scoringFormat, N * 3);
+  if (totals.length === 0) return out;
+
 
   // Dollar mapping: $1 baseline for everyone in the top N draftable;
   // distribute surplus money proportional to (z - z_replacement) above 0.
