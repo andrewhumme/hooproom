@@ -340,6 +340,18 @@ export async function syncPlayerIndex(): Promise<Array<Record<string, unknown>>>
 export async function refreshRookieFlags(): Promise<number> {
   const rows = await syncPlayerIndex();
 
+  // Real draft slots for the current class — the index leaves them null.
+  for (const y of [seasonStartYear(), seasonStartYear(1)]) {
+    try {
+      const n = await syncDraftHistory(y);
+      if (n > 0) break;
+    } catch (err) {
+      console.error(`Draft history sync failed (${y}):`, err);
+    }
+  }
+
+
+
   if (rows.length > 0) {
     const startYear = seasonStartYear();
     const latestFrom = Math.max(...rows.map((r) => (r.from_year as number) ?? 0));
