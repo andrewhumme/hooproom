@@ -25,6 +25,7 @@ import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin_'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DraftRoomIdSummaryRouteImport } from './routes/draft.$roomId_.summary'
+import { Route as ApiPublicSyncDraftOrderRouteImport } from './routes/api.public.sync-draft-order'
 import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
 import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
 import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
@@ -116,6 +117,11 @@ const DraftRoomIdSummaryRoute = DraftRoomIdSummaryRouteImport.update({
   path: '/draft/$roomId/summary',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSyncDraftOrderRoute = ApiPublicSyncDraftOrderRouteImport.update({
+  id: '/api/public/sync-draft-order',
+  path: '/api/public/sync-draft-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSnakeTickRoute = ApiPublicSnakeTickRouteImport.update({
   id: '/api/public/snake-tick',
   path: '/api/public/snake-tick',
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
+  '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
+  '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
   '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
+  '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId_/summary': typeof DraftRoomIdSummaryRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
+    | '/api/public/sync-draft-order'
     | '/draft/$roomId/summary'
     | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
+    | '/api/public/sync-draft-order'
     | '/draft/$roomId/summary'
     | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/api/public/lobby-tick'
     | '/api/public/seed-stats'
     | '/api/public/snake-tick'
+    | '/api/public/sync-draft-order'
     | '/draft/$roomId_/summary'
     | '/lovable/email/suppression'
     | '/api/public/hooks/refresh-season-stats'
@@ -367,6 +379,7 @@ export interface RootRouteChildren {
   ApiPublicLobbyTickRoute: typeof ApiPublicLobbyTickRoute
   ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
   ApiPublicSnakeTickRoute: typeof ApiPublicSnakeTickRoute
+  ApiPublicSyncDraftOrderRoute: typeof ApiPublicSyncDraftOrderRoute
   DraftRoomIdSummaryRoute: typeof DraftRoomIdSummaryRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksRefreshSeasonStatsRoute: typeof ApiPublicHooksRefreshSeasonStatsRoute
@@ -491,6 +504,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DraftRoomIdSummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sync-draft-order': {
+      id: '/api/public/sync-draft-order'
+      path: '/api/public/sync-draft-order'
+      fullPath: '/api/public/sync-draft-order'
+      preLoaderRoute: typeof ApiPublicSyncDraftOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/snake-tick': {
       id: '/api/public/snake-tick'
       path: '/api/public/snake-tick'
@@ -603,6 +623,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLobbyTickRoute: ApiPublicLobbyTickRoute,
   ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,
   ApiPublicSnakeTickRoute: ApiPublicSnakeTickRoute,
+  ApiPublicSyncDraftOrderRoute: ApiPublicSyncDraftOrderRoute,
   DraftRoomIdSummaryRoute: DraftRoomIdSummaryRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksRefreshSeasonStatsRoute: ApiPublicHooksRefreshSeasonStatsRoute,
@@ -615,3 +636,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
