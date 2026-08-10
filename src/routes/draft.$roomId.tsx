@@ -352,6 +352,27 @@ function DraftRoomPage() {
     };
   }, [players]);
 
+  // HoopRank — z-score based ranking tuned to this room's scoring format.
+  useEffect(() => {
+    if (!room) return;
+    let cancelled = false;
+    getPlayerRanksServer({
+      data: {
+        scoringFormat: room.scoring_format,
+        teamCount: room.team_count,
+        rosterSize: rosterSlotCount || room.rounds,
+      },
+    })
+      .then((m) => {
+        if (!cancelled) setHoopRanks(m);
+      })
+      .catch((e) => console.error("hoop ranks failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, [room?.scoring_format, room?.team_count, rosterSlotCount, room?.rounds]);
+
+
   // ------- Derived: participant-by-position, current slot, on-the-clock -------
   const meParticipant = useMemo(
     () => participants.find((p) => p.user_id === user?.id) ?? null,
