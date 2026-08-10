@@ -482,9 +482,17 @@ function DraftRoomPage() {
       );
 
     const hasRanks = Object.keys(hoopRanks).length > 0;
-    // HoopRank first (data-driven z-scores); fall back to the curated list for
-    // players with no season stats, or before the ranks have loaded.
+    const rookiePool = room?.player_pool === "rookies";
+    // Rookie drafts follow real NBA draft order (rookies have no NBA stats yet,
+    // so z-scores would be meaningless). Otherwise HoopRank first (data-driven
+    // z-scores), falling back to the curated list when stats are missing.
     const byRank = (a: DraftablePlayer, b: DraftablePlayer) => {
+      if (rookiePool) {
+        const da = a.draftNumber ?? 9999;
+        const db = b.draftNumber ?? 9999;
+        if (da !== db) return da - db;
+        return a.name.localeCompare(b.name);
+      }
       if (!hasRanks) return compareByRank(a, b);
       const ra = hoopRankOf(hoopRanks, a.id);
       const rb = hoopRankOf(hoopRanks, b.id);
@@ -512,7 +520,7 @@ function DraftRoomPage() {
     }
 
     return filtered.slice(0, 200);
-  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats, hoopRanks]);
+  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats, hoopRanks, room?.player_pool]);
 
   // ------- Roster-fit eligibility for the current user's remaining slots -------
   // A player is "fittable" if any of my open slots can accept them per the same
@@ -1658,8 +1666,8 @@ function DraftRoomPage() {
                       sortKey === "rank" ? "text-primary" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    <span title="HoopRank — z-score rating across your league's scoring categories">
-                      HoopRank · Player
+                    <span title={room?.player_pool === "rookies" ? "NBA draft slot" : "HoopRank — z-score rating across your league's scoring categories"}>
+                      {room?.player_pool === "rookies" ? "Draft # · Player" : "HoopRank · Player"}
                     </span>{" "}
                     {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3 text-orange-500" /> : ""}
 
@@ -1714,6 +1722,22 @@ function DraftRoomPage() {
                         title="View season stats"
                       >
                         {(() => {
+                          const rookiePool = room?.player_pool === "rookies";
+                          if (rookiePool) {
+                            const d = p.draftNumber ?? null;
+                            return (
+                              <span
+                                className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-muted-foreground"
+                                title={
+                                  d == null
+                                    ? "Undrafted rookie"
+                                    : `NBA draft pick #${d}`
+                                }
+                              >
+                                {d == null ? "—" : d}
+                              </span>
+                            );
+                          }
                           const r = hoopRankOf(hoopRanks, p.id);
                           const z = hoopZOf(hoopRanks, p.id);
                           return (

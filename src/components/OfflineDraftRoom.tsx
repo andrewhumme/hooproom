@@ -149,7 +149,10 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
           data: { pool: room.player_pool === "rookies" ? "rookies" : "all" },
         });
         if (!cancelled) {
-          setPlayers([...list].sort(compareByRank));
+          // Rookie pools already arrive in real NBA draft order — keep it.
+          setPlayers(
+            room.player_pool === "rookies" ? list : [...list].sort(compareByRank),
+          );
         }
       } catch (e) {
         console.error("failed to load players", e);
