@@ -520,7 +520,7 @@ function DraftRoomPage() {
     }
 
     return filtered.slice(0, 200);
-  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats, hoopRanks]);
+  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats, hoopRanks, room?.player_pool]);
 
   // ------- Roster-fit eligibility for the current user's remaining slots -------
   // A player is "fittable" if any of my open slots can accept them per the same
