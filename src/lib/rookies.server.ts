@@ -183,7 +183,7 @@ export async function syncDraftHistory(year?: number): Promise<number> {
   return updated;
 }
 
-
+/** Rookie names for a given season, from NBA.com's rookie stats filter. */
 async function fetchRookieNames(season: string): Promise<string[]> {
   const url = new URL("https://stats.nba.com/stats/leaguedashplayerstats");
   const params: Record<string, string> = {
