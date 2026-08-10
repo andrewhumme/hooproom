@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.hoop_z_scores(text) TO postgres;
