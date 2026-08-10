@@ -424,6 +424,25 @@ function DraftRoomPage() {
   );
   const totalPicks = room ? room.team_count * rosterSlotCount : 0;
 
+  // HoopRank — z-score based ranking tuned to this room's scoring format.
+  const scoringFormat = room?.scoring_format;
+  const teamCount = room?.team_count;
+  useEffect(() => {
+    if (!scoringFormat || !teamCount || !rosterSlotCount) return;
+    let cancelled = false;
+    getPlayerRanksServer({
+      data: { scoringFormat, teamCount, rosterSize: rosterSlotCount },
+    })
+      .then((m) => {
+        if (!cancelled) setHoopRanks(m);
+      })
+      .catch((e: unknown) => console.error("hoop ranks failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, [scoringFormat, teamCount, rosterSlotCount]);
+
+
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
 
