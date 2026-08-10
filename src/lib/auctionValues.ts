@@ -176,19 +176,25 @@ export function computeZTotals(
     .sort((a, b) => (b.minutes_per_game ?? 0) - (a.minutes_per_game ?? 0))
     .slice(0, Math.min(qualified.length, Math.max(poolSize, 200)));
 
-  // Compute per-cat impact (volume-weighted for percentages).
+  // Compute per-cat impact (volume-weighted for percentages), then scale each
+  // player's production by their durability multiplier so players coming off
+  // heavily missed seasons don't rate like full-season contributors.
+  const avail = pool.map((p) =>
+    Math.min(1, Math.max(AVAILABILITY_FLOOR, p.availability ?? 1)),
+  );
   const catImpacts = {} as Record<CatKey, number[]>;
   for (const cat of cats) {
     const isPct = cat === "fg_pct" || cat === "ft_pct";
     if (isPct) {
       const leagueAvgPct = mean(pool.map((p) => getRaw(p, cat)));
       catImpacts[cat] = pool.map(
-        (p) => (getRaw(p, cat) - leagueAvgPct) * getVolume(p, cat),
+        (p, i) => (getRaw(p, cat) - leagueAvgPct) * getVolume(p, cat) * avail[i],
       );
     } else {
-      catImpacts[cat] = pool.map((p) => getRaw(p, cat));
+      catImpacts[cat] = pool.map((p, i) => getRaw(p, cat) * avail[i]);
     }
   }
+
 
   // Standardize each cat across pool.
   const zPerCat = {} as Record<CatKey, number[]>;
