@@ -1722,6 +1722,22 @@ function DraftRoomPage() {
                         title="View season stats"
                       >
                         {(() => {
+                          const rookiePool = room?.player_pool === "rookies";
+                          if (rookiePool) {
+                            const d = p.draftNumber ?? null;
+                            return (
+                              <span
+                                className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-muted-foreground"
+                                title={
+                                  d == null
+                                    ? "Undrafted rookie"
+                                    : `NBA draft pick #${d}`
+                                }
+                              >
+                                {d == null ? "—" : d}
+                              </span>
+                            );
+                          }
                           const r = hoopRankOf(hoopRanks, p.id);
                           const z = hoopZOf(hoopRanks, p.id);
                           return (
