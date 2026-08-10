@@ -19,7 +19,44 @@ export type StatRow = {
   ft_made: number | null;
   ft_att: number | null;
   ft_pct: number | null;
+  /**
+   * Durability multiplier in [AVAILABILITY_FLOOR, 1] derived from recent
+   * games played. Omit (or null) for rookies / players with no NBA history —
+   * they are treated as fully available.
+   */
+  availability?: number | null;
 };
+
+/** Full NBA regular season length. */
+export const SEASON_GAMES = 82;
+/** Even the most injury-prone star keeps at least this much of their value. */
+export const AVAILABILITY_FLOOR = 0.5;
+
+/**
+ * Blend recent games-played into a single durability multiplier.
+ * Most recent season carries the most weight; the square root softens the
+ * penalty so one lost season doesn't erase a star's value entirely.
+ * Returns 1 when there is no history (rookies).
+ */
+export function computeAvailability(
+  history: { season: number; games_played: number | null }[],
+): number {
+  const rows = history
+    .filter((h) => h.games_played != null)
+    .sort((a, b) => b.season - a.season)
+    .slice(0, 3);
+  if (rows.length === 0) return 1;
+  const weights = [0.55, 0.3, 0.15];
+  let num = 0;
+  let den = 0;
+  rows.forEach((r, i) => {
+    const w = weights[i] ?? 0.1;
+    num += w * Math.min(1, (r.games_played ?? 0) / SEASON_GAMES);
+    den += w;
+  });
+  const raw = den > 0 ? num / den : 1;
+  return Math.min(1, Math.max(AVAILABILITY_FLOOR, Math.sqrt(raw)));
+}
 
 export type LeagueShape = {
   teamCount: number;
