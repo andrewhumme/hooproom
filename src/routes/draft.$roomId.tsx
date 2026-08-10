@@ -1658,7 +1658,11 @@ function DraftRoomPage() {
                       sortKey === "rank" ? "text-primary" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    Player {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3 text-orange-500" /> : ""}
+                    <span title="HoopRank — z-score rating across your league's scoring categories">
+                      HoopRank · Player
+                    </span>{" "}
+                    {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3 text-orange-500" /> : ""}
+
                   </button>
                   <div className="flex shrink-0 items-stretch rounded-md border border-border/70 bg-muted/20">
                     {STAT_COLUMNS.map((col, idx) => {
