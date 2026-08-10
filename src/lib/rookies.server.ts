@@ -113,7 +113,77 @@ async function fetchPlayerIndex(season: string) {
   return rows;
 }
 
-/** Rookie names for a given season, from NBA.com's rookie stats filter. */
+/**
+ * Official NBA draft results for a draft year. The player *index* often ships
+ * a fresh class with null DRAFT_ROUND/DRAFT_NUMBER, so rookie boards had no
+ * real draft order. drafthistory is the authoritative source.
+ */
+export async function syncDraftHistory(year?: number): Promise<number> {
+  const draftYear = year ?? seasonStartYear();
+  const url = new URL("https://stats.nba.com/stats/drafthistory");
+  const params: Record<string, string> = {
+    College: "",
+    Country: "",
+    LeagueID: "00",
+    OverallPick: "",
+    RoundNum: "",
+    RoundPick: "",
+    Season: String(draftYear),
+    TeamID: "0",
+    TopX: "",
+  };
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+
+  const res = await fetch(url.toString(), { headers: NBA_HEADERS });
+  if (!res.ok) throw new Error(`nba.com drafthistory ${draftYear}: ${res.status}`);
+  const json = (await res.json()) as NbaStatsResponse;
+  const set = json.resultSets?.[0];
+  if (!set) return 0;
+
+  const idx: Record<string, number> = {};
+  set.headers.forEach((h, i) => (idx[h] = i));
+
+  const picks = set.rowSet
+    .map((row) => ({
+      personId: num(row[idx.PERSON_ID]),
+      name: String(row[idx.PLAYER_NAME] ?? "").trim(),
+      round: num(row[idx.ROUND_NUMBER]),
+      overall: num(row[idx.OVERALL_PICK]),
+    }))
+    .filter((p) => p.name && p.overall);
+
+  if (picks.length === 0) return 0;
+
+  const { data: activeRows } = await supabaseAdmin
+    .from("players")
+    .select("player_key, loose_key, full_name, nba_player_id");
+  const byLoose = new Map<string, string>();
+  const byNbaId = new Map<number, string>();
+  for (const p of activeRows ?? []) {
+    byLoose.set(p.loose_key || looseKeyOf(p.full_name ?? p.player_key), p.player_key);
+    if (p.nba_player_id) byNbaId.set(p.nba_player_id, p.player_key);
+  }
+
+  let updated = 0;
+  for (const pick of picks) {
+    const key =
+      (pick.personId ? byNbaId.get(pick.personId) : undefined) ??
+      byLoose.get(looseKeyOf(pick.name));
+    if (!key) continue;
+    const { error } = await supabaseAdmin
+      .from("players")
+      .update({
+        draft_year: draftYear,
+        draft_round: pick.round,
+        draft_number: pick.overall,
+      })
+      .eq("player_key", key);
+    if (!error) updated += 1;
+  }
+  return updated;
+}
+
+
 async function fetchRookieNames(season: string): Promise<string[]> {
   const url = new URL("https://stats.nba.com/stats/leaguedashplayerstats");
   const params: Record<string, string> = {
