@@ -33,7 +33,7 @@ const SCHEMA = z.object({
   team_count: z.number().int().min(4).max(20),
   rounds: z.number().int().min(1).max(30),
   pick_clock_sec: z.number().int().min(15).max(MAX_CLOCK_SEC),
-  scoring_format: z.enum(["9-CAT", "8-CAT", "POINTS", "ROTO"]),
+  scoring_format: z.literal("9-CAT"),
   draft_format: z.enum(["snake", "auction", "auction_slow"]),
 
   auction_budget: z.number().int().min(10).max(100000),
