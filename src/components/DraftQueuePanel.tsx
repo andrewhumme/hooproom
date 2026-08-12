@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ListOrdered, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ListOrdered, Star, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { type QueueItem } from "@/hooks/useDraftQueue";
@@ -10,6 +10,9 @@ interface Props {
   onMoveUp: (playerId: string) => void;
   onMoveDown: (playerId: string) => void;
   isSlow: boolean;
+  /** How many players are on the user's personal Big Board. */
+  boardCount?: number;
+  onFillFromBoard?: () => void;
 }
 
 export function DraftQueuePanel({
@@ -19,6 +22,8 @@ export function DraftQueuePanel({
   onMoveUp,
   onMoveDown,
   isSlow,
+  boardCount = 0,
+  onFillFromBoard,
 }: Props) {
   return (
     <Card className="overflow-hidden border-2">
@@ -40,6 +45,18 @@ export function DraftQueuePanel({
           {queue.length}
         </span>
       </div>
+      {boardCount > 0 && onFillFromBoard && (
+        <div className="border-b border-border px-3 py-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full text-[11px] font-bold"
+            onClick={onFillFromBoard}
+          >
+            <Star className="mr-1 h-3.5 w-3.5" /> Fill from my Big Board ({boardCount})
+          </Button>
+        </div>
+      )}
       {queue.length === 0 ? (
         <div className="px-4 py-8 text-center text-xs text-muted-foreground">
           Tap the <strong>＋</strong> on any player to add them to your queue.
