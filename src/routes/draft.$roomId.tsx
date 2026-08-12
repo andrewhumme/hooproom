@@ -1745,6 +1745,17 @@ function DraftRoomPage() {
                       >
                         {(() => {
                           const rookiePool = room?.player_pool === "rookies";
+                          const myRank = boardRanks[p.id];
+                          if (myRank != null) {
+                            return (
+                              <span
+                                className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-primary"
+                                title={`My Big Board #${myRank}`}
+                              >
+                                ★{myRank}
+                              </span>
+                            );
+                          }
                           if (rookiePool) {
                             const d = p.draftNumber ?? null;
                             return (
