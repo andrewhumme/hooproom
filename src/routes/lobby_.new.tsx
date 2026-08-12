@@ -82,7 +82,6 @@ const SLOW_CLOCK_OPTIONS = [
   { label: "12h", value: 12 * 3600 },
   { label: "24h", value: 24 * 3600 },
 ] as const;
-const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
 const DRAFT_FORMATS = [
   { value: "snake", label: "Snake", available: true, hint: "Sequential picks — live or slow based on pick clock" },
   { value: "auction", label: "Auction", available: true, hint: "Nominations + bidding — live or slow based on bid clock" },
