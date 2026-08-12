@@ -30,12 +30,15 @@ export type StatRow = {
 /** Full NBA regular season length. */
 export const SEASON_GAMES = 82;
 /** Even the most injury-prone star keeps at least this much of their value. */
-export const AVAILABILITY_FLOOR = 0.5;
+export const AVAILABILITY_FLOOR = 0.35;
+/** >1 sharpens the durability penalty so chronic absences actually cost value. */
+export const AVAILABILITY_EXPONENT = 1.5;
 
 /**
  * Blend recent games-played into a single durability multiplier.
- * Most recent season carries the most weight; the square root softens the
- * penalty so one lost season doesn't erase a star's value entirely.
+ * Most recent season carries the most weight; the exponent sharpens the
+ * penalty so players who repeatedly miss big chunks of the year fall out of
+ * the elite tier instead of getting a token haircut.
  * Returns 1 when there is no history (rookies).
  */
 export function computeAvailability(
@@ -55,8 +58,12 @@ export function computeAvailability(
     den += w;
   });
   const raw = den > 0 ? num / den : 1;
-  return Math.min(1, Math.max(AVAILABILITY_FLOOR, Math.sqrt(raw)));
+  return Math.min(
+    1,
+    Math.max(AVAILABILITY_FLOOR, Math.pow(raw, AVAILABILITY_EXPONENT)),
+  );
 }
+
 
 export type LeagueShape = {
   teamCount: number;
