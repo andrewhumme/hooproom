@@ -33,7 +33,7 @@ const SCHEMA = z.object({
   team_count: z.number().int().min(4).max(20),
   rounds: z.number().int().min(1).max(30),
   pick_clock_sec: z.number().int().min(15).max(MAX_CLOCK_SEC),
-  scoring_format: z.enum(["9-CAT", "8-CAT", "POINTS", "ROTO"]),
+  scoring_format: z.literal("9-CAT"),
   draft_format: z.enum(["snake", "auction", "auction_slow"]),
 
   auction_budget: z.number().int().min(10).max(100000),
@@ -82,7 +82,6 @@ const SLOW_CLOCK_OPTIONS = [
   { label: "12h", value: 12 * 3600 },
   { label: "24h", value: 24 * 3600 },
 ] as const;
-const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
 const DRAFT_FORMATS = [
   { value: "snake", label: "Snake", available: true, hint: "Sequential picks — live or slow based on pick clock" },
   { value: "auction", label: "Auction", available: true, hint: "Nominations + bidding — live or slow based on bid clock" },
@@ -145,7 +144,6 @@ function NewRoomPage() {
   const [auctionConcurrentPerTeam, setAuctionConcurrentPerTeam] = useState<number>(1);
   const [auctionNomQuotaEnabled, setAuctionNomQuotaEnabled] = useState<boolean>(false);
   const [auctionNomQuota, setAuctionNomQuota] = useState<number>(15);
-  const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [keepersEnabled, setKeepersEnabled] = useState<boolean>(false);
@@ -259,7 +257,7 @@ function NewRoomPage() {
       team_count: teamCount,
       rounds,
       pick_clock_sec: isAuction ? auctionBidClock : pickClock,
-      scoring_format: format,
+      scoring_format: "9-CAT",
       draft_format: storedDraftFormat,
       auction_budget: auctionBudget,
       auction_min_bid: auctionMinBid,
@@ -1157,15 +1155,6 @@ function NewRoomPage() {
               </div>
             )}
 
-            {step === 3 && (
-              <ChipGroup
-                label="Scoring format"
-                options={FORMAT_OPTIONS}
-                value={format}
-                onChange={setFormat}
-              />
-            )}
-
             {step === 4 && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4">
                 <div className="text-xs font-black uppercase tracking-widest text-primary">
@@ -1174,7 +1163,7 @@ function NewRoomPage() {
                 <ul className="mt-2 space-y-1 text-xs font-semibold text-muted-foreground">
                   <li><span className="text-foreground">{roomType === "mock" ? "Mock draft" : "League draft"}</span> · {visibility}</li>
                   <li><span className="text-foreground">{name || "Untitled room"}</span> · {teamCount} teams · {rounds} rounds</li>
-                  <li>{isAuction ? "Auction" : "Snake"} · {isAuction ? `${formatClock(auctionBidClock)} bid clock` : `${formatClock(pickClock)} pick clock`} · {format}</li>
+                  <li>{isAuction ? "Auction" : "Snake"} · {isAuction ? `${formatClock(auctionBidClock)} bid clock` : `${formatClock(pickClock)} pick clock`}</li>
                 </ul>
               </div>
             )}

@@ -25,8 +25,6 @@ export const Route = createFileRoute("/lobby_/new-offline")({
 
 type TeamRow = { name: string; email: string };
 
-const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
-
 function NewOfflineRoomPage() {
   const { user, isGuest, loading: authLoading } = useAuth();
   const isReal = !!user && !isGuest;
@@ -46,7 +44,6 @@ function NewOfflineRoomPage() {
     { name: "", email: "" },
   ]);
   const [rounds, setRounds] = useState(13);
-  const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [layout, setLayout] = useState<"board" | "console">("board");
   const [timerSec, setTimerSec] = useState(60);
   const [enableTimer, setEnableTimer] = useState(false);
@@ -119,7 +116,7 @@ function NewOfflineRoomPage() {
           team_count: validTeams.length,
           rounds,
           pick_clock_sec: enableTimer ? timerSec : 60,
-          scoring_format: format,
+          scoring_format: "9-CAT",
           draft_format: "snake",
           draft_mode: "offline",
           layout_preference: layout,
@@ -287,21 +284,6 @@ function NewOfflineRoomPage() {
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   Roster size ({totalSlots(slots)} slots).
                 </p>
-              </div>
-              <div>
-                <Label htmlFor="format">Scoring</Label>
-                <select
-                  id="format"
-                  value={format}
-                  onChange={(e) => setFormat(e.target.value as typeof format)}
-                  className="mt-1.5 h-10 w-full rounded-md border-2 border-border bg-background px-3 font-bold"
-                >
-                  {FORMAT_OPTIONS.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
 
