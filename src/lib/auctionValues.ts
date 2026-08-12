@@ -25,14 +25,19 @@ export type StatRow = {
    * they are treated as fully available.
    */
   availability?: number | null;
+  /**
+   * Ascending-role multiplier (>=1) for young / expanding players.
+   * Omit or null for veterans in a steady role.
+   */
+  growth?: number | null;
 };
 
 /** Full NBA regular season length. */
 export const SEASON_GAMES = 82;
 /** Even the most injury-prone star keeps at least this much of their value. */
-export const AVAILABILITY_FLOOR = 0.35;
+export const AVAILABILITY_FLOOR = 0.6;
 /** >1 sharpens the durability penalty so chronic absences actually cost value. */
-export const AVAILABILITY_EXPONENT = 1.5;
+export const AVAILABILITY_EXPONENT = 0.9;
 
 /**
  * Blend recent games-played into a single durability multiplier.
@@ -64,6 +69,41 @@ export function computeAvailability(
   );
 }
 
+
+/** Most a young, ascending player can be boosted above last year's rate. */
+export const GROWTH_CAP = 1.18;
+
+/**
+ * Forward-looking bump for players whose role is still expanding: early-career
+ * players and anyone whose minutes jumped year over year. Veterans in a steady
+ * role return 1 (no adjustment).
+ */
+export function computeGrowth(
+  history: {
+    season: number;
+    games_played: number | null;
+    minutes_per_game: number | null;
+  }[],
+  latestSeason: number,
+): number {
+  const played = history.filter((h) => (h.games_played ?? 0) > 0);
+  if (played.length === 0) return 1; // rookies: no history to extrapolate
+
+  const seasons = new Set(played.map((h) => h.season)).size;
+  const expBoost =
+    seasons <= 1 ? 0.1 : seasons === 2 ? 0.07 : seasons === 3 ? 0.04 : seasons === 4 ? 0.02 : 0;
+
+  const latest = played.find((h) => h.season === latestSeason);
+  const prev = played.find((h) => h.season === latestSeason - 1);
+  let mpgBoost = 0;
+  if (latest?.minutes_per_game && prev?.minutes_per_game && prev.minutes_per_game > 8) {
+    const delta =
+      (latest.minutes_per_game - prev.minutes_per_game) / prev.minutes_per_game;
+    mpgBoost = Math.max(-0.04, Math.min(0.08, delta * 0.5));
+  }
+
+  return Math.min(GROWTH_CAP, Math.max(0.95, 1 + expBoost + mpgBoost));
+}
 
 export type LeagueShape = {
   teamCount: number;
@@ -186,8 +226,10 @@ export function computeZTotals(
   // Compute per-cat impact (volume-weighted for percentages), then scale each
   // player's production by their durability multiplier so players coming off
   // heavily missed seasons don't rate like full-season contributors.
-  const avail = pool.map((p) =>
-    Math.min(1, Math.max(AVAILABILITY_FLOOR, p.availability ?? 1)),
+  const avail = pool.map(
+    (p) =>
+      Math.min(1, Math.max(AVAILABILITY_FLOOR, p.availability ?? 1)) *
+      Math.min(GROWTH_CAP, Math.max(0.95, p.growth ?? 1)),
   );
   const catImpacts = {} as Record<CatKey, number[]>;
   for (const cat of cats) {

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { computeAvailability, type StatRow } from "@/lib/auctionValues";
+import { computeAvailability, computeGrowth, type StatRow } from "@/lib/auctionValues";
 import { computeHoopRanks, type RankMap } from "@/lib/playerRanking";
 
 const LATEST_SEASON = 2026;
@@ -24,15 +24,22 @@ export const getPlayerRanksServer = createServerFn({ method: "POST" })
 
     const { data: history, error: histErr } = await supabaseAdmin
       .from("player_season_stats")
-      .select("player_key, loose_key, season, games_played")
-      .gte("season", LATEST_SEASON - 2);
+      .select("player_key, loose_key, season, games_played, minutes_per_game")
+      .gte("season", LATEST_SEASON - 5);
     if (histErr) throw new Error(histErr.message);
 
-    const byKey = new Map<string, { season: number; games_played: number | null }[]>();
+    const byKey = new Map<
+      string,
+      { season: number; games_played: number | null; minutes_per_game: number | null }[]
+    >();
     for (const h of history ?? []) {
       const k = (h.loose_key ?? h.player_key) as string;
       const list = byKey.get(k) ?? [];
-      list.push({ season: h.season, games_played: h.games_played });
+      list.push({
+        season: h.season,
+        games_played: h.games_played,
+        minutes_per_game: h.minutes_per_game,
+      });
       byKey.set(k, list);
     }
 
@@ -56,6 +63,7 @@ export const getPlayerRanksServer = createServerFn({ method: "POST" })
         ft_att: r.ft_att,
         ft_pct: r.ft_pct,
         availability: computeAvailability(byKey.get(key) ?? []),
+        growth: computeGrowth(byKey.get(key) ?? [], LATEST_SEASON),
       };
     });
 
