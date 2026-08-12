@@ -1155,15 +1155,6 @@ function NewRoomPage() {
               </div>
             )}
 
-            {step === 3 && (
-              <ChipGroup
-                label="Scoring format"
-                options={FORMAT_OPTIONS}
-                value={format}
-                onChange={setFormat}
-              />
-            )}
-
             {step === 4 && (
               <div className="rounded-md border-2 border-primary/30 bg-primary/5 p-4">
                 <div className="text-xs font-black uppercase tracking-widest text-primary">
