@@ -285,21 +285,6 @@ function NewOfflineRoomPage() {
                   Roster size ({totalSlots(slots)} slots).
                 </p>
               </div>
-              <div>
-                <Label htmlFor="format">Scoring</Label>
-                <select
-                  id="format"
-                  value={format}
-                  onChange={(e) => setFormat(e.target.value as typeof format)}
-                  className="mt-1.5 h-10 w-full rounded-md border-2 border-border bg-background px-3 font-bold"
-                >
-                  {FORMAT_OPTIONS.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             <div>
