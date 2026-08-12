@@ -44,7 +44,6 @@ function NewOfflineRoomPage() {
     { name: "", email: "" },
   ]);
   const [rounds, setRounds] = useState(13);
-  const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [layout, setLayout] = useState<"board" | "console">("board");
   const [timerSec, setTimerSec] = useState(60);
   const [enableTimer, setEnableTimer] = useState(false);
