@@ -53,7 +53,7 @@ export function DraftQueuePanel({
             className="w-full text-[11px] font-bold"
             onClick={onFillFromBoard}
           >
-            <Star className="mr-1 h-3.5 w-3.5" /> Fill from my Big Board ({boardCount})
+            <Star className="mr-1 h-3.5 w-3.5" /> Fill from Big Board ({boardCount})
           </Button>
         </div>
       )}

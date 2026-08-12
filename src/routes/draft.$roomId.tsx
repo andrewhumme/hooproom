@@ -1750,7 +1750,7 @@ function DraftRoomPage() {
                             return (
                               <span
                                 className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-primary"
-                                title={`My Big Board #${myRank}`}
+                                title={`HoopRoom Big Board #${myRank}`}
                               >
                                 ★{myRank}
                               </span>
