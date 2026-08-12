@@ -54,13 +54,17 @@ function Landing() {
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
               NBA Season 25-26 · Build Your Draft, Your Way
             </div>
-            <h1 className="max-w-2xl text-3xl font-black leading-tight md:text-5xl">
-              Custom NBA fantasy basketball drafts, built your way.
+            <h1 className="text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
+              The most customizable
+              <br />
+              <span className="bg-gradient-to-r from-primary to-[oklch(0.78_0.19_55)] bg-clip-text text-transparent">
+                draft room in fantasy hoops.
+              </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground md:text-xl">
-              HoopRoom is a web app for creating and running NBA fantasy basketball
-              drafts. Host snake or auction drafts live, over multiple days, or in
-              person; customize the rules and export the completed results.
+              Snake or auction. Live, slow, or offline. You set the rules, the clock,
+              the rosters — we handle the board. When you're done, export your
+              draft results and let the games begin!
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
