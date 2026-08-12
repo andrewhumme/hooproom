@@ -25,8 +25,6 @@ export const Route = createFileRoute("/lobby_/new-offline")({
 
 type TeamRow = { name: string; email: string };
 
-const FORMAT_OPTIONS = ["9-CAT", "8-CAT", "POINTS", "ROTO"] as const;
-
 function NewOfflineRoomPage() {
   const { user, isGuest, loading: authLoading } = useAuth();
   const isReal = !!user && !isGuest;
