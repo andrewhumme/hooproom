@@ -257,7 +257,7 @@ function NewRoomPage() {
       team_count: teamCount,
       rounds,
       pick_clock_sec: isAuction ? auctionBidClock : pickClock,
-      scoring_format: format,
+      scoring_format: "9-CAT",
       draft_format: storedDraftFormat,
       auction_budget: auctionBudget,
       auction_min_bid: auctionMinBid,
