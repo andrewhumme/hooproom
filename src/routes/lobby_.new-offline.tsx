@@ -116,7 +116,7 @@ function NewOfflineRoomPage() {
           team_count: validTeams.length,
           rounds,
           pick_clock_sec: enableTimer ? timerSec : 60,
-          scoring_format: format,
+          scoring_format: "9-CAT",
           draft_format: "snake",
           draft_mode: "offline",
           layout_preference: layout,
