@@ -16,6 +16,7 @@ import { DraftQueuePanel } from "@/components/DraftQueuePanel";
 import { RoomCommissionerTools } from "@/components/RoomCommissionerTools";
 import { DraftControlPanel } from "@/components/DraftControlPanel";
 import { useDraftQueue } from "@/hooks/useDraftQueue";
+import { useBigBoard } from "@/hooks/useBigBoard";
 import { useTurnAlert } from "@/hooks/useTurnAlert";
 import { useWarmup, WarmupBanner } from "@/components/WarmupCountdown";
 import {
@@ -472,6 +473,23 @@ function DraftRoomPage() {
   );
   const isSlow = !!room && room.pick_clock_sec >= 3600;
 
+  // Personal Big Board — manual top-N ranks that override HoopRank for the
+  // players on it. Everyone else stays on the z-score formula.
+  const { rankMap: boardRanks } = useBigBoard(user?.id ?? null);
+  const boardCount = Object.keys(boardRanks).length;
+
+  /** Load my Big Board (minus already-drafted players) into the draft queue. */
+  const fillQueueFromBoard = useCallback(async () => {
+    const ordered = Object.entries(boardRanks)
+      .filter(([id]) => !takenIds.has(id) && !queuedIds.has(id))
+      .sort((a, b) => a[1] - b[1]);
+    for (const [id] of ordered) {
+      const p = players.find((pl) => pl.id === id);
+      if (!p) continue;
+      await queueApi.add({ id: p.id, name: p.name, position: p.position, team: p.team });
+    }
+  }, [boardRanks, takenIds, queuedIds, players, queueApi]);
+
   const availablePlayers = useMemo(() => {
     const q = search.trim().toLowerCase();
     const filtered = players
@@ -487,6 +505,10 @@ function DraftRoomPage() {
     // so z-scores would be meaningless). Otherwise HoopRank first (data-driven
     // z-scores), falling back to the curated list when stats are missing.
     const byRank = (a: DraftablePlayer, b: DraftablePlayer) => {
+      // Manual Big Board wins over every automated ordering.
+      const ba = boardRanks[a.id] ?? Infinity;
+      const bb = boardRanks[b.id] ?? Infinity;
+      if (ba !== bb) return ba - bb;
       if (rookiePool) {
         const da = a.draftNumber ?? 9999;
         const db = b.draftNumber ?? 9999;
@@ -520,7 +542,7 @@ function DraftRoomPage() {
     }
 
     return filtered.slice(0, 200);
-  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats, hoopRanks, room?.player_pool]);
+  }, [players, takenIds, search, posFilter, sortKey, sortDir, latestStats, hoopRanks, boardRanks, room?.player_pool]);
 
   // ------- Roster-fit eligibility for the current user's remaining slots -------
   // A player is "fittable" if any of my open slots can accept them per the same
@@ -1896,6 +1918,8 @@ function DraftRoomPage() {
                 onMoveUp={queueApi.moveUp}
                 onMoveDown={queueApi.moveDown}
                 isSlow={isSlow}
+                boardCount={boardCount}
+                onFillFromBoard={fillQueueFromBoard}
               />
             </div>
           )}
