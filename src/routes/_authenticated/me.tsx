@@ -198,13 +198,15 @@ function MyDraftsPage() {
             profile.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Button asChild className="font-bold">
-              <Link to="/rankings">My Big Board</Link>
-            </Button>
             {isAdmin && (
-              <Button asChild variant="outline" className="font-bold">
-                <Link to="/admin/users">Admin tools</Link>
-              </Button>
+              <>
+                <Button asChild className="font-bold">
+                  <Link to="/rankings">Big Board</Link>
+                </Button>
+                <Button asChild variant="outline" className="font-bold">
+                  <Link to="/admin/users">Admin tools</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>

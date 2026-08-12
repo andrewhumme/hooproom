@@ -475,7 +475,7 @@ function DraftRoomPage() {
 
   // Personal Big Board — manual top-N ranks that override HoopRank for the
   // players on it. Everyone else stays on the z-score formula.
-  const { rankMap: boardRanks } = useBigBoard(user?.id ?? null);
+  const { rankMap: boardRanks } = useBigBoard();
   const boardCount = Object.keys(boardRanks).length;
 
   /** Load my Big Board (minus already-drafted players) into the draft queue. */
@@ -1750,7 +1750,7 @@ function DraftRoomPage() {
                             return (
                               <span
                                 className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-primary"
-                                title={`My Big Board #${myRank}`}
+                                title={`HoopRoom Big Board #${myRank}`}
                               >
                                 ★{myRank}
                               </span>

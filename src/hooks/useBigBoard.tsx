@@ -10,53 +10,53 @@ export type BoardEntry = {
 };
 
 /**
- * A user's personal Big Board — a manual ranking that overrides HoopRank for
- * the players they've placed on it. Global to the account, applies in every
- * draft room. Players not on the board fall back to the z-score formula.
+ * The official HoopRoom Big Board — one global, admin-curated ranking that
+ * applies in every draft room. Everyone can read it; only admins can save it
+ * (enforced by RLS). Players not on the board fall back to the z-score
+ * HoopRank formula.
  */
-export function useBigBoard(userId: string | null) {
+export function useBigBoard() {
   const [board, setBoard] = useState<BoardEntry[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
-    if (!userId) {
-      setBoard([]);
-      return;
-    }
     const { data, error } = await supabase
-      .from("user_player_ranks")
+      .from("global_player_ranks")
       .select("player_id, player_name, player_position, player_team, rank")
-      .eq("user_id", userId)
       .order("rank", { ascending: true });
     if (!error) setBoard((data ?? []) as BoardEntry[]);
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    let mounted = true;
     setLoading(true);
-    reload().finally(() => setLoading(false));
-  }, [userId, reload]);
+    reload().finally(() => {
+      if (mounted) setLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [reload]);
 
-  /** Replace the whole board with `entries` (ordered best → worst). */
+  /** Replace the whole global board with `entries` (ordered best → worst). Admin only. */
   const replaceAll = useCallback(
     async (entries: Omit<BoardEntry, "rank">[]) => {
-      if (!userId) return;
       const del = await supabase
-        .from("user_player_ranks")
+        .from("global_player_ranks")
         .delete()
-        .eq("user_id", userId);
+        .not("id", "is", null);
       if (del.error) throw new Error(del.error.message);
       if (entries.length > 0) {
-        const rows = entries.map((e, i) => ({ ...e, user_id: userId, rank: i + 1 }));
-        const ins = await supabase.from("user_player_ranks").insert(rows);
+        const rows = entries.map((e, i) => ({ ...e, rank: i + 1 }));
+        const ins = await supabase.from("global_player_ranks").insert(rows);
         if (ins.error) throw new Error(ins.error.message);
       }
       await reload();
     },
-    [userId, reload],
+    [reload],
   );
 
-  /** player_id -> manual rank (1 = best). */
+  /** player_id -> board rank (1 = best). */
   const rankMap = useMemo(() => {
     const m: Record<string, number> = {};
     for (const b of board) m[b.player_id] = b.rank;
