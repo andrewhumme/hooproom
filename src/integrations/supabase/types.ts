@@ -929,6 +929,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_player_ranks: {
+        Row: {
+          created_at: string
+          id: string
+          player_id: string
+          player_name: string
+          player_position: string | null
+          player_team: string | null
+          rank: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_id: string
+          player_name: string
+          player_position?: string | null
+          player_team?: string | null
+          rank: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_id?: string
+          player_name?: string
+          player_position?: string | null
+          player_team?: string | null
+          rank?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
