@@ -21,6 +21,7 @@ import { Route as LobbyNewOfflineRouteImport } from './routes/lobby_.new-offline
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
+import { Route as AuthenticatedRankingsRouteImport } from './routes/_authenticated/rankings'
 import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin_'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -96,6 +97,11 @@ const DraftRoomIdRoute = DraftRoomIdRouteImport.update({
   id: '/draft/$roomId',
   path: '/draft/$roomId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRankingsRoute = AuthenticatedRankingsRouteImport.update({
+  id: '/rankings',
+  path: '/rankings',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMeRoute = AuthenticatedMeRouteImport.update({
   id: '/me',
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/me': typeof AuthenticatedMeRoute
+  '/rankings': typeof AuthenticatedRankingsRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby/new': typeof LobbyNewRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/me': typeof AuthenticatedMeRoute
+  '/rankings': typeof AuthenticatedRankingsRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby/new': typeof LobbyNewRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/admin_': typeof AuthenticatedAdminRoute
   '/_authenticated/me': typeof AuthenticatedMeRoute
+  '/_authenticated/rankings': typeof AuthenticatedRankingsRoute
   '/draft/$roomId': typeof DraftRoomIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby_/new': typeof LobbyNewRoute
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/admin'
     | '/me'
+    | '/rankings'
     | '/draft/$roomId'
     | '/email/unsubscribe'
     | '/lobby/new'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/admin'
     | '/me'
+    | '/rankings'
     | '/draft/$roomId'
     | '/email/unsubscribe'
     | '/lobby/new'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/_authenticated/admin_'
     | '/_authenticated/me'
+    | '/_authenticated/rankings'
     | '/draft/$roomId'
     | '/email/unsubscribe'
     | '/lobby_/new'
@@ -476,6 +488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DraftRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/rankings': {
+      id: '/_authenticated/rankings'
+      path: '/rankings'
+      fullPath: '/rankings'
+      preLoaderRoute: typeof AuthenticatedRankingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/me': {
       id: '/_authenticated/me'
       path: '/me'
@@ -594,12 +613,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedMeRoute: typeof AuthenticatedMeRoute
+  AuthenticatedRankingsRoute: typeof AuthenticatedRankingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedMeRoute: AuthenticatedMeRoute,
+  AuthenticatedRankingsRoute: AuthenticatedRankingsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
 }
 

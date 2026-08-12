@@ -300,8 +300,8 @@ function BigBoardPage() {
                   </span>
                   <PlayerAvatar
                     name={it.player_name}
-                    playerId={it.player_id}
-                    className="h-8 w-8 shrink-0"
+                    team={it.player_team ?? ""}
+                    size={32}
                   />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-bold">
