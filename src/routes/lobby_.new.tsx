@@ -1163,7 +1163,7 @@ function NewRoomPage() {
                 <ul className="mt-2 space-y-1 text-xs font-semibold text-muted-foreground">
                   <li><span className="text-foreground">{roomType === "mock" ? "Mock draft" : "League draft"}</span> · {visibility}</li>
                   <li><span className="text-foreground">{name || "Untitled room"}</span> · {teamCount} teams · {rounds} rounds</li>
-                  <li>{isAuction ? "Auction" : "Snake"} · {isAuction ? `${formatClock(auctionBidClock)} bid clock` : `${formatClock(pickClock)} pick clock`} · {format}</li>
+                  <li>{isAuction ? "Auction" : "Snake"} · {isAuction ? `${formatClock(auctionBidClock)} bid clock` : `${formatClock(pickClock)} pick clock`}</li>
                 </ul>
               </div>
             )}
