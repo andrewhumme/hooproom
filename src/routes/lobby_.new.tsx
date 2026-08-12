@@ -144,7 +144,6 @@ function NewRoomPage() {
   const [auctionConcurrentPerTeam, setAuctionConcurrentPerTeam] = useState<number>(1);
   const [auctionNomQuotaEnabled, setAuctionNomQuotaEnabled] = useState<boolean>(false);
   const [auctionNomQuota, setAuctionNomQuota] = useState<number>(15);
-  const [format, setFormat] = useState<(typeof FORMAT_OPTIONS)[number]>("9-CAT");
   const [slots, setSlots] = useState<SlotConfig>(DEFAULT_SLOTS);
   const [reversalRounds, setReversalRounds] = useState<number[]>([]);
   const [keepersEnabled, setKeepersEnabled] = useState<boolean>(false);
