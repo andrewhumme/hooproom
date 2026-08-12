@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
+import { checkIsAdmin } from "@/lib/admin.functions";
 import { useBigBoard, type BoardEntry } from "@/hooks/useBigBoard";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { getPlayerRanksServer } from "@/lib/playerRanking.functions";
@@ -27,17 +27,17 @@ export const Route = createFileRoute("/_authenticated/rankings")({
   component: BigBoardPage,
   head: () => ({
     meta: [
-      { title: "My Big Board — HoopRoom" },
+      { title: "HoopRoom Big Board — Admin" },
       {
         name: "description",
         content:
-          "Manually rank your top 60 NBA players. HoopRoom's z-score formula ranks everyone below your board.",
+          "Admin tool: curate the official HoopRoom Big Board used by every draft room.",
       },
-      { property: "og:title", content: "My Big Board — HoopRoom" },
+      { property: "og:title", content: "HoopRoom Big Board — Admin" },
       {
         property: "og:description",
         content:
-          "Manually rank your top 60 NBA players and let HoopRank take over from there.",
+          "Curate the official HoopRoom Big Board that seeds every draft room.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -50,8 +50,18 @@ const BOARD_SIZE = 60;
 type Item = Omit<BoardEntry, "rank">;
 
 function BigBoardPage() {
-  const { user } = useAuth();
-  const { board, loading: boardLoading, replaceAll } = useBigBoard(user?.id ?? null);
+  const { board, loading: boardLoading, replaceAll } = useBigBoard();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    checkIsAdmin()
+      .then(({ isAdmin }) => mounted && setIsAdmin(isAdmin))
+      .catch(() => mounted && setIsAdmin(false));
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const [items, setItems] = useState<Item[]>([]);
   const [players, setPlayers] = useState<DraftablePlayer[]>([]);
@@ -178,9 +188,9 @@ function BigBoardPage() {
     try {
       await replaceAll(items);
       setDirty(false);
-      toast.success("Big Board saved");
+      toast.success("Big Board published to all draft rooms");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't save your board");
+      toast.error(e instanceof Error ? e.message : "Couldn't save the board");
     } finally {
       setSaving(false);
     }
@@ -193,6 +203,28 @@ function BigBoardPage() {
 
   const busy = boardLoading || poolLoading;
 
+  if (isAdmin === null) {
+    return (
+      <div className="flex items-center justify-center py-24 text-muted-foreground">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Checking access…
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="mx-auto w-full max-w-md px-4 py-24 text-center">
+        <h1 className="text-2xl font-black">Admins only</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The HoopRoom Big Board is managed by the site admin.
+        </p>
+        <Button asChild variant="outline" className="mt-6">
+          <Link to="/me">Back to my account</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
@@ -202,11 +234,11 @@ function BigBoardPage() {
       </Button>
 
       <div className="mb-6">
-        <h1 className="text-3xl font-black tracking-tight">My Big Board</h1>
+        <h1 className="text-3xl font-black tracking-tight">HoopRoom Big Board</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Rank your top {BOARD_SIZE} manually. In every draft room these players
-          sort first in your order — HoopRank's z-score formula takes over for
-          everyone below the board.
+          Admin only. Rank the top {BOARD_SIZE} manually — saving pushes this
+          order live to every HoopRoom draft room. HoopRank's z-score formula
+          takes over for everyone below the board.
         </p>
       </div>
 
@@ -233,7 +265,7 @@ function BigBoardPage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search a player to add to your board…"
+            placeholder="Search a player to add to the board…"
             className="pl-9"
           />
         </div>
@@ -353,7 +385,7 @@ function BigBoardPage() {
           </ul>
           {items.length === 0 && (
             <div className="px-4 py-10 text-center text-sm text-muted-foreground">
-              Your board is empty — search above to add players, or reset to the
+              The board is empty — search above to add players, or reset to the
               HoopRank top {BOARD_SIZE}.
             </div>
           )}
