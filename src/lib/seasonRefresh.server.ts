@@ -14,7 +14,7 @@ import { playerKeyFromName } from "@/lib/playerPool";
 
 // The "current" season we refresh weekly. When the league flips to a new
 // season, bump this value (or drive it from an env var).
-export const CURRENT_SEASON = 2025;
+export const CURRENT_SEASON = 2026;
 
 type NbaApiPlayerTotal = {
   playerId: string;

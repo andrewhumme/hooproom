@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { computeAvailability, type StatRow } from "@/lib/auctionValues";
 import { computeHoopRanks, type RankMap } from "@/lib/playerRanking";
 
-const LATEST_SEASON = 2025;
+const LATEST_SEASON = 2026;
 
 /**
  * HoopRank for the whole player pool, tuned to a room's scoring format and
