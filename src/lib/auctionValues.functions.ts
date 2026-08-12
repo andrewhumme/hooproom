@@ -7,7 +7,7 @@ import {
   type StatRow,
 } from "@/lib/auctionValues";
 
-const LATEST_SEASON = 2025;
+const LATEST_SEASON = 2026;
 
 /**
  * Compute z-score-based suggested auction values for the given league shape.

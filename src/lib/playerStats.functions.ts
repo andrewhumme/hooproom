@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { playerKeyFromName } from "@/lib/playerPool";
 
-const SEASONS = [2023, 2024, 2025];
+const SEASONS = [2024, 2025, 2026];
 
 type NbaApiPlayerTotal = {
   playerId: string;
