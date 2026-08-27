@@ -11,6 +11,8 @@ import {
   backfillHistoricalStats,
   refreshAdvancedStatsNow,
   refreshRookieFlagsNow,
+  refreshHeadshotFlagsNow,
+
   type AdminUserRow,
 } from "@/lib/admin.functions";
 
