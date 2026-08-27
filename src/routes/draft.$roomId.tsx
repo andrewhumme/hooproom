@@ -976,9 +976,6 @@ function DraftRoomPage() {
           </Link>
 
           <div className="flex flex-col gap-2">
-            <Badge variant="outline" className="w-fit font-bold">
-              {room.scoring_format}
-            </Badge>
             <h1 className="text-3xl font-black md:text-4xl">{room.name}</h1>
             <p className="text-sm text-muted-foreground">
               {room.team_count} teams · {rosterSlotCount} rounds · {formatDuration(room.pick_clock_sec)} clock

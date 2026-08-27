@@ -339,9 +339,6 @@ function DraftSummaryPage() {
             <Badge variant="secondary" className="font-bold">
               {room.team_count} teams · {rosterSlotCount} slots
             </Badge>
-            <Badge variant="secondary" className="font-bold">
-              {room.scoring_format}
-            </Badge>
             {completedLabel && (
               <Badge variant="outline" className="font-bold">
                 Completed {completedLabel}
