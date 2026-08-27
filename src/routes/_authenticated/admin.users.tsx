@@ -127,6 +127,25 @@ function AdminUsersPage() {
     }
   }
 
+  async function handleRefreshHeadshots() {
+    setDataBusy("headshots");
+    appendLog("Scanning the NBA CDN for published headshots…");
+    try {
+      const res = await refreshHeadshots();
+      appendLog(
+        `Headshots: ${res.withPhoto} with a photo, ${res.withoutPhoto} without (of ${res.checked} checked).`,
+      );
+      toast.success(`${res.withPhoto} players have headshots`);
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      appendLog(`Headshot scan failed: ${m}`);
+      toast.error(m);
+    } finally {
+      setDataBusy(null);
+    }
+  }
+
+
   const guestCount = useMemo(() => users.filter((u) => u.is_guest).length, [users]);
 
   async function load() {
