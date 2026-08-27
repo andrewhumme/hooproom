@@ -144,3 +144,17 @@ export const refreshRookieFlagsNow = createServerFn({ method: "POST" })
     return { rookies };
   });
 
+
+/** Re-scan the NBA CDN and record which players actually have a headshot. */
+export const refreshHeadshotFlagsNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
+    const { refreshHeadshotFlags } = await import("@/lib/headshots.server");
+    return await refreshHeadshotFlags();
+  });

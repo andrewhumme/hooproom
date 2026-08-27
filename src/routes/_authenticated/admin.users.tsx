@@ -11,6 +11,8 @@ import {
   backfillHistoricalStats,
   refreshAdvancedStatsNow,
   refreshRookieFlagsNow,
+  refreshHeadshotFlagsNow,
+
   type AdminUserRow,
 } from "@/lib/admin.functions";
 
@@ -50,6 +52,8 @@ function AdminUsersPage() {
   const backfill = useServerFn(backfillHistoricalStats);
   const refreshAdvanced = useServerFn(refreshAdvancedStatsNow);
   const refreshRookies = useServerFn(refreshRookieFlagsNow);
+  const refreshHeadshots = useServerFn(refreshHeadshotFlagsNow);
+
 
   const [status, setStatus] = useState<"loading" | "denied" | "ok">("loading");
   const [users, setUsers] = useState<AdminUserRow[]>([]);
@@ -58,7 +62,7 @@ function AdminUsersPage() {
   const [pendingDelete, setPendingDelete] = useState<AdminUserRow | null>(null);
   const [confirmPurge, setConfirmPurge] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [dataBusy, setDataBusy] = useState<"backfill" | "advanced" | "rookies" | null>(null);
+  const [dataBusy, setDataBusy] = useState<"backfill" | "advanced" | "rookies" | "headshots" | null>(null);
   const [dataLog, setDataLog] = useState<string[]>([]);
 
   function appendLog(line: string) {
@@ -122,6 +126,25 @@ function AdminUsersPage() {
       setDataBusy(null);
     }
   }
+
+  async function handleRefreshHeadshots() {
+    setDataBusy("headshots");
+    appendLog("Scanning the NBA CDN for published headshots…");
+    try {
+      const res = await refreshHeadshots();
+      appendLog(
+        `Headshots: ${res.withPhoto} with a photo, ${res.withoutPhoto} without (of ${res.checked} checked).`,
+      );
+      toast.success(`${res.withPhoto} players have headshots`);
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      appendLog(`Headshot scan failed: ${m}`);
+      toast.error(m);
+    } finally {
+      setDataBusy(null);
+    }
+  }
+
 
   const guestCount = useMemo(() => users.filter((u) => u.is_guest).length, [users]);
 
@@ -286,6 +309,23 @@ function AdminUsersPage() {
                     {dataBusy === "rookies" ? "Refreshing…" : "Refresh rookie flags"}
                   </Button>
                 </div>
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Player headshots</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Check which players have an official NBA photo published.
+                    Players without one show initials instead of the generic
+                    silhouette. Re-run as rookie photos get posted.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRefreshHeadshots}
+                    disabled={dataBusy !== null}
+                  >
+                    {dataBusy === "headshots" ? "Scanning…" : "Rescan headshots"}
+                  </Button>
+                </div>
+
               </div>
 
               {dataLog.length > 0 && (
