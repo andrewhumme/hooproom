@@ -1157,19 +1157,49 @@ function DraftRoomPage() {
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               {!isJoined ? (
-                <Button
-                  onClick={handleJoin}
-                  size="lg"
-                  className="font-bold"
-                  disabled={actionBusy || participants.length >= room.team_count}
-                >
-                  {actionBusy && <Loader2 className="animate-spin" />}
-                  {participants.length >= room.team_count
-                    ? "Room full"
-                    : !user || isGuest
-                      ? "Sign up to join draft"
-                      : "Take a seat and spectate"}
-                </Button>
+                spectating ? (
+                  <>
+                    <div className="text-sm text-muted-foreground">
+                      You're spectating — you won't be given a team or make picks.
+                    </div>
+                    <Button
+                      onClick={() => setSpectating(false)}
+                      variant="outline"
+                      size="lg"
+                      className="font-bold"
+                    >
+                      Join the draft instead
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={handleJoin}
+                      size="lg"
+                      className="font-bold"
+                      disabled={actionBusy || participants.length >= room.team_count}
+                    >
+                      {actionBusy && <Loader2 className="animate-spin" />}
+                      {participants.length >= room.team_count
+                        ? "Room full"
+                        : !user || isGuest
+                          ? "Sign up to join draft"
+                          : "Join the draft"}
+                    </Button>
+                    <Button
+                      onClick={() => setSpectating(true)}
+                      variant="outline"
+                      size="lg"
+                      className="font-bold"
+                      disabled={actionBusy}
+                    >
+                      Spectate only
+                    </Button>
+                    <p className="w-full text-xs text-muted-foreground">
+                      Join to claim a team and make picks, or spectate to watch the board live.
+                    </p>
+                  </>
+                )
               ) : (
                 !isHost && (
                   <Button
@@ -1184,6 +1214,7 @@ function DraftRoomPage() {
                 )
               )}
             </div>
+
           </Card>
 
           {isHost && (
