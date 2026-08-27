@@ -61,9 +61,6 @@ function Landing() {
                 draft room in fantasy hoops.
               </span>
             </h1>
-            <p className="mt-3 max-w-xl text-sm font-semibold text-secondary">
-              A drafting tool vibe-coded to match your league's exact energy.
-            </p>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground md:text-xl">
               Snake or auction. Live, slow, or offline. You set the rules, the clock,
               the rosters — we handle the board. When you're done, export your
