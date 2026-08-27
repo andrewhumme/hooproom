@@ -813,6 +813,7 @@ export type Database = {
           first_name: string
           from_year: number | null
           full_name: string
+          has_headshot: boolean
           id: string
           is_active: boolean
           is_rookie: boolean
@@ -835,6 +836,7 @@ export type Database = {
           first_name: string
           from_year?: number | null
           full_name: string
+          has_headshot?: boolean
           id?: string
           is_active?: boolean
           is_rookie?: boolean
@@ -857,6 +859,7 @@ export type Database = {
           first_name?: string
           from_year?: number | null
           full_name?: string
+          has_headshot?: boolean
           id?: string
           is_active?: boolean
           is_rookie?: boolean
