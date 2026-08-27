@@ -59,13 +59,23 @@ export function PlayerAvatar({
   shape?: "circle" | "square";
 }) {
   const bg = TEAM_COLORS[team.toUpperCase()] ?? "oklch(0.4 0.05 250)";
-  const [imgFailed, setImgFailed] = useState(false);
+  // Rookies sometimes only have the smaller headshot published, so try the
+  // large CDN render first and fall back to the 260x190 one before initials.
+  const [srcIdx, setSrcIdx] = useState(0);
 
   useEffect(() => {
-    setImgFailed(false);
+    setSrcIdx(0);
   }, [nbaPlayerId]);
 
-  const showImg = !!nbaPlayerId && !imgFailed;
+  const sources = nbaPlayerId
+    ? [
+        `https://cdn.nba.com/headshots/nba/latest/1040x760/${nbaPlayerId}.png`,
+        `https://cdn.nba.com/headshots/nba/latest/260x190/${nbaPlayerId}.png`,
+        `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${nbaPlayerId}.png`,
+      ]
+    : [];
+
+  const showImg = srcIdx < sources.length;
   const radiusClass = shape === "square" ? "rounded-md" : "rounded-full";
 
   return (
@@ -82,10 +92,10 @@ export function PlayerAvatar({
     >
       {showImg ? (
         <img
-          src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${nbaPlayerId}.png`}
+          src={sources[srcIdx]}
           alt=""
           loading="lazy"
-          onError={() => setImgFailed(true)}
+          onError={() => setSrcIdx((i) => i + 1)}
           className="h-full w-full object-cover"
         />
       ) : (
@@ -94,5 +104,6 @@ export function PlayerAvatar({
     </div>
   );
 }
+
 
 
