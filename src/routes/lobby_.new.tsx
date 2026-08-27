@@ -289,7 +289,7 @@ function NewRoomPage() {
           : null,
       room_type: roomType,
       player_pool: playerPool,
-      keepers_enabled: keepersEnabled,
+      keepers_enabled: playerPool === "rookies" ? false : keepersEnabled,
       visibility,
     });
     if (!parsed.success) {
@@ -515,7 +515,10 @@ function NewRoomPage() {
                     <button
                       key={p.value}
                       type="button"
-                      onClick={() => setPlayerPool(p.value)}
+                      onClick={() => {
+                        setPlayerPool(p.value);
+                        if (p.value === "rookies") setKeepersEnabled(false);
+                      }}
                       className={`rounded-md border-2 p-3 text-left transition ${
                         active
                           ? "border-primary bg-primary/10"
@@ -751,7 +754,7 @@ function NewRoomPage() {
               </div>
             )}
 
-            {step === 2 && (
+            {step === 2 && playerPool !== "rookies" && (
               <div>
                 <Label>Keepers</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
