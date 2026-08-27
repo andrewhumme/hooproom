@@ -68,12 +68,30 @@ export function PlayerAvatar({
   // Rookies sometimes only have the smaller headshot published, so try the
   // large CDN render first and fall back to the 260x190 one before initials.
   const [srcIdx, setSrcIdx] = useState(0);
+  // Players with no published photo get the NBA silhouette (a 200 response),
+  // so we rely on a server-side scan to know when to skip the image entirely.
+  const [missing, setMissing] = useState<Set<number> | null>(getMissingHeadshotIds);
 
   useEffect(() => {
     setSrcIdx(0);
   }, [nbaPlayerId]);
 
-  const sources = nbaPlayerId
+  useEffect(() => {
+    let active = true;
+    const sync = () => {
+      if (active) setMissing(getMissingHeadshotIds());
+    };
+    const unsub = subscribeMissingHeadshots(sync);
+    void loadMissingHeadshotIds().then(sync);
+    return () => {
+      active = false;
+      unsub();
+    };
+  }, []);
+
+  const noPhoto = !!nbaPlayerId && !!missing && missing.has(nbaPlayerId);
+
+  const sources = nbaPlayerId && !noPhoto
     ? [
         `https://cdn.nba.com/headshots/nba/latest/1040x760/${nbaPlayerId}.png`,
         `https://cdn.nba.com/headshots/nba/latest/260x190/${nbaPlayerId}.png`,
@@ -82,6 +100,7 @@ export function PlayerAvatar({
     : [];
 
   const showImg = srcIdx < sources.length;
+
   const radiusClass = shape === "square" ? "rounded-md" : "rounded-full";
 
   return (
