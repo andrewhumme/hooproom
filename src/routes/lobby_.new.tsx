@@ -751,7 +751,7 @@ function NewRoomPage() {
               </div>
             )}
 
-            {step === 2 && (
+            {step === 2 && playerPool !== "rookies" && (
               <div>
                 <Label>Keepers</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
