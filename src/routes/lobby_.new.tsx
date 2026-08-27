@@ -515,7 +515,10 @@ function NewRoomPage() {
                     <button
                       key={p.value}
                       type="button"
-                      onClick={() => setPlayerPool(p.value)}
+                      onClick={() => {
+                        setPlayerPool(p.value);
+                        if (p.value === "rookies") setKeepersEnabled(false);
+                      }}
                       className={`rounded-md border-2 p-3 text-left transition ${
                         active
                           ? "border-primary bg-primary/10"
