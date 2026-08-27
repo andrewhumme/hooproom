@@ -289,7 +289,7 @@ function NewRoomPage() {
           : null,
       room_type: roomType,
       player_pool: playerPool,
-      keepers_enabled: keepersEnabled,
+      keepers_enabled: playerPool === "rookies" ? false : keepersEnabled,
       visibility,
     });
     if (!parsed.success) {
