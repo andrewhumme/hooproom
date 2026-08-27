@@ -62,7 +62,7 @@ function AdminUsersPage() {
   const [pendingDelete, setPendingDelete] = useState<AdminUserRow | null>(null);
   const [confirmPurge, setConfirmPurge] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [dataBusy, setDataBusy] = useState<"backfill" | "advanced" | "rookies" | null>(null);
+  const [dataBusy, setDataBusy] = useState<"backfill" | "advanced" | "rookies" | "headshots" | null>(null);
   const [dataLog, setDataLog] = useState<string[]>([]);
 
   function appendLog(line: string) {
