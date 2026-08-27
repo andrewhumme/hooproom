@@ -374,9 +374,6 @@ function RoomList({
             <div className="border-b-2 border-border bg-muted/40 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge variant="outline" className="font-bold">
-                    {r.scoring_format}
-                  </Badge>
                   <Badge variant="outline" className="font-bold capitalize">
                     {r.draft_format ?? "snake"}
                   </Badge>

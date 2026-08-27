@@ -254,8 +254,7 @@ function LobbyPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[28%]">Room</TableHead>
-                  <TableHead className="w-[12%]">Format</TableHead>
+                  <TableHead className="w-[40%]">Room</TableHead>
                   <TableHead className="w-[10%] text-center">Teams</TableHead>
                   <TableHead className="w-[8%] text-center">Rounds</TableHead>
                   <TableHead className="w-[10%] text-center">Clock</TableHead>
@@ -305,11 +304,6 @@ function RoomRow({ room }: { room: Room }) {
             </span>
           )}
         </div>
-      </TableCell>
-      <TableCell>
-        <Badge variant="outline" className="font-bold">
-          {room.scoring_format}
-        </Badge>
       </TableCell>
       <TableCell className="text-center">
         <span className={`font-black ${filling ? "text-primary" : ""}`}>
