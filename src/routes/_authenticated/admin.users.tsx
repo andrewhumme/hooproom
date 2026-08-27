@@ -309,6 +309,23 @@ function AdminUsersPage() {
                     {dataBusy === "rookies" ? "Refreshing…" : "Refresh rookie flags"}
                   </Button>
                 </div>
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Player headshots</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Check which players have an official NBA photo published.
+                    Players without one show initials instead of the generic
+                    silhouette. Re-run as rookie photos get posted.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRefreshHeadshots}
+                    disabled={dataBusy !== null}
+                  >
+                    {dataBusy === "headshots" ? "Scanning…" : "Rescan headshots"}
+                  </Button>
+                </div>
+
               </div>
 
               {dataLog.length > 0 && (
