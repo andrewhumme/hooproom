@@ -174,6 +174,8 @@ function DraftRoomPage() {
   const [players, setPlayers] = useState<DraftablePlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
+  const [spectating, setSpectating] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [search, setSearch] = useState("");
