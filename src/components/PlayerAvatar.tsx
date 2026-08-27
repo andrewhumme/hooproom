@@ -4,6 +4,12 @@
 //   https://cdn.nba.com/headshots/nba/latest/1040x760/{nbaPlayerId}.png
 
 import { useEffect, useState } from "react";
+import {
+  getMissingHeadshotIds,
+  loadMissingHeadshotIds,
+  subscribeMissingHeadshots,
+} from "@/lib/headshots";
+
 
 const TEAM_COLORS: Record<string, string> = {
   ATL: "oklch(0.55 0.20 25)",
