@@ -52,6 +52,8 @@ function AdminUsersPage() {
   const backfill = useServerFn(backfillHistoricalStats);
   const refreshAdvanced = useServerFn(refreshAdvancedStatsNow);
   const refreshRookies = useServerFn(refreshRookieFlagsNow);
+  const refreshHeadshots = useServerFn(refreshHeadshotFlagsNow);
+
 
   const [status, setStatus] = useState<"loading" | "denied" | "ok">("loading");
   const [users, setUsers] = useState<AdminUserRow[]>([]);
