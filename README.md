@@ -1,6 +1,6 @@
 # HoopRoom
 
-Can you review CouchManagers.com and tell me if we can make a solution that is more user friendly and maybe has better features?
+A free web app for running customizable NBA fantasy basketball drafts — live snake, auction, slow, or offline.
 
 This project was built with [Lovable](https://lovable.dev).
 
