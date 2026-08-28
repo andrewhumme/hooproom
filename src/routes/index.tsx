@@ -121,21 +121,7 @@ function Landing() {
             league, and run a live snake draft, an auction draft, a multi-day slow draft, or an
             in-person offline draft — with fully customizable roster slots, pick clocks, budgets
             and keepers. When the draft ends, every team's results can be exported to CSV and
-            imported into whatever platform the league plays on.
-          </p>
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-            Signing in with Google is used only to create your HoopRoom account so we can save
-            the drafts you host or join, your team rosters, and your personal player rankings.
-            We request your basic profile and email address only — HoopRoom never posts on your
-            behalf and never accesses any other Google data. See our{" "}
-            <Link to="/privacy" className="font-semibold text-primary underline">
-              Privacy Policy
-            </Link>{" "}
-            and{" "}
-            <Link to="/terms" className="font-semibold text-primary underline">
-              Terms of Service
-            </Link>
-            .
+             viewed on a draft summary page.
           </p>
         </div>
       </section>
