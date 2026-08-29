@@ -25,7 +25,7 @@ export const sendDraftRecaps = createServerFn({ method: "POST" })
       .eq("id", roomId)
       .maybeSingle();
 
-    if (!visible || visible.status !== "completed") {
+    if (!visible || visible.status !== "complete") {
       return { sent: 0, reason: "not_completed" as const };
     }
 
@@ -36,7 +36,7 @@ export const sendDraftRecaps = createServerFn({ method: "POST" })
       .from("draft_rooms")
       .update({ recap_sent_at: new Date().toISOString() })
       .eq("id", roomId)
-      .eq("status", "completed")
+      .eq("status", "complete")
       .is("recap_sent_at", null)
       .select("id, name, room_type")
       .maybeSingle();
