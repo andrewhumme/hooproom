@@ -325,6 +325,16 @@ function AdminUsersPage() {
                     {dataBusy === "headshots" ? "Scanning…" : "Rescan headshots"}
                   </Button>
                 </div>
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Global Big Board</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Curate the official HoopRoom player rankings used as the
+                    default sort and autopick order across all draft rooms.
+                  </p>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/rankings">Open Big Board</Link>
+                  </Button>
+                </div>
 
               </div>
 
