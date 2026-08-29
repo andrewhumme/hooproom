@@ -343,6 +343,18 @@ function DraftSummaryPage() {
           </div>
         </div>
 
+        {isComplete && room.room_type === "mock" && (
+          <div className="mt-4 flex items-start gap-2 rounded-lg border-2 border-amber-500/40 bg-amber-500/10 p-3 text-sm font-bold text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              This is a mock draft — the room and its results are deleted 12 hours after
+              completion. Export the results now if you want to keep them. League drafts are kept.
+            </span>
+          </div>
+        )}
+
+
+
         <Card className="mt-6 border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-8 text-center">
           <Trophy className="mx-auto h-12 w-12 text-primary" />
           <h1 className="mt-3 text-3xl font-black sm:text-4xl">
