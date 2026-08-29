@@ -137,6 +137,19 @@ function DraftSummaryPage() {
     };
   }, [roomId]);
 
+  // Fire the recap email once the draft is complete. The server function
+  // atomically claims the send, so multiple managers landing here at the same
+  // time still result in exactly one batch of emails.
+  const sendRecaps = useServerFn(sendDraftRecaps);
+  const recapFired = useRef(false);
+  useEffect(() => {
+    if (!room || room.status !== "complete" || !user || recapFired.current) return;
+    recapFired.current = true;
+    sendRecaps({ data: { roomId } }).catch(() => {
+      /* non-blocking: recap delivery must never break the summary page */
+    });
+  }, [room, user, roomId, sendRecaps]);
+
   // Load season stats for every drafted player (needed to compute team totals
   // and league maxes for the heatmap). Only the user's own team shows the
   // heatmap visualization, so competitors' cards stay untouched.
