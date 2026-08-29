@@ -20,6 +20,7 @@ import {
   type PlayerSeasonStats,
 } from "@/lib/playerStats.functions";
 import {
+  AlertTriangle,
   ArrowLeft,
   BarChart3,
   ChevronDown,
