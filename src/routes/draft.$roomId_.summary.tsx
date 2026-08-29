@@ -69,6 +69,8 @@ type Room = {
   slots_flx: number;
   slots_bn: number;
   completed_at: string | null;
+  room_type: string;
+
 };
 
 type Participant = {
