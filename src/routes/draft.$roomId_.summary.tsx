@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { sendDraftRecaps } from "@/lib/draftRecap.functions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +20,7 @@ import {
   type PlayerSeasonStats,
 } from "@/lib/playerStats.functions";
 import {
+  AlertTriangle,
   ArrowLeft,
   BarChart3,
   ChevronDown,
@@ -69,6 +72,8 @@ type Room = {
   slots_flx: number;
   slots_bn: number;
   completed_at: string | null;
+  room_type: string;
+
 };
 
 type Participant = {
@@ -134,6 +139,19 @@ function DraftSummaryPage() {
       mounted = false;
     };
   }, [roomId]);
+
+  // Fire the recap email once the draft is complete. The server function
+  // atomically claims the send, so multiple managers landing here at the same
+  // time still result in exactly one batch of emails.
+  const sendRecaps = useServerFn(sendDraftRecaps);
+  const recapFired = useRef(false);
+  useEffect(() => {
+    if (!room || room.status !== "complete" || !user || recapFired.current) return;
+    recapFired.current = true;
+    sendRecaps({ data: { roomId } }).catch(() => {
+      /* non-blocking: recap delivery must never break the summary page */
+    });
+  }, [room, user, roomId, sendRecaps]);
 
   // Load season stats for every drafted player (needed to compute team totals
   // and league maxes for the heatmap). Only the user's own team shows the
@@ -325,6 +343,18 @@ function DraftSummaryPage() {
             </Button>
           </div>
         </div>
+
+        {isComplete && room.room_type === "mock" && (
+          <div className="mt-4 flex items-start gap-2 rounded-lg border-2 border-amber-500/40 bg-amber-500/10 p-3 text-sm font-bold text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              This is a mock draft — the room and its results are deleted 12 hours after
+              completion. Export the results now if you want to keep them. League drafts are kept.
+            </span>
+          </div>
+        )}
+
+
 
         <Card className="mt-6 border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-8 text-center">
           <Trophy className="mx-auto h-12 w-12 text-primary" />
