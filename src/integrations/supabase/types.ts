@@ -367,6 +367,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           player_pool: string
+          recap_sent_at: string | null
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -416,6 +417,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline?: string | null
           player_pool?: string
+          recap_sent_at?: string | null
           reversal_rounds?: number[]
           room_type?: string
           rounds: number
@@ -465,6 +467,7 @@ export type Database = {
           pick_clock_sec?: number
           pick_deadline?: string | null
           player_pool?: string
+          recap_sent_at?: string | null
           reversal_rounds?: number[]
           room_type?: string
           rounds?: number
@@ -1120,6 +1123,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           player_pool: string
+          recap_sent_at: string | null
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1161,6 +1165,10 @@ export type Database = {
       claim_draft_position: {
         Args: { _new_position: number; _participant_id: string }
         Returns: undefined
+      }
+      cleanup_completed_mock_drafts: {
+        Args: { _grace_hours?: number }
+        Returns: number
       }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -1265,6 +1273,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           player_pool: string
+          recap_sent_at: string | null
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1323,6 +1332,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           player_pool: string
+          recap_sent_at: string | null
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1429,6 +1439,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           player_pool: string
+          recap_sent_at: string | null
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1628,6 +1639,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           player_pool: string
+          recap_sent_at: string | null
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1723,6 +1735,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           player_pool: string
+          recap_sent_at: string | null
           reversal_rounds: number[]
           room_type: string
           rounds: number
@@ -1795,6 +1808,7 @@ export type Database = {
           pick_clock_sec: number
           pick_deadline: string | null
           player_pool: string
+          recap_sent_at: string | null
           reversal_rounds: number[]
           room_type: string
           rounds: number
