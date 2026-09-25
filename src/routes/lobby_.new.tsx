@@ -250,6 +250,12 @@ function NewRoomPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Only the final step may create the room; an Enter keypress or a stray
+    // submit on an earlier step just advances the wizard.
+    if (step < TOTAL_STEPS) {
+      goNext();
+      return;
+    }
     setError(null);
 
     const parsed = SCHEMA.safeParse({
@@ -1224,6 +1230,7 @@ function NewRoomPage() {
               </Button>
               {step < TOTAL_STEPS ? (
                 <Button
+                  key="continue"
                   type="button"
                   className="flex-1 font-bold"
                   onClick={goNext}
@@ -1231,7 +1238,7 @@ function NewRoomPage() {
                   Continue
                 </Button>
               ) : (
-                <Button type="submit" className="flex-1 font-bold" disabled={busy}>
+                <Button key="create" type="submit" className="flex-1 font-bold" disabled={busy}>
                   {busy && <Loader2 className="animate-spin" />}
                   Create room
                 </Button>
