@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { compareByRank } from "@/lib/playerRankings";
+import { compareByHoopRank } from "@/lib/playerRanking";
+import { useHoopRanks } from "@/hooks/useHoopRanks";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import {
   assignPicksToSlots,
@@ -139,10 +141,7 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
           data: { pool: room.player_pool === "rookies" ? "rookies" : "all" },
         });
         if (!cancelled) {
-          // Rookie pools already arrive in real NBA draft order — keep it.
-          setPlayers(
-            room.player_pool === "rookies" ? list : [...list].sort(compareByRank),
-          );
+          setPlayers(list);
         }
       } catch (e) {
         console.error("failed to load players", e);
@@ -198,10 +197,23 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
 
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
 
+  // HoopRank for this league's scoring format and shape.
+  const hoopRanks = useHoopRanks(room.scoring_format, room.team_count, room.rounds);
+  const rankedPlayers = useMemo(() => {
+    const rookiePool = room.player_pool === "rookies";
+    // Until HoopRank loads, keep the curated order so the list isn't jumbled.
+    const cmp = Object.keys(hoopRanks).length
+      ? compareByHoopRank(hoopRanks, rookiePool)
+      : rookiePool
+        ? compareByHoopRank({}, true)
+        : compareByRank;
+    return [...players].sort(cmp);
+  }, [players, hoopRanks, room.player_pool]);
+
   // Filter available players
   const availablePlayers = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return players.filter((p) => {
+    return rankedPlayers.filter((p) => {
       if (takenIds.has(p.id)) return false;
       if (term && !p.name.toLowerCase().includes(term)) return false;
       if (posFilter !== "ALL") {
@@ -210,7 +222,7 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
       }
       return true;
     });
-  }, [players, takenIds, search, posFilter]);
+  }, [rankedPlayers, takenIds, search, posFilter]);
 
   // Roster for on-clock team, to derive slot eligibility for pick button
   const onClockPicks = useMemo(

@@ -46,3 +46,26 @@ export function hoopRankOf(ranks: RankMap, playerId: string): number {
 export function hoopZOf(ranks: RankMap, playerId: string): number | null {
   return ranks[looseKey(playerId)]?.z ?? null;
 }
+
+/**
+ * Sort players best-first by HoopRank. Rookie-only pools follow real NBA draft
+ * order instead (rookies have no NBA stats, so z-scores are meaningless).
+ * Players HoopRank can't rate (no qualifying stats) sort after every rated
+ * player, then by NBA draft slot, then name.
+ */
+export function compareByHoopRank(ranks: RankMap, rookiePool: boolean) {
+  return (
+    a: { id: string; name: string; draftNumber?: number | null },
+    b: { id: string; name: string; draftNumber?: number | null },
+  ): number => {
+    if (!rookiePool) {
+      const ra = hoopRankOf(ranks, a.id);
+      const rb = hoopRankOf(ranks, b.id);
+      if (ra !== rb) return ra - rb;
+    }
+    const da = a.draftNumber ?? 9999;
+    const db = b.draftNumber ?? 9999;
+    if (da !== db) return da - db;
+    return a.name.localeCompare(b.name);
+  };
+}

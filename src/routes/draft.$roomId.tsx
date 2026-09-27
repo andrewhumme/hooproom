@@ -52,8 +52,8 @@ import {
   type TeamCategoryTotals,
 } from "@/components/CategoryHeatmap";
 import { compareByRank } from "@/lib/playerRankings";
-import { getPlayerRanksServer } from "@/lib/playerRanking.functions";
-import { hoopRankOf, hoopZOf, UNRANKED, type RankMap } from "@/lib/playerRanking";
+import { compareByHoopRank, hoopRankOf, hoopZOf, UNRANKED } from "@/lib/playerRanking";
+import { useHoopRanks } from "@/hooks/useHoopRanks";
 
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
 import { assignPicksToSlots, buildSlotSpots, eligibleSlotsForPosition, totalSlots, type SlotConfig, type SlotKey } from "@/lib/rosterSlots";
@@ -186,7 +186,6 @@ function DraftRoomPage() {
   const [posFilter, setPosFilter] = useState<string>("ALL");
   const [statsPlayer, setStatsPlayer] = useState<DraftablePlayer | null>(null);
   const [latestStats, setLatestStats] = useState<Record<string, PlayerSeasonStats>>({});
-  const [hoopRanks, setHoopRanks] = useState<RankMap>({});
 
   const [viewingTeamIdx, setViewingTeamIdx] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"players" | "myteam" | "teams">("players");
@@ -463,21 +462,7 @@ function DraftRoomPage() {
   // HoopRank — z-score based ranking tuned to this room's scoring format.
   const scoringFormat = room?.scoring_format;
   const teamCount = room?.team_count;
-  useEffect(() => {
-    if (!scoringFormat || !teamCount || !rosterSlotCount) return;
-    let cancelled = false;
-    getPlayerRanksServer({
-      data: { scoringFormat, teamCount, rosterSize: rosterSlotCount },
-    })
-      .then((m) => {
-        if (!cancelled) setHoopRanks(m);
-      })
-      .catch((e: unknown) => console.error("hoop ranks failed", e));
-    return () => {
-      cancelled = true;
-    };
-  }, [scoringFormat, teamCount, rosterSlotCount]);
-
+  const hoopRanks = useHoopRanks(scoringFormat, teamCount, rosterSlotCount);
 
   const onTheClockParticipant = isDrafting ? slotMap.get(currentTeamIdx) ?? null : null;
   const isMyTurn = isDrafting && onTheClockParticipant?.user_id === user?.id;
@@ -534,22 +519,15 @@ function DraftRoomPage() {
     // Rookie drafts follow real NBA draft order (rookies have no NBA stats yet,
     // so z-scores would be meaningless). Otherwise HoopRank first (data-driven
     // z-scores), falling back to the curated list when stats are missing.
+    const byHoopRank = compareByHoopRank(hoopRanks, rookiePool);
     const byRank = (a: DraftablePlayer, b: DraftablePlayer) => {
       // Manual Big Board wins over every automated ordering.
       const ba = boardRanks[a.id] ?? Infinity;
       const bb = boardRanks[b.id] ?? Infinity;
       if (ba !== bb) return ba - bb;
-      if (rookiePool) {
-        const da = a.draftNumber ?? 9999;
-        const db = b.draftNumber ?? 9999;
-        if (da !== db) return da - db;
-        return a.name.localeCompare(b.name);
-      }
-      if (!hasRanks) return compareByRank(a, b);
-      const ra = hoopRankOf(hoopRanks, a.id);
-      const rb = hoopRankOf(hoopRanks, b.id);
-      if (ra !== rb) return ra - rb;
-      return compareByRank(a, b);
+      // Until HoopRank loads, keep the curated order so the list isn't jumbled.
+      if (!hasRanks && !rookiePool) return compareByRank(a, b);
+      return byHoopRank(a, b);
     };
 
     if (sortKey === "rank") {
