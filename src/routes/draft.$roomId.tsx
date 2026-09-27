@@ -415,6 +415,28 @@ function DraftRoomPage() {
     return { currentRound: round, currentTeamIdx: t, currentReverse: reverse };
   }, [room, currentPickNumber, isDrafting, pickAssignments]);
 
+  // Who picks when in the current round, honoring reassigned picks. Before or
+  // after the draft (no current round), fall back to seat order.
+  const roundOrder = useMemo(() => {
+    if (!room) return [];
+    const n = room.team_count;
+    if (!currentRound) {
+      return Array.from({ length: n }, (_, i) => ({
+        pickNumber: null,
+        pickInRound: i + 1,
+        idx: i + 1,
+      }));
+    }
+    return Array.from({ length: n }, (_, i) => {
+      const pickNumber = (currentRound - 1) * n + i + 1;
+      return {
+        pickNumber,
+        pickInRound: i + 1,
+        idx: teamForPick(pickNumber, n, room.reversal_rounds, pickAssignments),
+      };
+    });
+  }, [room, currentRound, pickAssignments]);
+
   const slotMap = useMemo(() => {
     const m = new Map<number, Participant>();
     for (const p of participants) {
@@ -1498,15 +1520,14 @@ function DraftRoomPage() {
               gridTemplateColumns: `var(--lg-cols)`,
             }}
           >
-            {Array.from({ length: room.team_count }).map((_, i) => {
-              const idx = i + 1;
+            {roundOrder.map(({ pickNumber, pickInRound, idx }) => {
               const team = slotMap.get(idx);
               const teamPicks = picks.filter((p) => p.team_idx === idx).length;
-              const onClock = idx === currentTeamIdx && isDrafting;
+              const onClock = isDrafting && pickNumber === currentPickNumber;
               const isMe = team?.user_id === user?.id;
               return (
                 <button
-                  key={idx}
+                  key={pickNumber ?? `seat-${idx}`}
                   type="button"
                   onClick={() => setViewingTeamIdx(idx)}
                   className={`flex w-[110px] shrink-0 snap-start flex-col items-start gap-1 rounded-md border-2 px-2 py-2 text-left transition hover:-translate-y-0.5 lg:w-auto lg:min-w-0 lg:shrink lg:px-1.5 lg:py-1.5 lg:gap-0.5 ${
@@ -1523,7 +1544,7 @@ function DraftRoomPage() {
                         onClock ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-foreground"
                       }`}
                     >
-                      {idx}
+                      {pickInRound}
                     </span>
                     {onClock && (
                       <span className="truncate text-[9px] font-black uppercase tracking-wider lg:text-[8px]">
