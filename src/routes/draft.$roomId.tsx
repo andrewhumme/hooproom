@@ -8,6 +8,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureGuestSession } from "@/lib/guestSession";
+import { snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
+import { usePickAssignments } from "@/hooks/usePickAssignments";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
@@ -191,6 +193,7 @@ function DraftRoomPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const [presentUserIds, setPresentUserIds] = useState<Set<string>>(new Set());
+  const pickAssignments = usePickAssignments(roomId);
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
@@ -390,19 +393,20 @@ function DraftRoomPage() {
 
   const { currentRound, currentTeamIdx, currentReverse } = useMemo(() => {
     if (!room || !isDrafting) return { currentRound: 0, currentTeamIdx: 0, currentReverse: false };
-    const r = Math.floor((currentPickNumber - 1) / room.team_count) + 1;
-    const idxInRound = (currentPickNumber - 1) % room.team_count;
-    const reversals = new Set<number>(room.reversal_rounds ?? []);
-    // Walk rounds 1..r-1 to determine direction at round r
-    let reverse = false;
-    for (let i = 1; i < r; i++) {
-      // Skip the flip going INTO round (i + 1) if that round is a reversal
-      // round (the "double pick" turn keeps direction the same as the prior round).
-      if (!reversals.has(i + 1)) reverse = !reverse;
-    }
-    const t = reverse ? room.team_count - idxInRound : idxInRound + 1;
-    return { currentRound: r, currentTeamIdx: t, currentReverse: reverse };
-  }, [room, currentPickNumber, isDrafting]);
+    const { round, reverse } = snakeTeamForPick(
+      currentPickNumber,
+      room.team_count,
+      room.reversal_rounds,
+    );
+    // The commissioner may have reassigned this pick in the lobby.
+    const t = teamForPick(
+      currentPickNumber,
+      room.team_count,
+      room.reversal_rounds,
+      pickAssignments,
+    );
+    return { currentRound: round, currentTeamIdx: t, currentReverse: reverse };
+  }, [room, currentPickNumber, isDrafting, pickAssignments]);
 
   const slotMap = useMemo(() => {
     const m = new Map<number, Participant>();

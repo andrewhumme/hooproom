@@ -17,6 +17,8 @@ import {
   type SlotKey,
 } from "@/lib/rosterSlots";
 import { downloadDraftXlsx } from "@/lib/draftExport";
+import { teamForPick } from "@/lib/pickOrder";
+import { usePickAssignments } from "@/hooks/usePickAssignments";
 import {
   ArrowLeft,
   Check,
@@ -82,18 +84,6 @@ type Pick = {
   player_team: string | null;
   picked_at: string;
 };
-
-function isReverseRound(round: number, reversals: number[] | null | undefined): boolean {
-  const set = new Set(reversals ?? []);
-  if (round % 2 === 0) return !set.has(round);
-  return set.has(round);
-}
-
-function teamForPick(pickNumber: number, teamCount: number, reversals: number[] | null | undefined) {
-  const round = Math.floor((pickNumber - 1) / teamCount) + 1;
-  const idx = (pickNumber - 1) % teamCount;
-  return isReverseRound(round, reversals) ? teamCount - idx : idx + 1;
-}
 
 interface Props {
   room: Room;
@@ -190,10 +180,16 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
   const totalPicks = room.team_count * room.rounds;
   const isComplete = room.status === "complete" || room.current_pick_number > totalPicks;
 
+  const pickAssignments = usePickAssignments(room.id);
   const onClockTeamIdx = useMemo(() => {
     if (isComplete || room.status !== "drafting") return null;
-    return teamForPick(room.current_pick_number, room.team_count, room.reversal_rounds);
-  }, [room, isComplete]);
+    return teamForPick(
+      room.current_pick_number,
+      room.team_count,
+      room.reversal_rounds,
+      pickAssignments,
+    );
+  }, [room, isComplete, pickAssignments]);
 
   const onClockTeam = useMemo(
     () => participants.find((p) => p.draft_position === onClockTeamIdx) ?? null,
