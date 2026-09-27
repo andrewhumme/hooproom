@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
+import { roundPickOrder, snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
 import { usePickAssignments } from "@/hooks/usePickAssignments";
 import { WatchLinkButton } from "@/components/WatchLinkButton";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
@@ -427,14 +427,9 @@ function DraftRoomPage() {
         idx: i + 1,
       }));
     }
-    return Array.from({ length: n }, (_, i) => {
-      const pickNumber = (currentRound - 1) * n + i + 1;
-      return {
-        pickNumber,
-        pickInRound: i + 1,
-        idx: teamForPick(pickNumber, n, room.reversal_rounds, pickAssignments),
-      };
-    });
+    return roundPickOrder(currentRound, n, room.reversal_rounds, pickAssignments).map(
+      ({ pickNumber, pickInRound, teamIdx }) => ({ pickNumber, pickInRound, idx: teamIdx }),
+    );
   }, [room, currentRound, pickAssignments]);
 
   const slotMap = useMemo(() => {

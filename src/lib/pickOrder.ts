@@ -34,3 +34,23 @@ export function teamForPick(
     assignments.get(pickNumber) ?? snakeTeamForPick(pickNumber, teamCount, reversalRounds).teamIdx
   );
 }
+
+/**
+ * Pick order for one round, honoring custom assignments: one entry per pick,
+ * in the order they're made. A team with a traded pick can appear twice.
+ */
+export function roundPickOrder(
+  round: number,
+  teamCount: number,
+  reversalRounds: number[] | null | undefined,
+  assignments: ReadonlyMap<number, number>,
+): { pickNumber: number; pickInRound: number; teamIdx: number }[] {
+  return Array.from({ length: teamCount }, (_, i) => {
+    const pickNumber = (round - 1) * teamCount + i + 1;
+    return {
+      pickNumber,
+      pickInRound: i + 1,
+      teamIdx: teamForPick(pickNumber, teamCount, reversalRounds, assignments),
+    };
+  });
+}

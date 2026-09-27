@@ -4,7 +4,7 @@ import { ArrowLeft, Eye, Loader2, Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDuration } from "@/lib/utils";
-import { snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
+import { roundPickOrder, snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
 
 // Public, view-only draft page. No account or session required: everything
 // comes from get_watch_snapshot(), polled every few seconds.
@@ -190,6 +190,15 @@ function WatchView({ snap, skewMs }: { snap: Snapshot; skewMs: number }) {
     return { round, teamIdx };
   }, [isLive, isAuction, room, assignments]);
 
+  // This round's pick order, honoring reassigned picks.
+  const roundOrder = useMemo(
+    () =>
+      onClock
+        ? roundPickOrder(onClock.round, room.team_count, room.reversal_rounds, assignments)
+        : [],
+    [onClock, room.team_count, room.reversal_rounds, assignments],
+  );
+
   // Each team's picks in draft order — one column per team, one row per pick.
   const picksByTeam = useMemo(() => {
     const m = new Map<number, WatchPick[]>();
@@ -260,6 +269,38 @@ function WatchView({ snap, skewMs }: { snap: Snapshot; skewMs: number }) {
             </Card>
           )}
 
+          {roundOrder.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Round {onClock?.round} order
+              </div>
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                {roundOrder.map(({ pickNumber, pickInRound, teamIdx }) => {
+                  const current = pickNumber === room.current_pick_number;
+                  const done = pickNumber < room.current_pick_number;
+                  return (
+                    <div
+                      key={pickNumber}
+                      className={`flex w-[110px] shrink-0 flex-col gap-0.5 rounded-md border-2 px-2 py-1.5 ${
+                        current
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : done
+                            ? "border-border bg-muted/40 opacity-60"
+                            : "border-border bg-card"
+                      }`}
+                    >
+                      <div className="text-[10px] font-black opacity-80">
+                        {pickInRound}
+                        {current ? " · On clock" : ""}
+                      </div>
+                      <div className="truncate text-xs font-black">{teamName(teamIdx)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {room.status === "paused" && (
             <Card className="mt-4 border-2 p-4 text-sm font-black">
               Draft paused by the commissioner.
@@ -321,8 +362,10 @@ function WatchView({ snap, skewMs }: { snap: Snapshot; skewMs: number }) {
                       : "border-border bg-card"
                   }`}
                 >
-                  <div className="text-[10px] font-black opacity-70">#{idx}</div>
                   <div className="truncate text-xs font-black">{teamName(idx)}</div>
+                  <div className="text-[10px] font-bold opacity-70">
+                    {picksByTeam.get(idx)?.length ?? 0}/{room.rounds}
+                  </div>
                 </div>
               );
             })}
