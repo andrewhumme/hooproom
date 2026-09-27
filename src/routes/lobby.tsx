@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowRight, Lock, MapPin, Plus, Zap } from "lucide-react";
+import { ArrowRight, Eye, Lock, MapPin, Plus, Zap } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
 export const Route = createFileRoute("/lobby")({
@@ -276,7 +276,7 @@ function LobbyPage() {
           <div className="mt-10 flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-4 text-center text-sm text-muted-foreground">
             <Lock className="h-4 w-4 text-primary" />
             <span className="font-bold text-foreground">Sign in to host or join a draft.</span>
-            Anyone can spectate a live draft via its share link.
+            Anyone can watch a listed draft view-only — no account needed.
           </div>
         )}
       </section>
@@ -289,7 +289,13 @@ function RoomRow({ room }: { room: Room }) {
   const filling = (room.participant_count ?? 0) / room.team_count >= 0.75;
   const isLive = room.status === "drafting";
 
+  const isSpectateOnly = room.visibility === "spectate";
+  // Listed rooms are public: the view-only page needs no account.
+  const handleWatch = () => {
+    navigate({ to: "/watch/$key", params: { key: room.id } });
+  };
   const handleOpen = () => {
+    if (isSpectateOnly) return handleWatch();
     navigate({ to: "/draft/$roomId", params: { roomId: room.id } });
   };
 
@@ -330,20 +336,32 @@ function RoomRow({ room }: { room: Room }) {
         )}
       </TableCell>
       <TableCell className="text-right">
-        <Button
-          size="sm"
-          className="font-bold opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleOpen();
-          }}
-        >
-          {room.visibility === "spectate"
-            ? "Watch"
-            : isLive
-              ? "Join"
-              : "Open"} <ArrowRight />
-        </Button>
+        <div className="flex items-center justify-end gap-1.5">
+          {!isSpectateOnly && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="font-bold"
+              title="Watch view-only — no account needed"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleWatch();
+              }}
+            >
+              <Eye /> Watch
+            </Button>
+          )}
+          <Button
+            size="sm"
+            className="font-bold opacity-0 transition-opacity group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpen();
+            }}
+          >
+            {isSpectateOnly ? "Watch" : isLive ? "Join" : "Open"} <ArrowRight />
+          </Button>
+        </div>
       </TableCell>
     </TableRow>
   );

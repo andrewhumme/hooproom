@@ -9,59 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as LobbyRouteImport } from './routes/lobby'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as LobbyNewOfflineRouteImport } from './routes/lobby_.new-offline'
-import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
-import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
-import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
-import { Route as AuthenticatedRankingsRouteImport } from './routes/_authenticated/rankings'
-import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as LobbyRouteImport } from './routes/lobby'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin_'
-import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as DraftRoomIdSummaryRouteImport } from './routes/draft.$roomId_.summary'
-import { Route as ApiPublicSyncDraftOrderRouteImport } from './routes/api.public.sync-draft-order'
-import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
-import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
-import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
-import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
+import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
+import { Route as AuthenticatedRankingsRouteImport } from './routes/_authenticated/rankings'
+import { Route as DraftRoomIdRouteImport } from './routes/draft.$roomId'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
+import { Route as LobbyNewOfflineRouteImport } from './routes/lobby_.new-offline'
+import { Route as WatchKeyRouteImport } from './routes/watch.$key'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
-import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
-import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
+import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
+import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
+import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
+import { Route as ApiPublicSyncDraftOrderRouteImport } from './routes/api.public.sync-draft-order'
+import { Route as DraftRoomIdSummaryRouteImport } from './routes/draft.$roomId_.summary'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicHooksRefreshSeasonStatsRouteImport } from './routes/api/public/hooks/refresh-season-stats'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 
-const UnsubscribeRoute = UnsubscribeRouteImport.update({
-  id: '/unsubscribe',
-  path: '/unsubscribe',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LobbyRoute = LobbyRouteImport.update({
-  id: '/lobby',
-  path: '/lobby',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -69,38 +54,34 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const LobbyRoute = LobbyRouteImport.update({
+  id: '/lobby',
+  path: '/lobby',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LobbyNewOfflineRoute = LobbyNewOfflineRouteImport.update({
-  id: '/lobby_/new-offline',
-  path: '/lobby/new-offline',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LobbyNewRoute = LobbyNewRouteImport.update({
-  id: '/lobby_/new',
-  path: '/lobby/new',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
-  id: '/email/unsubscribe',
-  path: '/email/unsubscribe',
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DraftRoomIdRoute = DraftRoomIdRouteImport.update({
-  id: '/draft/$roomId',
-  path: '/draft/$roomId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRankingsRoute = AuthenticatedRankingsRouteImport.update({
-  id: '/rankings',
-  path: '/rankings',
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin_',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMeRoute = AuthenticatedMeRouteImport.update({
@@ -108,44 +89,34 @@ const AuthenticatedMeRoute = AuthenticatedMeRouteImport.update({
   path: '/me',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin_',
-  path: '/admin',
+const AuthenticatedRankingsRoute = AuthenticatedRankingsRouteImport.update({
+  id: '/rankings',
+  path: '/rankings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
-  id: '/lovable/email/suppression',
-  path: '/lovable/email/suppression',
+const DraftRoomIdRoute = DraftRoomIdRouteImport.update({
+  id: '/draft/$roomId',
+  path: '/draft/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DraftRoomIdSummaryRoute = DraftRoomIdSummaryRouteImport.update({
-  id: '/draft/$roomId_/summary',
-  path: '/draft/$roomId/summary',
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSyncDraftOrderRoute = ApiPublicSyncDraftOrderRouteImport.update({
-  id: '/api/public/sync-draft-order',
-  path: '/api/public/sync-draft-order',
+const LobbyNewRoute = LobbyNewRouteImport.update({
+  id: '/lobby_/new',
+  path: '/lobby/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSnakeTickRoute = ApiPublicSnakeTickRouteImport.update({
-  id: '/api/public/snake-tick',
-  path: '/api/public/snake-tick',
+const LobbyNewOfflineRoute = LobbyNewOfflineRouteImport.update({
+  id: '/lobby_/new-offline',
+  path: '/lobby/new-offline',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSeedStatsRoute = ApiPublicSeedStatsRouteImport.update({
-  id: '/api/public/seed-stats',
-  path: '/api/public/seed-stats',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicLobbyTickRoute = ApiPublicLobbyTickRouteImport.update({
-  id: '/api/public/lobby-tick',
-  path: '/api/public/lobby-tick',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicAuctionTickRoute = ApiPublicAuctionTickRouteImport.update({
-  id: '/api/public/auction-tick',
-  path: '/api/public/auction-tick',
+const WatchKeyRoute = WatchKeyRouteImport.update({
+  id: '/watch/$key',
+  path: '/watch/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
@@ -153,10 +124,61 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const LovableEmailTransactionalSendRoute =
-  LovableEmailTransactionalSendRouteImport.update({
-    id: '/lovable/email/transactional/send',
-    path: '/lovable/email/transactional/send',
+const ApiPublicAuctionTickRoute = ApiPublicAuctionTickRouteImport.update({
+  id: '/api/public/auction-tick',
+  path: '/api/public/auction-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLobbyTickRoute = ApiPublicLobbyTickRouteImport.update({
+  id: '/api/public/lobby-tick',
+  path: '/api/public/lobby-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSeedStatsRoute = ApiPublicSeedStatsRouteImport.update({
+  id: '/api/public/seed-stats',
+  path: '/api/public/seed-stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSnakeTickRoute = ApiPublicSnakeTickRouteImport.update({
+  id: '/api/public/snake-tick',
+  path: '/api/public/snake-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSyncDraftOrderRoute = ApiPublicSyncDraftOrderRouteImport.update({
+  id: '/api/public/sync-draft-order',
+  path: '/api/public/sync-draft-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DraftRoomIdSummaryRoute = DraftRoomIdSummaryRouteImport.update({
+  id: '/draft/$roomId_/summary',
+  path: '/draft/$roomId/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksRefreshSeasonStatsRoute =
+  ApiPublicHooksRefreshSeasonStatsRouteImport.update({
+    id: '/api/public/hooks/refresh-season-stats',
+    path: '/api/public/hooks/refresh-season-stats',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LovableEmailTransactionalPreviewRoute =
@@ -165,26 +187,10 @@ const LovableEmailTransactionalPreviewRoute =
     path: '/lovable/email/transactional/preview',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksRefreshSeasonStatsRoute =
-  ApiPublicHooksRefreshSeasonStatsRouteImport.update({
-    id: '/api/public/hooks/refresh-season-stats',
-    path: '/api/public/hooks/refresh-season-stats',
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby/new': typeof LobbyNewRoute
   '/lobby/new-offline': typeof LobbyNewOfflineRoute
+  '/watch/$key': typeof WatchKeyRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
@@ -233,6 +240,7 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby/new': typeof LobbyNewRoute
   '/lobby/new-offline': typeof LobbyNewOfflineRoute
+  '/watch/$key': typeof WatchKeyRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lobby_/new': typeof LobbyNewRoute
   '/lobby_/new-offline': typeof LobbyNewOfflineRoute
+  '/watch/$key': typeof WatchKeyRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/lobby/new'
     | '/lobby/new-offline'
+    | '/watch/$key'
     | '/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/lobby/new'
     | '/lobby/new-offline'
+    | '/watch/$key'
     | '/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/lobby_/new'
     | '/lobby_/new-offline'
+    | '/watch/$key'
     | '/_authenticated/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/lobby-tick'
@@ -387,6 +399,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LobbyNewRoute: typeof LobbyNewRoute
   LobbyNewOfflineRoute: typeof LobbyNewOfflineRoute
+  WatchKeyRoute: typeof WatchKeyRoute
   ApiPublicAuctionTickRoute: typeof ApiPublicAuctionTickRoute
   ApiPublicLobbyTickRoute: typeof ApiPublicLobbyTickRoute
   ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
@@ -404,46 +417,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/unsubscribe': {
-      id: '/unsubscribe'
-      path: '/unsubscribe'
-      fullPath: '/unsubscribe'
-      preLoaderRoute: typeof UnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lobby': {
-      id: '/lobby'
-      path: '/lobby'
-      fullPath: '/lobby'
-      preLoaderRoute: typeof LobbyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -453,46 +431,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lobby_/new-offline': {
-      id: '/lobby_/new-offline'
-      path: '/lobby/new-offline'
-      fullPath: '/lobby/new-offline'
-      preLoaderRoute: typeof LobbyNewOfflineRouteImport
+    '/lobby': {
+      id: '/lobby'
+      path: '/lobby'
+      fullPath: '/lobby'
+      preLoaderRoute: typeof LobbyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lobby_/new': {
-      id: '/lobby_/new'
-      path: '/lobby/new'
-      fullPath: '/lobby/new'
-      preLoaderRoute: typeof LobbyNewRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/email/unsubscribe': {
-      id: '/email/unsubscribe'
-      path: '/email/unsubscribe'
-      fullPath: '/email/unsubscribe'
-      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/draft/$roomId': {
-      id: '/draft/$roomId'
-      path: '/draft/$roomId'
-      fullPath: '/draft/$roomId'
-      preLoaderRoute: typeof DraftRoomIdRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/rankings': {
-      id: '/_authenticated/rankings'
-      path: '/rankings'
-      fullPath: '/rankings'
-      preLoaderRoute: typeof AuthenticatedRankingsRouteImport
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin_': {
+      id: '/_authenticated/admin_'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/me': {
@@ -502,60 +487,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin_': {
-      id: '/_authenticated/admin_'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+    '/_authenticated/rankings': {
+      id: '/_authenticated/rankings'
+      path: '/rankings'
+      fullPath: '/rankings'
+      preLoaderRoute: typeof AuthenticatedRankingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/lovable/email/suppression': {
-      id: '/lovable/email/suppression'
-      path: '/lovable/email/suppression'
-      fullPath: '/lovable/email/suppression'
-      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+    '/draft/$roomId': {
+      id: '/draft/$roomId'
+      path: '/draft/$roomId'
+      fullPath: '/draft/$roomId'
+      preLoaderRoute: typeof DraftRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/draft/$roomId_/summary': {
-      id: '/draft/$roomId_/summary'
-      path: '/draft/$roomId/summary'
-      fullPath: '/draft/$roomId/summary'
-      preLoaderRoute: typeof DraftRoomIdSummaryRouteImport
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/sync-draft-order': {
-      id: '/api/public/sync-draft-order'
-      path: '/api/public/sync-draft-order'
-      fullPath: '/api/public/sync-draft-order'
-      preLoaderRoute: typeof ApiPublicSyncDraftOrderRouteImport
+    '/lobby_/new': {
+      id: '/lobby_/new'
+      path: '/lobby/new'
+      fullPath: '/lobby/new'
+      preLoaderRoute: typeof LobbyNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/snake-tick': {
-      id: '/api/public/snake-tick'
-      path: '/api/public/snake-tick'
-      fullPath: '/api/public/snake-tick'
-      preLoaderRoute: typeof ApiPublicSnakeTickRouteImport
+    '/lobby_/new-offline': {
+      id: '/lobby_/new-offline'
+      path: '/lobby/new-offline'
+      fullPath: '/lobby/new-offline'
+      preLoaderRoute: typeof LobbyNewOfflineRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/seed-stats': {
-      id: '/api/public/seed-stats'
-      path: '/api/public/seed-stats'
-      fullPath: '/api/public/seed-stats'
-      preLoaderRoute: typeof ApiPublicSeedStatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/lobby-tick': {
-      id: '/api/public/lobby-tick'
-      path: '/api/public/lobby-tick'
-      fullPath: '/api/public/lobby-tick'
-      preLoaderRoute: typeof ApiPublicLobbyTickRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/auction-tick': {
-      id: '/api/public/auction-tick'
-      path: '/api/public/auction-tick'
-      fullPath: '/api/public/auction-tick'
-      preLoaderRoute: typeof ApiPublicAuctionTickRouteImport
+    '/watch/$key': {
+      id: '/watch/$key'
+      path: '/watch/$key'
+      fullPath: '/watch/$key'
+      preLoaderRoute: typeof WatchKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/users': {
@@ -565,32 +536,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/lovable/email/transactional/send': {
-      id: '/lovable/email/transactional/send'
-      path: '/lovable/email/transactional/send'
-      fullPath: '/lovable/email/transactional/send'
-      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+    '/api/public/auction-tick': {
+      id: '/api/public/auction-tick'
+      path: '/api/public/auction-tick'
+      fullPath: '/api/public/auction-tick'
+      preLoaderRoute: typeof ApiPublicAuctionTickRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/preview': {
-      id: '/lovable/email/transactional/preview'
-      path: '/lovable/email/transactional/preview'
-      fullPath: '/lovable/email/transactional/preview'
-      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+    '/api/public/lobby-tick': {
+      id: '/api/public/lobby-tick'
+      path: '/api/public/lobby-tick'
+      fullPath: '/api/public/lobby-tick'
+      preLoaderRoute: typeof ApiPublicLobbyTickRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+    '/api/public/seed-stats': {
+      id: '/api/public/seed-stats'
+      path: '/api/public/seed-stats'
+      fullPath: '/api/public/seed-stats'
+      preLoaderRoute: typeof ApiPublicSeedStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+    '/api/public/snake-tick': {
+      id: '/api/public/snake-tick'
+      path: '/api/public/snake-tick'
+      fullPath: '/api/public/snake-tick'
+      preLoaderRoute: typeof ApiPublicSnakeTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sync-draft-order': {
+      id: '/api/public/sync-draft-order'
+      path: '/api/public/sync-draft-order'
+      fullPath: '/api/public/sync-draft-order'
+      preLoaderRoute: typeof ApiPublicSyncDraftOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/draft/$roomId_/summary': {
+      id: '/draft/$roomId_/summary'
+      path: '/draft/$roomId/summary'
+      fullPath: '/draft/$roomId/summary'
+      preLoaderRoute: typeof DraftRoomIdSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/refresh-season-stats': {
+      id: '/api/public/hooks/refresh-season-stats'
+      path: '/api/public/hooks/refresh-season-stats'
+      fullPath: '/api/public/hooks/refresh-season-stats'
+      preLoaderRoute: typeof ApiPublicHooksRefreshSeasonStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/auth/preview': {
@@ -600,11 +599,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/refresh-season-stats': {
-      id: '/api/public/hooks/refresh-season-stats'
-      path: '/api/public/hooks/refresh-season-stats'
-      fullPath: '/api/public/hooks/refresh-season-stats'
-      preLoaderRoute: typeof ApiPublicHooksRefreshSeasonStatsRouteImport
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -640,6 +660,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LobbyNewRoute: LobbyNewRoute,
   LobbyNewOfflineRoute: LobbyNewOfflineRoute,
+  WatchKeyRoute: WatchKeyRoute,
   ApiPublicAuctionTickRoute: ApiPublicAuctionTickRoute,
   ApiPublicLobbyTickRoute: ApiPublicLobbyTickRoute,
   ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,

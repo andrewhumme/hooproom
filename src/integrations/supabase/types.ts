@@ -388,6 +388,7 @@ export type Database = {
           updated_at: string
           visibility: string
           warmup_until: string | null
+          watch_token: string
         }
         Insert: {
           auction_antisnipe_threshold_sec?: number | null
@@ -438,6 +439,7 @@ export type Database = {
           updated_at?: string
           visibility?: string
           warmup_until?: string | null
+          watch_token?: string
         }
         Update: {
           auction_antisnipe_threshold_sec?: number | null
@@ -488,6 +490,7 @@ export type Database = {
           updated_at?: string
           visibility?: string
           warmup_until?: string | null
+          watch_token?: string
         }
         Relationships: []
       }
@@ -1229,6 +1232,7 @@ export type Database = {
         }[]
       }
       get_room_id_by_share_token: { Args: { _token: string }; Returns: string }
+      get_watch_snapshot: { Args: { _key: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

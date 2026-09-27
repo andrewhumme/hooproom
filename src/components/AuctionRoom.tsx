@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { DraftControlPanel } from "@/components/DraftControlPanel";
+import { WatchLinkButton } from "@/components/WatchLinkButton";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
@@ -57,6 +58,8 @@ import {
 } from "lucide-react";
 
 type Room = {
+  visibility?: string;
+  watch_token?: string | null;
   player_pool?: string | null;
   id: string;
   name: string;
@@ -636,6 +639,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
                 <Pause className="mr-1 inline h-4 w-4" /> Paused by commissioner
               </div>
             )}
+            <WatchLinkButton room={room} />
             {isComplete && (
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export XLSX
@@ -644,6 +648,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
             {isHost && (isDrafting || isPaused) && (
               <DraftControlPanel
                 roomId={room.id}
+                watchRoom={room}
                 isDrafting={isDrafting}
                 isAuction={true}
                 canForceSkip={isDrafting && activeNoms.length > 0}

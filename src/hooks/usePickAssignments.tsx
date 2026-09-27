@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ensureGuestSession } from "@/lib/guestSession";
 
 /**
  * Commissioner's custom pick assignments for a room (pick_number → team_idx).
@@ -15,7 +14,6 @@ export function usePickAssignments(roomId: string | null): ReadonlyMap<number, n
 
     const load = async () => {
       try {
-        await ensureGuestSession();
         const { data, error } = await supabase
           .from("draft_pick_assignments")
           .select("pick_number, team_idx")
@@ -23,7 +21,7 @@ export function usePickAssignments(roomId: string | null): ReadonlyMap<number, n
         if (!mounted || error) return;
         setAssignments(new Map((data ?? []).map((a) => [a.pick_number, a.team_idx])));
       } catch (e) {
-        // No session (e.g. guest sign-in unavailable) — fall back to snake order.
+        // Couldn't load (e.g. network) — fall back to plain snake order.
         console.warn("pick assignments unavailable", e);
       }
     };

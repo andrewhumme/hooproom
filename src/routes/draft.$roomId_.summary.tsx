@@ -7,7 +7,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ensureGuestSession } from "@/lib/guestSession";
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
 import {
   assignPicksToSlots,
@@ -114,7 +113,6 @@ function DraftSummaryPage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      await ensureGuestSession();
       const [r, p, pk] = await Promise.all([
         supabase.from("draft_rooms").select("*").eq("id", roomId).single(),
         supabase.from("draft_participants").select("*").eq("room_id", roomId),

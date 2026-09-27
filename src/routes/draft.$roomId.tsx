@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ensureGuestSession } from "@/lib/guestSession";
 import { snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
 import { usePickAssignments } from "@/hooks/usePickAssignments";
+import { WatchLinkButton } from "@/components/WatchLinkButton";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { AuctionRoom } from "@/components/AuctionRoom";
@@ -129,6 +129,8 @@ type Room = {
   clock_running?: boolean;
   clock_started_at?: string | null;
   clock_elapsed_ms?: number;
+  visibility?: string;
+  watch_token?: string | null;
 };
 
 type Participant = {
@@ -197,13 +199,19 @@ function DraftRoomPage() {
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
 
+  // The draft room needs an account. Signed-out visitors sign in first;
+  // view-only watching without an account lives at /watch/<key>.
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate({ to: "/auth", search: { redirect: `/draft/${roomId}` } });
+    }
+  }, [authLoading, user, navigate, roomId]);
+
   // ------- Load room/participants/picks + subscribe -------
   useEffect(() => {
     let mounted = true;
 
     const loadAll = async () => {
-      // Ensure a session before reading — RLS requires authenticated.
-      await ensureGuestSession();
       const [r, p, pk] = await Promise.all([
         supabase.from("draft_rooms").select("*").eq("id", roomId).single(),
         supabase.from("draft_participants").select(PARTICIPANT_COLUMNS).eq("room_id", roomId),
@@ -280,7 +288,6 @@ function DraftRoomPage() {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     (async () => {
-      await ensureGuestSession();
       const { data: { user: u } } = await supabase.auth.getUser();
       const uid = u?.id;
       if (cancelled) return;
@@ -1001,6 +1008,19 @@ function DraftRoomPage() {
                 {copied ? "Copied!" : "Copy"}
               </Button>
             </div>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  Watch link
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {room.visibility === "public" || room.visibility === "spectate"
+                    ? "Public view-only page — anyone can follow along, no account needed."
+                    : "View-only page for this private draft — share it with anyone who should watch but not draft."}
+                </p>
+              </div>
+              <WatchLinkButton room={room} />
+            </div>
           </Card>
 
           {room.room_type === "league" && room.scheduled_start_at && (
@@ -1374,6 +1394,7 @@ function DraftRoomPage() {
                 <Pause className="mr-1 inline h-4 w-4" /> Paused by commissioner
               </div>
             )}
+            <WatchLinkButton room={room} />
             {isComplete && (
               <Button onClick={handleExport} className="font-bold">
                 <Download /> Export XLSX
@@ -1382,6 +1403,7 @@ function DraftRoomPage() {
             {isHost && (isDrafting || isPaused) && (
               <DraftControlPanel
                 roomId={room.id}
+                watchRoom={room}
                 isDrafting={isDrafting}
                 isAuction={false}
                 canForceSkip={isDrafting}

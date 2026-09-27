@@ -36,6 +36,8 @@ import {
   Undo2,
 } from "lucide-react";
 import type { DraftablePlayer } from "@/lib/balldontlie";
+import type { WatchableRoom } from "@/lib/watchLink";
+import { WatchLinkButton } from "@/components/WatchLinkButton";
 
 type RecentPick = {
   id: string;
@@ -55,6 +57,8 @@ type Props = {
   canForceSkip: boolean;
   /** Current per-pick time budget on the room, in seconds. */
   pickClockSec: number;
+  /** Room to build the view-only watch link from. */
+  watchRoom?: WatchableRoom;
 };
 
 /**
@@ -70,6 +74,7 @@ export function DraftControlPanel({
   availablePlayers,
   canForceSkip,
   pickClockSec,
+  watchRoom,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -176,6 +181,15 @@ export function DraftControlPanel({
             Fix mistakes mid-draft. Everyone in the room sees the change instantly.
           </p>
         </div>
+
+        {watchRoom && (
+          <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 p-3">
+            <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+              Watch link
+            </div>
+            <WatchLinkButton room={watchRoom} />
+          </div>
+        )}
 
         {error && (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-2.5 py-1.5 text-xs text-destructive">
