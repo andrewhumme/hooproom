@@ -1233,6 +1233,7 @@ export type Database = {
       }
       get_room_id_by_share_token: { Args: { _token: string }; Returns: string }
       get_watch_snapshot: { Args: { _key: string }; Returns: Json }
+      request_autopick: { Args: { _room_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -674,9 +674,11 @@ function DraftRoomPage() {
     return () => clearInterval(t);
   }, [room?.pick_deadline, isDrafting]);
 
-  // Autopick: when clock hits 0 OR current slot has no user (empty seat),
-  // any client may trigger. Guard with autopickFiredRef to avoid duplicate calls
-  // from the same client (other clients race-lose harmlessly via DB constraints).
+  // Autopick: when the clock hits 0, any client may ask the server to make the
+  // pick. The server chooses the player (on-clock manager's queue first, then
+  // the best-ranked player that fits *their* roster) — never this viewer's
+  // filtered/sorted list. Guard with autopickFiredRef to avoid duplicate calls
+  // from the same client; concurrent requests from other clients are no-ops.
   useEffect(() => {
     if (!room || !isDrafting) return;
     if (currentPickNumber > totalPicks) return;
@@ -690,55 +692,26 @@ function DraftRoomPage() {
     if (isMyTurn) return;
 
     // Autopick fires ONLY when the pick clock expires — empty seats wait the
-    // full clock too, which keeps pacing realistic and prevents the UI from
-    // thrashing through dozens of picks per second when most seats are empty.
-    // Compute expiration from the deadline directly (not from `secondsLeft`
-    // state) — on the transition from waiting → drafting, the state is still
-    // 0 from the prior phase and would spuriously trigger an instant autopick
-    // for pick 1 before the countdown effect has a chance to recompute.
+    // full clock too, which keeps pacing realistic. Compute expiration from the
+    // deadline directly (not from `secondsLeft` state) — on the transition from
+    // waiting → drafting, the state is still 0 from the prior phase and would
+    // spuriously trigger an instant autopick for pick 1.
     if (!room.pick_deadline) return;
     const msLeft = new Date(room.pick_deadline).getTime() - Date.now();
     if (msLeft > 0) return;
-    if (!players.length) return; // wait until pool loaded
-
-
-
-
-    const best = availablePlayers.find((pl) => canFitPlayer(pl.position)) ?? availablePlayers[0];
-    if (!best) return;
 
     autopickFiredRef.current = currentPickNumber;
-    supabase
-      .rpc("make_pick", {
-        _room_id: room.id,
-        _player_id: best.id,
-        _player_name: best.name,
-        _player_position: best.position,
-        _player_team: best.team,
-        _autopick: true,
-      })
-      .then(({ error }) => {
-        if (error) {
-          // Reset so another client can retry — but only after small delay
-          setTimeout(() => {
-            if (autopickFiredRef.current === currentPickNumber) {
-              autopickFiredRef.current = -1;
-            }
-          }, 1500);
-        }
-      });
-  }, [
-    room,
-    isDrafting,
-    secondsLeft,
-    currentPickNumber,
-    availablePlayers,
-    canFitPlayer,
-    players.length,
-    totalPicks,
-    isMyTurn,
-  ]);
-
+    const pickNumber = currentPickNumber;
+    supabase.rpc("request_autopick", { _room_id: room.id }).then(({ data, error }) => {
+      // Not made (error, or the server says it isn't due yet — e.g. clock
+      // skew): let this client retry shortly. The cron tick is the backstop.
+      if (error || data === false) {
+        setTimeout(() => {
+          if (autopickFiredRef.current === pickNumber) autopickFiredRef.current = -1;
+        }, 1500);
+      }
+    });
+  }, [room, isDrafting, secondsLeft, currentPickNumber, totalPicks, isMyTurn]);
 
   // ------- Actions -------
   const handleJoin = async () => {
