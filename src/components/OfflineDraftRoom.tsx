@@ -21,10 +21,9 @@ import {
 import { downloadDraftXlsx } from "@/lib/draftExport";
 import { teamForPick } from "@/lib/pickOrder";
 import { usePickAssignments } from "@/hooks/usePickAssignments";
+import { WatchLinkButton } from "@/components/WatchLinkButton";
 import {
   ArrowLeft,
-  Check,
-  Copy,
   Download,
   Loader2,
   Monitor,
@@ -39,6 +38,8 @@ import {
 } from "lucide-react";
 
 type Room = {
+  visibility?: string;
+  watch_token?: string | null;
   player_pool?: string | null;
   id: string;
   name: string;
@@ -72,7 +73,6 @@ type Participant = {
   draft_position: number | null;
   team_name: string;
   owner_email?: string | null;
-  share_token: string;
 };
 
 type Pick = {
@@ -107,7 +107,6 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [tick, setTick] = useState(0);
-  const [copiedToken, setCopiedToken] = useState<string | null>(null);
   // Owner emails are host-only and never exposed through table reads.
   const [ownerEmails, setOwnerEmails] = useState<Record<string, string | null>>({});
 
@@ -350,17 +349,6 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
     }
   };
 
-  const copyRosterLink = async (token: string) => {
-    const url = `${window.location.origin}/roster/${token}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedToken(token);
-      setTimeout(() => setCopiedToken((t) => (t === token ? null : t)), 1600);
-    } catch {
-      window.prompt("Copy this roster link:", url);
-    }
-  };
-
   const exportBoard = () => {
     downloadDraftXlsx(
       {
@@ -400,8 +388,6 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
         starting={starting}
         error={error}
         onStart={handleStart}
-        onCopyLink={copyRosterLink}
-        copiedToken={copiedToken}
         ownerEmails={ownerEmails}
         navigate={navigate}
       />
@@ -587,11 +573,7 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
         <RecentPicks picks={picks} participants={participants} />
       </div>
       <div className="mt-4">
-        <TeamShareLinks
-          participants={participants}
-          onCopy={copyRosterLink}
-          copiedToken={copiedToken}
-        />
+        <WatchLinkCard room={room} />
       </div>
     </div>
   );
@@ -613,8 +595,6 @@ function WaitingScreen({
   starting,
   error,
   onStart,
-  onCopyLink,
-  copiedToken,
   ownerEmails,
   navigate,
 }: {
@@ -624,8 +604,6 @@ function WaitingScreen({
   starting: boolean;
   error: string | null;
   onStart: () => void;
-  onCopyLink: (token: string) => void;
-  copiedToken: string | null;
   ownerEmails: Record<string, string | null>;
   navigate: ReturnType<typeof useNavigate>;
 }) {
@@ -650,9 +628,12 @@ function WaitingScreen({
         <div className="mb-4">
           <h2 className="text-2xl font-black">Draft order</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Everyone drafts in the order below. Share each team's roster link so owners can
-            watch their picks come in — no login required.
+            Everyone drafts in the order below.
           </p>
+        </div>
+
+        <div className="mb-4">
+          <WatchLinkCard room={room} />
         </div>
 
         <Card className="border-2">
@@ -675,22 +656,6 @@ function WaitingScreen({
                     <div className="truncate text-xs text-muted-foreground">{ownerEmails[p.id]}</div>
                   )}
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onCopyLink(p.share_token)}
-                  className="h-8 font-bold"
-                >
-                  {copiedToken === p.share_token ? (
-                    <>
-                      <Check className="h-3.5 w-3.5" /> Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5" /> Roster link
-                    </>
-                  )}
-                </Button>
               </li>
             ))}
           </ul>
@@ -1014,48 +979,18 @@ function RecentPicks({
   );
 }
 
-function TeamShareLinks({
-  participants,
-  onCopy,
-  copiedToken,
-}: {
-  participants: Participant[];
-  onCopy: (token: string) => void;
-  copiedToken: string | null;
-}) {
+function WatchLinkCard({ room }: { room: Room }) {
   return (
-    <Card className="border-2 p-3">
-      <div className="mb-2 text-[11px] font-black uppercase tracking-widest text-primary">
-        Team roster links
+    <Card className="flex flex-wrap items-center justify-between gap-3 border-2 p-3">
+      <div className="min-w-0">
+        <div className="text-[11px] font-black uppercase tracking-widest text-primary">
+          Watch link
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Share with the room so everyone can follow the board on their own phone — no login needed.
+        </p>
       </div>
-      <ul className="space-y-1">
-        {participants
-          .sort((a, b) => (a.draft_position ?? 999) - (b.draft_position ?? 999))
-          .map((p) => (
-            <li key={p.id} className="flex items-center gap-2 text-xs">
-              <span className="w-5 shrink-0 text-center font-black text-muted-foreground">
-                {p.draft_position}
-              </span>
-              <span className="truncate font-bold">{p.team_name}</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onCopy(p.share_token)}
-                className="ml-auto h-7 text-[10px] font-black"
-              >
-                {copiedToken === p.share_token ? (
-                  <>
-                    <Check className="h-3 w-3" /> Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-3 w-3" /> Copy
-                  </>
-                )}
-              </Button>
-            </li>
-          ))}
-      </ul>
+      <WatchLinkButton room={room} />
     </Card>
   );
 }
