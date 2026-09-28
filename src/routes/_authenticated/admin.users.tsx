@@ -10,6 +10,7 @@ import {
   deleteAllGuestUsers,
   backfillHistoricalStats,
   refreshAdvancedStatsNow,
+  refreshCurrentSeasonNow,
   refreshRookieFlagsNow,
   refreshHeadshotFlagsNow,
 
@@ -51,6 +52,7 @@ function AdminUsersPage() {
   const removeGuests = useServerFn(deleteAllGuestUsers);
   const backfill = useServerFn(backfillHistoricalStats);
   const refreshAdvanced = useServerFn(refreshAdvancedStatsNow);
+  const refreshCurrent = useServerFn(refreshCurrentSeasonNow);
   const refreshRookies = useServerFn(refreshRookieFlagsNow);
   const refreshHeadshots = useServerFn(refreshHeadshotFlagsNow);
 
@@ -62,7 +64,7 @@ function AdminUsersPage() {
   const [pendingDelete, setPendingDelete] = useState<AdminUserRow | null>(null);
   const [confirmPurge, setConfirmPurge] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [dataBusy, setDataBusy] = useState<"backfill" | "advanced" | "rookies" | "headshots" | null>(null);
+  const [dataBusy, setDataBusy] = useState<"current" | "backfill" | "advanced" | "rookies" | "headshots" | null>(null);
   const [dataLog, setDataLog] = useState<string[]>([]);
 
   function appendLog(line: string) {
@@ -85,6 +87,24 @@ function AdminUsersPage() {
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e);
       appendLog(`Backfill failed: ${m}`);
+      toast.error(m);
+    } finally {
+      setDataBusy(null);
+    }
+  }
+
+  async function handleRefreshCurrent() {
+    setDataBusy("current");
+    appendLog("Loading current-season stats from nbaapi.com…");
+    try {
+      const res = await refreshCurrent();
+      appendLog(
+        `Season ${res.season}: fetched ${res.fetched}, saved ${res.upsertedStats} players, ${res.snapshotRows} snapshot rows.`,
+      );
+      toast.success(`${res.upsertedStats} players updated for ${res.season}`);
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      appendLog(`Current-season refresh failed: ${m}`);
       toast.error(m);
     } finally {
       setDataBusy(null);
@@ -263,6 +283,17 @@ function AdminUsersPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Current season stats</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Load this season's per-game averages — what HoopRank, bots and
+                    autopick rank on. Also runs automatically every day. Takes a few
+                    seconds.
+                  </p>
+                  <Button size="sm" onClick={handleRefreshCurrent} disabled={dataBusy !== null}>
+                    {dataBusy === "current" ? "Refreshing…" : "Refresh current season"}
+                  </Button>
+                </div>
+                <div className="rounded-md border border-border p-4">
                   <div className="mb-1 text-sm font-bold">Historical backfill</div>
                   <p className="mb-3 text-xs text-muted-foreground">
                     Populate 10 seasons of per-game averages (2015-16 → 2024-25)
@@ -282,7 +313,7 @@ function AdminUsersPage() {
                   <p className="mb-3 text-xs text-muted-foreground">
                     Pull TS%, USG%, PIE, AST%, TOV% from stats.nba.com for the
                     current season and patch existing rows. Also runs
-                    automatically as part of the weekly cron.
+                    automatically as part of the daily refresh.
                   </p>
                   <Button
                     size="sm"

@@ -129,6 +129,23 @@ export const refreshAdvancedStatsNow = createServerFn({ method: "POST" })
     return await refreshAdvancedStats();
   });
 
+/**
+ * Load the current season's per-game stats (what HoopRank, bots and autopick
+ * rank on) and today's snapshot. Same work as the daily cron.
+ */
+export const refreshCurrentSeasonNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden");
+    const { refreshCurrentSeason } = await import("@/lib/seasonRefresh.server");
+    return await refreshCurrentSeason();
+  });
+
 /** Recompute which active players are rookies (NBA.com rookie leaderboard). */
 export const refreshRookieFlagsNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

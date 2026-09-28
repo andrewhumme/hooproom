@@ -29,7 +29,6 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
 import { Route as ApiPublicAuthEmailHookRouteImport } from './routes/api.public.auth-email-hook'
 import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobby-tick'
-import { Route as ApiPublicSeedStatsRouteImport } from './routes/api.public.seed-stats'
 import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
 import { Route as ApiPublicSyncDraftOrderRouteImport } from './routes/api.public.sync-draft-order'
 import { Route as DraftRoomIdSummaryRouteImport } from './routes/draft.$roomId_.summary'
@@ -134,11 +133,6 @@ const ApiPublicLobbyTickRoute = ApiPublicLobbyTickRouteImport.update({
   path: '/api/public/lobby-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSeedStatsRoute = ApiPublicSeedStatsRouteImport.update({
-  id: '/api/public/seed-stats',
-  path: '/api/public/seed-stats',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicSnakeTickRoute = ApiPublicSnakeTickRouteImport.update({
   id: '/api/public/snake-tick',
   path: '/api/public/snake-tick',
@@ -181,7 +175,6 @@ export interface FileRoutesByFullPath {
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
-  '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
@@ -207,7 +200,6 @@ export interface FileRoutesByTo {
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
-  '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
@@ -235,7 +227,6 @@ export interface FileRoutesById {
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
   '/api/public/lobby-tick': typeof ApiPublicLobbyTickRoute
-  '/api/public/seed-stats': typeof ApiPublicSeedStatsRoute
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId_/summary': typeof DraftRoomIdSummaryRoute
@@ -263,7 +254,6 @@ export interface FileRouteTypes {
     | '/api/public/auction-tick'
     | '/api/public/auth-email-hook'
     | '/api/public/lobby-tick'
-    | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/api/public/sync-draft-order'
     | '/draft/$roomId/summary'
@@ -289,7 +279,6 @@ export interface FileRouteTypes {
     | '/api/public/auction-tick'
     | '/api/public/auth-email-hook'
     | '/api/public/lobby-tick'
-    | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/api/public/sync-draft-order'
     | '/draft/$roomId/summary'
@@ -316,7 +305,6 @@ export interface FileRouteTypes {
     | '/api/public/auction-tick'
     | '/api/public/auth-email-hook'
     | '/api/public/lobby-tick'
-    | '/api/public/seed-stats'
     | '/api/public/snake-tick'
     | '/api/public/sync-draft-order'
     | '/draft/$roomId_/summary'
@@ -340,7 +328,6 @@ export interface RootRouteChildren {
   ApiPublicAuctionTickRoute: typeof ApiPublicAuctionTickRoute
   ApiPublicAuthEmailHookRoute: typeof ApiPublicAuthEmailHookRoute
   ApiPublicLobbyTickRoute: typeof ApiPublicLobbyTickRoute
-  ApiPublicSeedStatsRoute: typeof ApiPublicSeedStatsRoute
   ApiPublicSnakeTickRoute: typeof ApiPublicSnakeTickRoute
   ApiPublicSyncDraftOrderRoute: typeof ApiPublicSyncDraftOrderRoute
   DraftRoomIdSummaryRoute: typeof DraftRoomIdSummaryRoute
@@ -489,13 +476,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLobbyTickRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/seed-stats': {
-      id: '/api/public/seed-stats'
-      path: '/api/public/seed-stats'
-      fullPath: '/api/public/seed-stats'
-      preLoaderRoute: typeof ApiPublicSeedStatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/snake-tick': {
       id: '/api/public/snake-tick'
       path: '/api/public/snake-tick'
@@ -561,7 +541,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAuctionTickRoute: ApiPublicAuctionTickRoute,
   ApiPublicAuthEmailHookRoute: ApiPublicAuthEmailHookRoute,
   ApiPublicLobbyTickRoute: ApiPublicLobbyTickRoute,
-  ApiPublicSeedStatsRoute: ApiPublicSeedStatsRoute,
   ApiPublicSnakeTickRoute: ApiPublicSnakeTickRoute,
   ApiPublicSyncDraftOrderRoute: ApiPublicSyncDraftOrderRoute,
   DraftRoomIdSummaryRoute: DraftRoomIdSummaryRoute,
