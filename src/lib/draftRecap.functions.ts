@@ -96,7 +96,8 @@ export const sendDraftRecaps = createServerFn({ method: "POST" })
       if (!email) email = contactByParticipant.get(p.id) ?? null;
       if (!email) continue;
 
-      const teamIdx = p.draft_position != null ? p.draft_position - 1 : null;
+      // draft_picks.team_idx is the 1-based seat, same as draft_position.
+      const teamIdx = p.draft_position ?? null;
       const roster = (picks ?? [])
         .filter((pk) => teamIdx != null && pk.team_idx === teamIdx)
         .map((pk) => ({

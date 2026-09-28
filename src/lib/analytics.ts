@@ -5,7 +5,7 @@ declare global {
   }
 }
 
-const measurementId = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY;
+const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
 let initialized = false;
 

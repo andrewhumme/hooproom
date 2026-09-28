@@ -1,26 +1,36 @@
 # HoopRoom
 
-A free web app for running customizable NBA fantasy basketball drafts — live snake, auction, slow, or offline.
+Fantasy basketball draft rooms — live snake and auction drafts, in-person drafts, and view-only watch links.
 
-This project was built with [Lovable](https://lovable.dev).
+**Live app**: https://hooproom.app
 
-**Live app**: https://hooproom.lovable.app
+## Stack
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/46312d31-45d5-4004-ad9d-f467b5bea016).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+- **App:** TanStack Start (React + Vite), deployed as the Cloudflare Worker `tanstack-start-app`.
+- **Database / auth:** Supabase project `aipomgjcggglvxnltgxs`.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+You need Node.js and npm.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
 npm i
-npm run dev
+npm run dev   # http://localhost:8080
 ```
+
+`.env` holds the public Supabase URL and publishable key. Put the service role key in `.env.local` (git-ignored); never commit it.
+
+## Deploying
+
+Pushing to GitHub does not deploy. Build and upload the Worker:
+
+```sh
+npm run build
+npx wrangler deploy --message "what changed"
+```
+
+Roll back with `npx wrangler rollback`.
+
+## Database changes
+
+New migrations live in `supabase/migrations/`. Apply them by running the file in the Supabase SQL Editor for the HoopRoom project, **before** deploying app code that depends on them.
