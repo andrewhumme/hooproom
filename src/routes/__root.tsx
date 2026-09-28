@@ -44,8 +44,12 @@ export const Route = createRootRoute({
       { name: "twitter:site", content: "@HoopRoom" },
       { name: "twitter:title", content: "HoopRoom — Custom NBA Fantasy Draft Platform" },
       { name: "twitter:description", content: "Live NBA fantasy mock drafts with real-time picks, smart rankings, and AI draft grades." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5e2df3a8-7156-4637-a2de-533d426bdf1f/id-preview-4c871c53--46312d31-45d5-4004-ad9d-f467b5bea016.lovable.app-1782760097895.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5e2df3a8-7156-4637-a2de-533d426bdf1f/id-preview-4c871c53--46312d31-45d5-4004-ad9d-f467b5bea016.lovable.app-1782760097895.png" },
+      { property: "og:image", content: "https://hooproom.app/email-logo.png" },
+      { property: "og:image:width", content: "512" },
+      { property: "og:image:height", content: "512" },
+      { property: "og:image:alt", content: "HoopRoom logo" },
+      { name: "twitter:image", content: "https://hooproom.app/email-logo.png" },
+      { name: "twitter:image:alt", content: "HoopRoom logo" },
     ],
     links: [
       {
