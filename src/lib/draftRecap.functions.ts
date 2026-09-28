@@ -66,10 +66,9 @@ export const sendDraftRecaps = createServerFn({ method: "POST" })
     );
 
     const request = getRequest();
-    const authHeader = request?.headers.get("authorization") ?? "";
     const origin = request?.url ? new URL(request.url).origin : "https://hooproom.app";
     const summaryUrl = `${origin}/draft/${roomId}/summary`;
-    const sendUrl = `${origin}/lovable/email/transactional/send`;
+    const { sendTemplateEmail } = await import("@/lib/email/transactional.server");
 
     let sent = 0;
 
@@ -107,26 +106,21 @@ export const sendDraftRecaps = createServerFn({ method: "POST" })
           position: pk.player_position ?? undefined,
         }));
 
-      try {
-        const res = await fetch(sendUrl, {
-          method: "POST",
-          headers: { "content-type": "application/json", authorization: authHeader },
-          body: JSON.stringify({
-            templateName: "draft-recap",
-            recipientEmail: email,
-            idempotencyKey: `recap:${roomId}:${p.id}`,
-            templateData: {
-              managerName,
-              roomName: claimed.name,
-              teamName: p.team_name,
-              roster,
-              summaryUrl,
-            },
-          }),
-        });
-        if (res.ok) sent += 1;
-      } catch (err) {
-        console.error("Failed to send draft recap", { participant: p.id, err });
+      const result = await sendTemplateEmail({
+        templateName: "draft-recap",
+        to: email,
+        idempotencyKey: `recap:${roomId}:${p.id}`,
+        data: {
+          managerName,
+          roomName: claimed.name,
+          teamName: p.team_name,
+          roster,
+          summaryUrl,
+        },
+      });
+      if (result.status === "sent") sent += 1;
+      else if (result.status === "failed") {
+        console.error("Failed to send draft recap", { participant: p.id, error: result.error });
       }
     }
 
