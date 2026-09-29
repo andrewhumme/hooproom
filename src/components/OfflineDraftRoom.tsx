@@ -10,6 +10,7 @@ import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { compareByRank } from "@/lib/playerRankings";
 import { compareByHoopRank } from "@/lib/playerRanking";
 import { useHoopRanks } from "@/hooks/useHoopRanks";
+import { useBigBoard } from "@/hooks/useBigBoard";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import {
   assignPicksToSlots,
@@ -196,18 +197,19 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
 
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
 
-  // HoopRank for this league's scoring format and shape.
+  // Admin Big Board first, then HoopRank for this league's scoring format and shape.
+  const { rankMap: boardRanks } = useBigBoard();
   const hoopRanks = useHoopRanks(room.scoring_format, room.team_count, room.rounds);
   const rankedPlayers = useMemo(() => {
     const rookiePool = room.player_pool === "rookies";
     // Until HoopRank loads, keep the curated order so the list isn't jumbled.
     const cmp = Object.keys(hoopRanks).length
-      ? compareByHoopRank(hoopRanks, rookiePool)
+      ? compareByHoopRank(hoopRanks, rookiePool, boardRanks)
       : rookiePool
-        ? compareByHoopRank({}, true)
+        ? compareByHoopRank({}, true, boardRanks)
         : compareByRank;
     return [...players].sort(cmp);
-  }, [players, hoopRanks, room.player_pool]);
+  }, [players, hoopRanks, boardRanks, room.player_pool]);
 
   // Filter available players
   const availablePlayers = useMemo(() => {

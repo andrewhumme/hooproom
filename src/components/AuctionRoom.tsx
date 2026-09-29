@@ -28,6 +28,7 @@ import type { DraftablePlayer } from "@/lib/balldontlie";
 import { compareByRank } from "@/lib/playerRankings";
 import { compareByHoopRank } from "@/lib/playerRanking";
 import { useHoopRanks } from "@/hooks/useHoopRanks";
+import { useBigBoard } from "@/hooks/useBigBoard";
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
 import {
   fetchLatestStatsForPlayersServer,
@@ -453,16 +454,17 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     },
     [playerById],
   );
-  // HoopRank for this league's scoring format and shape.
+  // Admin Big Board first, then HoopRank for this league's scoring format and shape.
+  const { rankMap: boardRanks } = useBigBoard();
   const hoopRanks = useHoopRanks(room.scoring_format, room.team_count, totalSlots);
   const filteredPlayers = useMemo(() => {
     const q = search.toLowerCase().trim();
     const rookiePool = room.player_pool === "rookies";
     // Until HoopRank loads, keep the curated order so the list isn't jumbled.
     const cmp = Object.keys(hoopRanks).length
-      ? compareByHoopRank(hoopRanks, rookiePool)
+      ? compareByHoopRank(hoopRanks, rookiePool, boardRanks)
       : rookiePool
-        ? compareByHoopRank({}, true)
+        ? compareByHoopRank({}, true, boardRanks)
         : compareByRank;
     return players
       .filter((p) => !draftedIds.has(p.id))
@@ -471,7 +473,16 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       .filter((p) => !q || p.name.toLowerCase().includes(q))
       .sort(cmp)
       .slice(0, 200);
-  }, [players, draftedIds, onBlockIds, posFilter, search, hoopRanks, room.player_pool]);
+  }, [
+    players,
+    draftedIds,
+    onBlockIds,
+    posFilter,
+    search,
+    hoopRanks,
+    boardRanks,
+    room.player_pool,
+  ]);
 
   // ---- season stats for heatmaps ----
   useEffect(() => {

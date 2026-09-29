@@ -48,16 +48,24 @@ export function hoopZOf(ranks: RankMap, playerId: string): number | null {
 }
 
 /**
- * Sort players best-first by HoopRank. Rookie-only pools follow real NBA draft
- * order instead (rookies have no NBA stats, so z-scores are meaningless).
- * Players HoopRank can't rate (no qualifying stats) sort after every rated
- * player, then by NBA draft slot, then name.
+ * Sort players best-first: the admin Big Board (`boardRanks`, player id → rank)
+ * first, then HoopRank. Rookie-only pools follow real NBA draft order after
+ * the board (rookies have no NBA stats, so z-scores are meaningless). Players
+ * HoopRank can't rate (no qualifying stats) sort after every rated player,
+ * then by NBA draft slot, then name.
  */
-export function compareByHoopRank(ranks: RankMap, rookiePool: boolean) {
+export function compareByHoopRank(
+  ranks: RankMap,
+  rookiePool: boolean,
+  boardRanks: Record<string, number> = {},
+) {
   return (
     a: { id: string; name: string; draftNumber?: number | null },
     b: { id: string; name: string; draftNumber?: number | null },
   ): number => {
+    const ba = boardRanks[a.id] ?? Infinity;
+    const bb = boardRanks[b.id] ?? Infinity;
+    if (ba !== bb) return ba - bb;
     if (!rookiePool) {
       const ra = hoopRankOf(ranks, a.id);
       const rb = hoopRankOf(ranks, b.id);
