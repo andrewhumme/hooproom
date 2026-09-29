@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { CURRENT_SEASON } from "@/lib/seasonRefresh.server";
 
 const SEASONS = [2024, 2025, 2026];
 
@@ -37,6 +38,8 @@ export const fetchPlayerStatsServer = createServerFn({ method: "GET" })
         "season, team, games_played, minutes_per_game, pts, reb, ast, stl, blk, tov, fg3_made, fg_pct, fg3_pct, ft_pct, ef_fg_pct, ts_pct, usg_pct, ast_pct, tov_pct, pie",
       )
       .eq("loose_key", looseKey(data.playerKey))
+      // Current season + the 5 before it — the same window HoopRank uses.
+      .gte("season", CURRENT_SEASON - 5)
       .order("season", { ascending: false });
 
     if (error) throw new Error(error.message);
