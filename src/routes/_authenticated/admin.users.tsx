@@ -77,14 +77,29 @@ function AdminUsersPage() {
     try {
       // One season per request: each season is ~20 API pages, and a single
       // Worker request can only make a limited number of outbound calls.
+      // A season can fail transiently (e.g. the Worker is cut off mid-run), so
+      // retry once and keep going rather than abandoning the remaining seasons.
       let failed = 0;
       for (let season = 2016; season <= 2025; season++) {
-        const { results } = await backfill({ data: { startSeason: season, endSeason: season } });
-        for (const r of results) {
-          if (r.error) {
-            failed++;
-            appendLog(`Season ${r.season}: ERROR — ${r.error}`);
-          } else appendLog(`Season ${r.season}: fetched ${r.fetched}, upserted ${r.upserted}`);
+        let result: { season: number; fetched: number; upserted: number; error?: string } | null =
+          null;
+        let lastError = "no response from server";
+        for (let attempt = 1; attempt <= 2 && !result; attempt++) {
+          try {
+            const res = await backfill({ data: { startSeason: season, endSeason: season } });
+            const r = res?.results?.[0];
+            if (r && !r.error) result = r;
+            else lastError = r?.error ?? "no response from server";
+          } catch (e) {
+            lastError = e instanceof Error ? e.message : String(e);
+          }
+          if (!result && attempt === 1) await new Promise((ok) => setTimeout(ok, 2000));
+        }
+        if (result) {
+          appendLog(`Season ${season}: fetched ${result.fetched}, upserted ${result.upserted}`);
+        } else {
+          failed++;
+          appendLog(`Season ${season}: ERROR — ${lastError}`);
         }
       }
       appendLog(failed ? `Backfill finished with ${failed} failed season(s).` : "Backfill complete.");
