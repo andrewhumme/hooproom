@@ -75,15 +75,21 @@ function AdminUsersPage() {
     setDataBusy("backfill");
     appendLog("Starting 10-season backfill (2015-16 → 2024-25)…");
     try {
-      const { results } = await backfill({
-        data: { startSeason: 2016, endSeason: 2025 },
-      });
-      for (const r of results) {
-        if (r.error) appendLog(`Season ${r.season}: ERROR — ${r.error}`);
-        else appendLog(`Season ${r.season}: fetched ${r.fetched}, upserted ${r.upserted}`);
+      // One season per request: each season is ~20 API pages, and a single
+      // Worker request can only make a limited number of outbound calls.
+      let failed = 0;
+      for (let season = 2016; season <= 2025; season++) {
+        const { results } = await backfill({ data: { startSeason: season, endSeason: season } });
+        for (const r of results) {
+          if (r.error) {
+            failed++;
+            appendLog(`Season ${r.season}: ERROR — ${r.error}`);
+          } else appendLog(`Season ${r.season}: fetched ${r.fetched}, upserted ${r.upserted}`);
+        }
       }
-      appendLog("Backfill complete.");
-      toast.success("Historical backfill complete");
+      appendLog(failed ? `Backfill finished with ${failed} failed season(s).` : "Backfill complete.");
+      if (failed) toast.error(`${failed} season(s) failed — see log`);
+      else toast.success("Historical backfill complete");
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e);
       appendLog(`Backfill failed: ${m}`);

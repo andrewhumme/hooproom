@@ -423,49 +423,18 @@ export async function refreshAdvancedStats(
     });
   }
 
-  // Only update existing (player_key, season) rows — the stats table has
-  // NOT NULL columns (e.g. `source`) that a partial upsert can't satisfy.
+  // One database call for every patch — per-row updates blow past
+  // Cloudflare's subrequest limit. Only existing (player_key, season) rows
+  // are updated, and today's snapshot rows are mirrored when present.
   let updated = 0;
   if (patches.length > 0) {
-    const keys = patches.map((p) => p.player_key);
-    const { data: existing } = await supabaseAdmin
-      .from("player_season_stats")
-      .select("player_key")
-      .eq("season", season)
-      .in("player_key", keys);
-    const existingSet = new Set((existing ?? []).map((r) => r.player_key));
-    const updatable = patches.filter((p) => existingSet.has(p.player_key));
-
-    const snapshotDate = new Date().toISOString().slice(0, 10);
-    for (const p of updatable) {
-      const { error } = await supabaseAdmin
-        .from("player_season_stats")
-        .update({
-          ts_pct: p.ts_pct,
-          usg_pct: p.usg_pct,
-          ast_pct: p.ast_pct,
-          tov_pct: p.tov_pct,
-          pie: p.pie,
-        })
-        .eq("player_key", p.player_key)
-        .eq("season", season);
-      if (error) throw new Error(`advanced update: ${error.message}`);
-      updated++;
-
-      // Mirror onto today's snapshot row if it exists (weekly cron).
-      await supabaseAdmin
-        .from("player_season_snapshots")
-        .update({
-          ts_pct: p.ts_pct,
-          usg_pct: p.usg_pct,
-          ast_pct: p.ast_pct,
-          tov_pct: p.tov_pct,
-          pie: p.pie,
-        })
-        .eq("player_key", p.player_key)
-        .eq("season", season)
-        .eq("snapshot_date", snapshotDate);
-    }
+    const { data, error } = await supabaseAdmin.rpc("apply_advanced_stats", {
+      _season: season,
+      _snapshot_date: new Date().toISOString().slice(0, 10),
+      _patches: patches,
+    });
+    if (error) throw new Error(`advanced update: ${error.message}`);
+    updated = data ?? 0;
   }
 
   return { season, fetched: rows.length, matched, updated };

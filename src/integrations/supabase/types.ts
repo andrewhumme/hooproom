@@ -1233,6 +1233,10 @@ export type Database = {
       }
       get_room_id_by_share_token: { Args: { _token: string }; Returns: string }
       get_watch_snapshot: { Args: { _key: string }; Returns: Json }
+      apply_advanced_stats: {
+        Args: { _patches: Json; _season: number; _snapshot_date: string }
+        Returns: number
+      }
       request_autopick: { Args: { _room_id: string }; Returns: boolean }
       has_role: {
         Args: {
