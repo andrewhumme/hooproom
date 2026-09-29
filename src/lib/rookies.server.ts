@@ -66,7 +66,7 @@ async function fetchPlayerIndex(season: string) {
   };
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const res = await fetch(url.toString(), { headers: NBA_HEADERS });
+  const res = await fetch(url.toString(), { headers: NBA_HEADERS, signal: AbortSignal.timeout(8_000) });
   if (!res.ok) throw new Error(`nba.com playerindex ${season}: ${res.status}`);
   const json = (await res.json()) as NbaStatsResponse;
   const set = json.resultSets?.[0];
@@ -134,7 +134,7 @@ export async function syncDraftHistory(year?: number): Promise<number> {
   };
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const res = await fetch(url.toString(), { headers: NBA_HEADERS });
+  const res = await fetch(url.toString(), { headers: NBA_HEADERS, signal: AbortSignal.timeout(8_000) });
   if (!res.ok) throw new Error(`nba.com drafthistory ${draftYear}: ${res.status}`);
   const json = (await res.json()) as NbaStatsResponse;
   const set = json.resultSets?.[0];
@@ -181,83 +181,6 @@ export async function syncDraftHistory(year?: number): Promise<number> {
     if (!error) updated += 1;
   }
   return updated;
-}
-
-/** Rookie names for a given season, from NBA.com's rookie stats filter. */
-async function fetchRookieNames(season: string): Promise<string[]> {
-  const url = new URL("https://stats.nba.com/stats/leaguedashplayerstats");
-  const params: Record<string, string> = {
-    MeasureType: "Base",
-    PerMode: "PerGame",
-    PlusMinus: "N",
-    PaceAdjust: "N",
-    Rank: "N",
-    Season: season,
-    SeasonType: "Regular Season",
-    Outcome: "",
-    Location: "",
-    Month: "0",
-    SeasonSegment: "",
-    DateFrom: "",
-    DateTo: "",
-    OpponentTeamID: "0",
-    VsConference: "",
-    VsDivision: "",
-    GameSegment: "",
-    Period: "0",
-    LastNGames: "0",
-    LeagueID: "00",
-    TeamID: "0",
-    PlayerExperience: "Rookie",
-    PlayerPosition: "",
-    StarterBench: "",
-    DraftYear: "",
-    DraftPick: "",
-    College: "",
-    Country: "",
-    Height: "",
-    Weight: "",
-    TwoWay: "0",
-    ShotClockRange: "",
-  };
-  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-
-  const res = await fetch(url.toString(), { headers: NBA_HEADERS });
-  if (!res.ok) throw new Error(`nba.com rookies ${season}: ${res.status}`);
-  const json = (await res.json()) as NbaStatsResponse;
-  const set = json.resultSets?.[0];
-  if (!set) return [];
-  const iName = set.headers.indexOf("PLAYER_NAME");
-  return set.rowSet.map((row) => String(row[iName] ?? "").trim()).filter(Boolean);
-}
-
-async function applyRookieKeys(rookieLoose: Set<string>): Promise<number> {
-  const { data: activeRows } = await supabaseAdmin
-    .from("players")
-    .select("player_key, loose_key, full_name")
-    .eq("is_active", true);
-  if (!activeRows) return 0;
-
-  const rookieKeys: string[] = [];
-  const nonRookieKeys: string[] = [];
-  for (const p of activeRows) {
-    const key = p.loose_key || looseKeyOf(p.full_name ?? p.player_key);
-    (rookieLoose.has(key) ? rookieKeys : nonRookieKeys).push(p.player_key);
-  }
-
-  for (let i = 0; i < rookieKeys.length; i += 200) {
-    await supabaseAdmin
-      .from("players")
-      .update({ is_rookie: true })
-      .in("player_key", rookieKeys.slice(i, i + 200));
-  }
-  for (let i = 0; i < nonRookieKeys.length; i += 200) {
-    await supabaseAdmin
-      .from("players")
-      .update({ is_rookie: false })
-      .in("player_key", nonRookieKeys.slice(i, i + 200));
-  }
-  return rookieKeys.length;
 }
 
 /**
@@ -337,48 +260,28 @@ export async function syncPlayerIndex(): Promise<Array<Record<string, unknown>>>
  * class included, even before they play a game); everyone else is un-flagged.
  * Falls back to NBA.com's rookie leaderboard if the index is unavailable.
  */
+/**
+ * Flag the current rookie class (and record draft slots) from ESPN's draft
+ * results. Before this year's draft, falls back to last year's class. Leaves
+ * existing flags untouched if no class could be fetched.
+ */
 export async function refreshRookieFlags(): Promise<number> {
-  const rows = await syncPlayerIndex();
-
-  // Real draft slots for the current class — the index leaves them null.
-  for (const y of [seasonStartYear(), seasonStartYear(1)]) {
+  const { fetchDraftClass } = await import("@/lib/espnDraft.server");
+  for (const year of [seasonStartYear(), seasonStartYear(1)]) {
+    let picks;
     try {
-      const n = await syncDraftHistory(y);
-      if (n > 0) break;
+      picks = await fetchDraftClass(year);
     } catch (err) {
-      console.error(`Draft history sync failed (${y}):`, err);
+      console.error(`ESPN draft class ${year} failed:`, err);
+      continue;
     }
+    if (picks.length === 0) continue;
+    const { data, error } = await supabaseAdmin.rpc("sync_rookie_class", {
+      _year: year,
+      _picks: picks,
+    });
+    if (error) throw new Error(`sync_rookie_class: ${error.message}`);
+    return data ?? 0;
   }
-
-
-
-  if (rows.length > 0) {
-    const startYear = seasonStartYear();
-    const latestFrom = Math.max(...rows.map((r) => (r.from_year as number) ?? 0));
-    // Preseason the index may still carry last season's FROM_YEAR values.
-    const rookieYear = Math.max(latestFrom, 0) >= startYear ? startYear : latestFrom;
-
-    const rookieLoose = new Set(
-      rows
-        .filter((r) => {
-          const from = r.from_year as number | null;
-          const draft = r.draft_year as number | null;
-          return from === rookieYear || (from == null && draft === rookieYear);
-        })
-        .map((r) => looseKeyOf(String(r.full_name))),
-    );
-    if (rookieLoose.size > 0) return applyRookieKeys(rookieLoose);
-  }
-
-  // Fallback: last completed season's rookie leaderboard.
-  let names: string[] = [];
-  for (let offset = 0; offset < 2 && names.length === 0; offset += 1) {
-    try {
-      names = await fetchRookieNames(seasonLabel(offset));
-    } catch (err) {
-      console.error("Rookie fetch failed:", err);
-    }
-  }
-  if (names.length === 0) return 0;
-  return applyRookieKeys(new Set(names.map(looseKeyOf).filter(Boolean)));
+  return 0;
 }

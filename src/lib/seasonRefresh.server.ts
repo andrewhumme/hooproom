@@ -353,6 +353,8 @@ async function fetchNbaAdvanced(season: number) {
       "x-nba-stats-origin": "stats",
       "x-nba-stats-token": "true",
     },
+    // stats.nba.com often stalls server requests — fail fast instead of hanging.
+    signal: AbortSignal.timeout(8_000),
   });
   if (!res.ok) throw new Error(`nba.com advanced ${season}: ${res.status}`);
   const json = (await res.json()) as NbaStatsResponse;

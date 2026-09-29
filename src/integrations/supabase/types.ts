@@ -1238,6 +1238,7 @@ export type Database = {
         Returns: number
       }
       request_autopick: { Args: { _room_id: string }; Returns: boolean }
+      sync_rookie_class: { Args: { _picks: Json; _year: number }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
