@@ -165,7 +165,7 @@ export function DraftControlPanel({
         <Button
           variant="outline"
           size="sm"
-          className="font-bold border-2 border-amber-500/40 text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
+          className="font-bold border-2 border-amber-500/40 text-amber-700 hover:bg-amber-50 hover:text-amber-800 data-[state=open]:bg-amber-50 data-[state=open]:text-amber-800 dark:text-amber-400 dark:hover:bg-amber-950 dark:hover:text-amber-300 dark:data-[state=open]:bg-amber-950 dark:data-[state=open]:text-amber-300"
         >
           <Settings2 className="h-4 w-4" />
           Draft Control

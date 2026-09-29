@@ -32,7 +32,9 @@ export function WatchLinkButton({ room, size = "sm", variant = "outline", classN
       onClick={handleCopy}
       size={size}
       variant={variant}
-      className={`font-bold ${className ?? ""}`}
+      // Explicit text color: the outline button's light background would
+      // otherwise inherit white text inside the dark draft-room header.
+      className={`font-bold ${variant === "outline" ? "text-foreground" : ""} ${className ?? ""}`}
       title={
         isListedRoom(room)
           ? "Public view-only link — anyone can watch, no account needed"

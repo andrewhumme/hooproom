@@ -644,7 +644,7 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
           </div>
           <div className="flex items-center gap-3">
             {myTeamIdx && (
-              <div className="rounded-md border-2 border-border bg-card px-3 py-1.5">
+              <div className="rounded-md border-2 border-border bg-card px-3 py-1.5 text-card-foreground">
                 <div className="text-xs font-bold uppercase text-muted-foreground">
                   Your budget
                 </div>

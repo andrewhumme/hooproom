@@ -1339,7 +1339,7 @@ function DraftRoomPage() {
                   className={`rounded-md border-2 px-3 py-1.5 text-sm font-black ${
                     isMyTurn
                       ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-card"
+                      : "border-border bg-card text-card-foreground"
                   }`}
                 >
                   {isMyTurn ? (
