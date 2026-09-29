@@ -73,18 +73,20 @@ function AdminUsersPage() {
 
   async function handleBackfill() {
     setDataBusy("backfill");
-    appendLog("Starting 10-season backfill (2015-16 → 2024-25)…");
+    appendLog("Starting 5-season backfill (2020-21 → 2024-25)…");
     try {
       // One season per request: each season is ~20 API pages, and a single
       // Worker request can only make a limited number of outbound calls.
-      // A season can fail transiently (e.g. the Worker is cut off mid-run), so
-      // retry once and keep going rather than abandoning the remaining seasons.
+      // HoopRank only looks back five seasons. A season can fail transiently
+      // (it sits near the Worker CPU limit), so retry a few times and keep
+      // going rather than abandoning the remaining seasons.
+      const MAX_ATTEMPTS = 4;
       let failed = 0;
-      for (let season = 2016; season <= 2025; season++) {
+      for (let season = 2021; season <= 2025; season++) {
         let result: { season: number; fetched: number; upserted: number; error?: string } | null =
           null;
         let lastError = "no response from server";
-        for (let attempt = 1; attempt <= 2 && !result; attempt++) {
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS && !result; attempt++) {
           try {
             const res = await backfill({ data: { startSeason: season, endSeason: season } });
             const r = res?.results?.[0];
@@ -93,7 +95,7 @@ function AdminUsersPage() {
           } catch (e) {
             lastError = e instanceof Error ? e.message : String(e);
           }
-          if (!result && attempt === 1) await new Promise((ok) => setTimeout(ok, 2000));
+          if (!result && attempt < MAX_ATTEMPTS) await new Promise((ok) => setTimeout(ok, 2000));
         }
         if (result) {
           appendLog(`Season ${season}: fetched ${result.fetched}, upserted ${result.upserted}`);
@@ -317,16 +319,16 @@ function AdminUsersPage() {
                 <div className="rounded-md border border-border p-4">
                   <div className="mb-1 text-sm font-bold">Historical backfill</div>
                   <p className="mb-3 text-xs text-muted-foreground">
-                    Populate 10 seasons of per-game averages (2015-16 → 2024-25)
-                    from nbaapi.com into player_season_stats. Safe to re-run —
-                    idempotent per player/season. Takes ~30–60s.
+                    Load the last 5 seasons of per-game averages (2020-21 → 2024-25)
+                    — the history HoopRank uses for availability and growth. Safe to
+                    re-run; each season is retried if it fails. Takes ~15–60s.
                   </p>
                   <Button
                     size="sm"
                     onClick={handleBackfill}
                     disabled={dataBusy !== null}
                   >
-                    {dataBusy === "backfill" ? "Backfilling…" : "Backfill 10 seasons"}
+                    {dataBusy === "backfill" ? "Backfilling…" : "Backfill 5 seasons"}
                   </Button>
                 </div>
                 <div className="rounded-md border border-border p-4">
