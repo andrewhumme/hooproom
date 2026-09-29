@@ -315,7 +315,7 @@ export function PlayerStatsModal({
               <div className="mb-1 shrink-0 text-[10px] text-muted-foreground sm:hidden">
                 ← swipe to see more stats →
               </div>
-              <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-border overscroll-x-contain">
+              <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border overscroll-contain">
                 <table className="w-full min-w-[760px] border-separate border-spacing-0 text-sm">
                   <thead className="bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     <tr>
@@ -401,7 +401,7 @@ export function PlayerStatsModal({
 
             <TabsContent
               value="trend"
-              className="mt-2 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
+              className="mt-2 flex min-h-0 flex-1 flex-col overflow-y-auto pr-1 data-[state=inactive]:hidden"
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2 shrink-0">
                 <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -421,16 +421,16 @@ export function PlayerStatsModal({
                 </Select>
               </div>
 
-              <div className="min-h-0 flex-1 rounded-lg border border-border bg-card p-3">
+              <div className="h-64 shrink-0 overflow-hidden rounded-lg border border-border bg-card p-3 sm:h-72">
                 {chartData.every((d) => d.value == null) ? (
                   <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                     No data for {trendMeta.label}.
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height="100%" minHeight={240}>
+                  <ResponsiveContainer width="100%" height="100%">
                     <LineChart
                       data={chartData}
-                      margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
+                      margin={{ top: 12, right: 20, bottom: 4, left: 0 }}
                     >
                       <CartesianGrid
                         strokeDasharray="3 3"
@@ -440,12 +440,17 @@ export function PlayerStatsModal({
                       <XAxis
                         dataKey="season"
                         stroke="var(--muted-foreground)"
-                        fontSize={12}
+                        fontSize={11}
                         tickLine={false}
+                        interval="preserveStartEnd"
+                        minTickGap={12}
+                        // "2015-16" → "'16" so 10+ seasons fit without colliding
+                        tickFormatter={(v: string) => (/^\d{4}-\d{2}$/.test(v) ? `'${v.slice(-2)}` : v)}
                       />
                       <YAxis
+                        width={44}
                         stroke="var(--muted-foreground)"
-                        fontSize={12}
+                        fontSize={11}
                         tickLine={false}
                         domain={yDomain}
                         ticks={yTicks}
@@ -487,16 +492,16 @@ export function PlayerStatsModal({
                 )}
               </div>
 
-              <div className="mt-3 grid shrink-0 grid-cols-3 gap-2 text-center">
+              <div className="mt-3 grid shrink-0 grid-cols-3 gap-1.5 text-center sm:grid-cols-4 md:grid-cols-6">
                 {chartData.map((d) => (
                   <div
                     key={d.season}
-                    className="rounded-md border border-border bg-muted/30 px-2 py-1.5"
+                    className="min-w-0 rounded-md border border-border bg-muted/30 px-1.5 py-1"
                   >
-                    <div className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                    <div className="truncate text-[10px] font-black uppercase tracking-wider text-muted-foreground">
                       {d.season}
                     </div>
-                    <div className="text-base font-black tabular-nums">
+                    <div className="truncate text-sm font-black tabular-nums">
                       {d.value == null
                         ? "—"
                         : trendMeta.isPct
@@ -523,7 +528,7 @@ function Th({
 }) {
   return (
     <th
-      className="bg-muted/40 px-3 py-2 text-left whitespace-nowrap"
+      className="sticky top-0 z-10 bg-muted px-3 py-2 text-left whitespace-nowrap"
       style={divider ? { borderLeft: "1px solid color-mix(in oklch, var(--muted-foreground) 20%, var(--border))" } : undefined}
     >
       {children}
