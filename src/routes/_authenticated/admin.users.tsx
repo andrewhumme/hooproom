@@ -13,7 +13,9 @@ import {
   refreshCurrentSeasonNow,
   refreshRookieFlagsNow,
   refreshHeadshotFlagsNow,
-
+  getHoopRankSourceStatus,
+  refreshHoopRankSourceNow,
+  type HoopRankSourceStatus,
   type AdminUserRow,
 } from "@/lib/admin.functions";
 
@@ -53,6 +55,9 @@ function AdminUsersPage() {
   const backfill = useServerFn(backfillHistoricalStats);
   const refreshAdvanced = useServerFn(refreshAdvancedStatsNow);
   const refreshCurrent = useServerFn(refreshCurrentSeasonNow);
+  const fetchHoopRankStatus = useServerFn(getHoopRankSourceStatus);
+  const refreshHoopRank = useServerFn(refreshHoopRankSourceNow);
+  const [hoopSrc, setHoopSrc] = useState<HoopRankSourceStatus | null>(null);
   const refreshRookies = useServerFn(refreshRookieFlagsNow);
   const refreshHeadshots = useServerFn(refreshHeadshotFlagsNow);
 
@@ -64,7 +69,7 @@ function AdminUsersPage() {
   const [pendingDelete, setPendingDelete] = useState<AdminUserRow | null>(null);
   const [confirmPurge, setConfirmPurge] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [dataBusy, setDataBusy] = useState<"current" | "backfill" | "advanced" | "rookies" | "headshots" | null>(null);
+  const [dataBusy, setDataBusy] = useState<"hooprank" | "current" | "backfill" | "advanced" | "rookies" | "headshots" | null>(null);
   const [dataLog, setDataLog] = useState<string[]>([]);
 
   function appendLog(line: string) {
@@ -110,6 +115,23 @@ function AdminUsersPage() {
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e);
       appendLog(`Backfill failed: ${m}`);
+      toast.error(m);
+    } finally {
+      setDataBusy(null);
+    }
+  }
+
+  async function handleRefreshHoopRank() {
+    setDataBusy("hooprank");
+    appendLog("Importing current rankings from Sleeper…");
+    try {
+      const res = await refreshHoopRank();
+      appendLog(`HoopRank: ${res.ranked} ranked players imported, ${res.matched} matched to HoopRoom players.`);
+      toast.success("HoopRank updated");
+      setHoopSrc(await fetchHoopRankStatus());
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      appendLog(`HoopRank import failed: ${m}`);
       toast.error(m);
     } finally {
       setDataBusy(null);
@@ -201,6 +223,9 @@ function AdminUsersPage() {
       const rows = await list();
       setUsers(rows);
       setStatus("ok");
+      fetchHoopRankStatus()
+        .then(setHoopSrc)
+        .catch(() => setHoopSrc(null));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setStatus("denied");
@@ -305,6 +330,27 @@ function AdminUsersPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">HoopRank rankings</div>
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    HoopRank follows Sleeper's current player rankings (rookies included),
+                    re-imported automatically every morning. Players Sleeper doesn't rank
+                    fall back to the stats formula; the Big Board overrides both.
+                  </p>
+                  <p className="mb-3 text-xs font-bold">
+                    {hoopSrc?.lastImportAt
+                      ? `Last updated ${new Date(hoopSrc.lastImportAt).toLocaleString()} · ${hoopSrc.ranked} ranked · ${hoopSrc.matched} matched`
+                      : "Not imported yet"}
+                    {hoopSrc?.lastError && (
+                      <span className="block font-normal text-destructive">
+                        Last attempt failed: {hoopSrc.lastError}
+                      </span>
+                    )}
+                  </p>
+                  <Button size="sm" onClick={handleRefreshHoopRank} disabled={dataBusy !== null}>
+                    {dataBusy === "hooprank" ? "Importing…" : "Refresh now"}
+                  </Button>
+                </div>
                 <div className="rounded-md border border-border p-4">
                   <div className="mb-1 text-sm font-bold">Current season stats</div>
                   <p className="mb-3 text-xs text-muted-foreground">

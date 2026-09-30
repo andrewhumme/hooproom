@@ -581,6 +581,66 @@ export type Database = {
         }
         Relationships: []
       }
+      external_player_ranks: {
+        Row: {
+          full_name: string
+          loose_key: string
+          source: string
+          source_rank: number
+          team: string | null
+          updated_at: string
+        }
+        Insert: {
+          full_name: string
+          loose_key: string
+          source: string
+          source_rank: number
+          team?: string | null
+          updated_at?: string
+        }
+        Update: {
+          full_name?: string
+          loose_key?: string
+          source?: string
+          source_rank?: number
+          team?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      external_rank_imports: {
+        Row: {
+          error: string | null
+          id: number
+          matched: number | null
+          processed_at: string | null
+          ranked: number | null
+          request_id: number | null
+          requested_at: string
+          source: string
+        }
+        Insert: {
+          error?: string | null
+          id?: number
+          matched?: number | null
+          processed_at?: string | null
+          ranked?: number | null
+          request_id?: number | null
+          requested_at?: string
+          source: string
+        }
+        Update: {
+          error?: string | null
+          id?: number
+          matched?: number | null
+          processed_at?: string | null
+          ranked?: number | null
+          request_id?: number | null
+          requested_at?: string
+          source?: string
+        }
+        Relationships: []
+      }
       global_player_ranks: {
         Row: {
           created_at: string
@@ -1238,6 +1298,8 @@ export type Database = {
         Returns: number
       }
       request_autopick: { Args: { _room_id: string }; Returns: boolean }
+      request_sleeper_ranks: { Args: never; Returns: number }
+      import_sleeper_ranks: { Args: never; Returns: Json }
       sync_rookie_class: { Args: { _picks: Json; _year: number }; Returns: number }
       has_role: {
         Args: {

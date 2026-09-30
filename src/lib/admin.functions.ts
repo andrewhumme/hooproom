@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 export const claimAdminIfUnclaimed = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -144,6 +146,76 @@ export const refreshCurrentSeasonNow = createServerFn({ method: "POST" })
     if (!isAdmin) throw new Error("Forbidden");
     const { refreshCurrentSeason } = await import("@/lib/seasonRefresh.server");
     return await refreshCurrentSeason();
+  });
+
+async function assertAdmin(context: { supabase: SupabaseClient<Database>; userId: string }) {
+  const { data: isAdmin, error } = await context.supabase.rpc("has_role", {
+    _user_id: context.userId,
+    _role: "admin",
+  });
+  if (error) throw new Error(error.message);
+  if (!isAdmin) throw new Error("Forbidden");
+}
+
+export type HoopRankSourceStatus = {
+  lastImportAt: string | null;
+  ranked: number | null;
+  matched: number | null;
+  lastError: string | null;
+};
+
+/** Latest HoopRank source (Sleeper) import, for the Admin Tools panel. */
+export const getHoopRankSourceStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<HoopRankSourceStatus> => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: ok }, { data: last }] = await Promise.all([
+      supabaseAdmin
+        .from("external_rank_imports")
+        .select("processed_at, ranked, matched")
+        .eq("source", "sleeper")
+        .is("error", null)
+        .not("processed_at", "is", null)
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("external_rank_imports")
+        .select("error")
+        .eq("source", "sleeper")
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    return {
+      lastImportAt: ok?.processed_at ?? null,
+      ranked: ok?.ranked ?? null,
+      matched: ok?.matched ?? null,
+      lastError: last?.error ?? null,
+    };
+  });
+
+/**
+ * Re-import the HoopRank source now: start the download in the database, then
+ * import once it lands (the download runs asynchronously in pg_net).
+ */
+export const refreshHoopRankSourceNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: reqErr } = await supabaseAdmin.rpc("request_sleeper_ranks");
+    if (reqErr) throw new Error(reqErr.message);
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await new Promise((ok) => setTimeout(ok, 3000));
+      const { data, error } = await supabaseAdmin.rpc("import_sleeper_ranks");
+      if (error) throw new Error(error.message);
+      const result = data as { status: string; ranked?: number; matched?: number; error?: string };
+      if (result.status === "ok") return { ranked: result.ranked ?? 0, matched: result.matched ?? 0 };
+      if (result.status === "error") throw new Error(result.error ?? "Import failed");
+    }
+    throw new Error("Download still in progress — the scheduled import will pick it up shortly.");
   });
 
 /** Recompute which active players are rookies (NBA.com rookie leaderboard). */

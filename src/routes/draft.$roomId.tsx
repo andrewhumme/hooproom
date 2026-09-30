@@ -519,7 +519,7 @@ function DraftRoomPage() {
     // Rookie drafts follow real NBA draft order (rookies have no NBA stats yet,
     // so z-scores would be meaningless). Otherwise HoopRank first (data-driven
     // z-scores), falling back to the curated list when stats are missing.
-    const byHoopRank = compareByHoopRank(hoopRanks, rookiePool);
+    const byHoopRank = compareByHoopRank(hoopRanks);
     const byRank = (a: DraftablePlayer, b: DraftablePlayer) => {
       // Manual Big Board wins over every automated ordering.
       const ba = boardRanks[a.id] ?? Infinity;
@@ -1779,7 +1779,8 @@ function DraftRoomPage() {
                               </span>
                             );
                           }
-                          if (rookiePool) {
+                          // Rookies without a HoopRank show their NBA draft slot.
+                          if (rookiePool && hoopRankOf(hoopRanks, p.id) === UNRANKED) {
                             const d = p.draftNumber ?? null;
                             return (
                               <span
@@ -1801,8 +1802,10 @@ function DraftRoomPage() {
                               className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-muted-foreground"
                               title={
                                 r === UNRANKED
-                                  ? "No HoopRank — not enough recent stats"
-                                  : `HoopRank #${r} · z ${z!.toFixed(2)}`
+                                  ? "No HoopRank yet"
+                                  : z == null
+                                    ? `HoopRank #${r}`
+                                    : `HoopRank #${r} · z ${z.toFixed(2)}`
                               }
                             >
                               {r === UNRANKED ? "—" : r}

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { computeAvailability, computeGrowth, type StatRow } from "@/lib/auctionValues";
-import { computeHoopRanks, type RankMap } from "@/lib/playerRanking";
+import { buildHoopRanks, computeHoopRanks, type RankMap } from "@/lib/playerRanking";
 
 const LATEST_SEASON = 2026;
 
@@ -68,9 +68,17 @@ export const getPlayerRanksServer = createServerFn({ method: "POST" })
     });
 
     const poolSize = Math.max(200, data.teamCount * data.rosterSize * 3);
-    return computeHoopRanks(stats, {
+    const statRanks = computeHoopRanks(stats, {
       scoringFormat: data.scoringFormat,
       poolSize,
     });
+
+    // Current external ranking (Sleeper, imported daily) orders everyone it
+    // covers; the stats formula fills in the rest.
+    const { data: sourceRanks, error: srcErr } = await supabaseAdmin
+      .from("external_player_ranks")
+      .select("loose_key, source_rank");
+    if (srcErr) console.error("external ranks unavailable", srcErr.message);
+    return buildHoopRanks(statRanks, sourceRanks ?? []);
   });
 

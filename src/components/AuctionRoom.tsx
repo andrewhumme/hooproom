@@ -462,9 +462,9 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     const rookiePool = room.player_pool === "rookies";
     // Until HoopRank loads, keep the curated order so the list isn't jumbled.
     const cmp = Object.keys(hoopRanks).length
-      ? compareByHoopRank(hoopRanks, rookiePool, boardRanks)
+      ? compareByHoopRank(hoopRanks, boardRanks)
       : rookiePool
-        ? compareByHoopRank({}, true, boardRanks)
+        ? compareByHoopRank({}, boardRanks)
         : compareByRank;
     return players
       .filter((p) => !draftedIds.has(p.id))

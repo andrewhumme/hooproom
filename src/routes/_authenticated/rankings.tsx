@@ -237,8 +237,8 @@ function BigBoardPage() {
         <h1 className="text-3xl font-black tracking-tight">HoopRoom Big Board</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Admin only. Rank the top {BOARD_SIZE} manually — saving pushes this
-          order live to every HoopRoom draft room. HoopRank's z-score formula
-          takes over for everyone below the board.
+          order live to every HoopRoom draft room. HoopRank (current rankings,
+          updated daily) takes over for everyone below the board.
         </p>
       </div>
 
