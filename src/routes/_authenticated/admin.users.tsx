@@ -158,7 +158,7 @@ function AdminUsersPage() {
 
   async function handleRefreshAdvanced() {
     setDataBusy("advanced");
-    appendLog("Refreshing advanced stats (TS%, USG%, PIE) for current season…");
+    appendLog("Refreshing advanced stats (TS%, USG%, AST%, TOV%) for current season…");
     try {
       const res = await refreshAdvanced();
       appendLog(
@@ -380,9 +380,9 @@ function AdminUsersPage() {
                 <div className="rounded-md border border-border p-4">
                   <div className="mb-1 text-sm font-bold">Advanced stats</div>
                   <p className="mb-3 text-xs text-muted-foreground">
-                    Pull TS%, USG%, PIE, AST%, TOV% from stats.nba.com for the
-                    current season and patch existing rows. Also runs
-                    automatically as part of the daily refresh.
+                    Pull TS%, USG%, AST% and TOV% for the current season from
+                    nbaapi.com and patch existing rows. Also runs automatically
+                    every day.
                   </p>
                   <Button
                     size="sm"

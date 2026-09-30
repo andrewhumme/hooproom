@@ -291,95 +291,63 @@ export async function backfillHistoricalSeasons(
 // Joins on nba_player_id (from public.players) with a loose-name fallback.
 // ---------------------------------------------------------------------------
 
-type NbaStatsResponse = {
-  resultSets: Array<{
-    name: string;
-    headers: string[];
-    rowSet: Array<Array<string | number | null>>;
-  }>;
+type NbaApiAdvancedRow = {
+  playerId: string;
+  playerName: string;
+  season: number;
+  isPlayoff?: boolean;
+  minutesPlayed: number | null;
+  tsPercent: number | null;
+  usagePercent: number | null;
+  assistPercent: number | null;
+  turnoverPercent: number | null;
 };
 
-function seasonToNbaLabel(season: number) {
-  const start = season - 1;
-  const end = String(season).slice(-2);
-  return `${start}-${end}`;
-}
+// nbaapi.com reports rate stats as percentages (33.4); the DB stores fractions.
+const pct = (v: number | null | undefined) => (v == null ? null : Number((v / 100).toFixed(3)));
 
+/**
+ * Season advanced stats from nbaapi.com (Basketball-Reference based). One row
+ * per player — for traded players, the row with the most minutes (the season
+ * total). PIE is an NBA.com-only stat, so it isn't available from this source.
+ */
 async function fetchNbaAdvanced(season: number) {
-  const url = new URL("https://stats.nba.com/stats/leaguedashplayerstats");
-  const params: Record<string, string> = {
-    MeasureType: "Advanced",
-    PerMode: "PerGame",
-    PlusMinus: "N",
-    PaceAdjust: "N",
-    Rank: "N",
-    Season: seasonToNbaLabel(season),
-    SeasonType: "Regular Season",
-    Outcome: "",
-    Location: "",
-    Month: "0",
-    SeasonSegment: "",
-    DateFrom: "",
-    DateTo: "",
-    OpponentTeamID: "0",
-    VsConference: "",
-    VsDivision: "",
-    GameSegment: "",
-    Period: "0",
-    LastNGames: "0",
-    LeagueID: "00",
-    TeamID: "0",
-    PlayerExperience: "",
-    PlayerPosition: "",
-    StarterBench: "",
-    DraftYear: "",
-    DraftPick: "",
-    College: "",
-    Country: "",
-    Height: "",
-    Weight: "",
-    TwoWay: "0",
-    ShotClockRange: "",
-  };
-  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-
-  const res = await fetch(url.toString(), {
-    headers: {
-      Accept: "application/json, text/plain, */*",
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-      Referer: "https://www.nba.com/",
-      Origin: "https://www.nba.com",
-      "x-nba-stats-origin": "stats",
-      "x-nba-stats-token": "true",
-    },
-    // stats.nba.com often stalls server requests — fail fast instead of hanging.
-    signal: AbortSignal.timeout(8_000),
-  });
-  if (!res.ok) throw new Error(`nba.com advanced ${season}: ${res.status}`);
-  const json = (await res.json()) as NbaStatsResponse;
-  const set = json.resultSets?.[0];
-  if (!set) throw new Error("nba.com advanced: empty response");
-  const idx = (h: string) => set.headers.indexOf(h);
-  const iId = idx("PLAYER_ID");
-  const iName = idx("PLAYER_NAME");
-  const iTS = idx("TS_PCT");
-  const iUSG = idx("USG_PCT");
-  const iAST = idx("AST_PCT");
-  const iTOV = idx("TM_TOV_PCT");
-  const iPIE = idx("PIE");
-  return set.rowSet.map((row) => ({
-    nba_player_id: (row[iId] as number) ?? null,
-    player_name: (row[iName] as string) ?? "",
-    ts_pct: row[iTS] as number | null,
-    usg_pct: row[iUSG] as number | null,
-    ast_pct: row[iAST] as number | null,
-    tov_pct: row[iTOV] as number | null,
-    pie: row[iPIE] as number | null,
+  const byPlayer = new Map<string, NbaApiAdvancedRow>();
+  let page = 1;
+  while (true) {
+    const url = `https://api.server.nbaapi.com/api/playeradvancedstats?season=${season}&pageSize=${PAGE_SIZE}&page=${page}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`nbaapi advanced ${season} p${page}: ${res.status}`);
+    const json = (await res.json()) as {
+      data: NbaApiAdvancedRow[];
+      pagination: { pages: number };
+    };
+    for (const r of json.data) {
+      if (r.isPlayoff === true) continue;
+      const existing = byPlayer.get(r.playerId);
+      if (!existing || (r.minutesPlayed ?? 0) > (existing.minutesPlayed ?? 0)) byPlayer.set(r.playerId, r);
+    }
+    if (page >= json.pagination.pages) break;
+    page++;
+  }
+  return [...byPlayer.values()].map((r) => ({
+    nba_player_id: null as number | null,
+    player_name: r.playerName,
+    ts_pct: r.tsPercent == null ? null : Number(r.tsPercent.toFixed(3)),
+    usg_pct: pct(r.usagePercent),
+    ast_pct: pct(r.assistPercent),
+    tov_pct: pct(r.turnoverPercent),
+    pie: null as number | null,
   }));
 }
 
-const looseKeyOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// Accents fold to ASCII first ("Jokić" → "jokic"), matching playerKeyFromName.
+const looseKeyOf = (s: string) =>
+  s
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 
 export async function refreshAdvancedStats(
   season: number = CURRENT_SEASON,

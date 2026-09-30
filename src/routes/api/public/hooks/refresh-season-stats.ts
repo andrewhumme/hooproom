@@ -1,5 +1,8 @@
-// Weekly cron endpoint that refreshes the current NBA season's per-game
-// averages and appends a dated snapshot row per player. Called by pg_cron.
+// Daily cron endpoint (pg_cron). Default: refresh the current season's
+// per-game averages and append a dated snapshot row per player.
+// ?part=advanced: refresh advanced stats (TS%, USG%, AST%, TOV%) instead —
+// a separate call because each part is ~20 API pages and one Worker request
+// has a limited subrequest budget.
 //
 // Auth: Supabase anon `apikey` header (per house convention). The endpoint
 // lives under /api/public/* which bypasses the platform's global auth wall,
@@ -24,22 +27,14 @@ export const Route = createFileRoute("/api/public/hooks/refresh-season-stats")({
           const { refreshCurrentSeason, refreshAdvancedStats } = await import(
             "@/lib/seasonRefresh.server"
           );
-          const result = await refreshCurrentSeason();
-          let advanced: Awaited<ReturnType<typeof refreshAdvancedStats>> | null = null;
-          try {
-            advanced = await refreshAdvancedStats();
-          } catch (advErr) {
-            // Advanced feed is nice-to-have — never fail the whole run if
-            // stats.nba.com throttles or rejects the request.
-            console.warn(
-              "advanced stats refresh failed",
-              advErr instanceof Error ? advErr.message : advErr,
-            );
-          }
-          return new Response(
-            JSON.stringify({ ok: true, ...result, advanced }),
-            { headers: { "Content-Type": "application/json" } },
-          );
+          const part = new URL(request.url).searchParams.get("part");
+          const result =
+            part === "advanced"
+              ? { advanced: await refreshAdvancedStats() }
+              : await refreshCurrentSeason();
+          return new Response(JSON.stringify({ ok: true, ...result }), {
+            headers: { "Content-Type": "application/json" },
+          });
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           console.error("refresh-season-stats failed", message);
