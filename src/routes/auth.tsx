@@ -12,6 +12,8 @@ import { Loader2 } from "lucide-react";
 
 const authSearchSchema = z.object({
   redirect: z.string().optional().default("/lobby"),
+  /** Open on the Create account tab (e.g. from the homepage sign-up button). */
+  tab: z.enum(["signin", "signup"]).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -26,10 +28,10 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { redirect } = Route.useSearch();
+  const { redirect, tab: initialTab } = Route.useSearch();
   const navigate = useNavigate();
   const { session, loading: authLoading, isGuest } = useAuth();
-  const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const [tab, setTab] = useState<"signin" | "signup">(initialTab ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");

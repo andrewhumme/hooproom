@@ -160,25 +160,18 @@ export const SITE_CONTENT: ContentField[] = [
   ...COMPARE_ROWS.map((label, i) =>
     home("Comparison", `compare.${i + 1}`, `Row ${i + 1}`, "text", label),
   ),
-  home("Waitlist", "waitlist.eyebrow", "Small label", "text", "Early Access"),
-  home("Waitlist", "waitlist.title", "Heading", "text", "Get in before tip-off."),
+  home("Sign up", "signup.eyebrow", "Small label", "text", "Free to join"),
+  home("Sign up", "signup.title", "Heading", "text", "Get in before tip-off."),
   home(
-    "Waitlist",
-    "waitlist.body",
+    "Sign up",
+    "signup.body",
     "Text",
     "textarea",
-    "We're seeding the first 500 drafters with founder badges, free premium for the season, and direct input on the roadmap.",
+    "Create your free HoopRoom account to host drafts, join your league's room, and keep your rankings and queues ready for draft day.",
   ),
-  home("Waitlist", "waitlist.button", "Button", "text", "Join waitlist"),
-  home("Waitlist", "waitlist.successTitle", "After signing up — heading", "text", "You're in. 🏀"),
-  home(
-    "Waitlist",
-    "waitlist.successBody",
-    "After signing up — text",
-    "text",
-    "We'll email you the second drafts open. Spread the word.",
-  ),
-  home("Waitlist", "waitlist.footnote", "Small print", "text", "No spam. One email when we launch."),
+  home("Sign up", "signup.button", "Button (signed-out visitors)", "text", "Create free account"),
+  home("Sign up", "signup.signedInButton", "Button (signed-in members)", "text", "Host a draft"),
+  home("Sign up", "signup.footnote", "Small print", "text", "Free to use. No credit card needed."),
 
   // ---- Terms ----
   ...legal("terms", "Terms of Service", "/terms", "HoopRoom terms of service and usage guidelines.", TERMS_BODY),

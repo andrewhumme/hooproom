@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import {
   Zap,
@@ -50,12 +49,8 @@ const COMPARE_MARKS: Array<[boolean, boolean]> = [
 
 function Landing() {
   const c = contentReader(Route.useLoaderData());
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) setSubmitted(true);
-  };
+  const { user, isGuest } = useAuth();
+  const signedIn = !!user && !isGuest;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -190,41 +185,32 @@ function Landing() {
         </Card>
       </section>
 
-      {/* Waitlist */}
-      <section id="waitlist" className="bg-[var(--gradient-hero)] text-secondary-foreground" style={{ background: "var(--gradient-hero)" }}>
+      {/* Sign up */}
+      <section id="signup" className="bg-[var(--gradient-hero)] text-secondary-foreground" style={{ background: "var(--gradient-hero)" }}>
         <div className="mx-auto max-w-3xl px-6 py-24 text-center">
           <div className="text-xs font-bold uppercase tracking-widest text-primary">
-            {c("home.waitlist.eyebrow")}
+            {c("home.signup.eyebrow")}
           </div>
-          <h2 className="mt-3 text-4xl font-black md:text-6xl">{c("home.waitlist.title")}</h2>
+          <h2 className="mt-3 text-4xl font-black md:text-6xl">{c("home.signup.title")}</h2>
           <p className="mx-auto mt-5 max-w-xl text-lg text-secondary-foreground/80">
-            {c("home.waitlist.body")}
+            {c("home.signup.body")}
           </p>
-          {submitted ? (
-            <div className="mx-auto mt-10 max-w-md rounded-xl border-2 border-primary bg-primary/10 p-6">
-              <div className="text-2xl font-black text-primary">{c("home.waitlist.successTitle")}</div>
-              <p className="mt-2 text-sm text-secondary-foreground/80">
-                {c("home.waitlist.successBody")}
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="mx-auto mt-10 flex max-w-md flex-col gap-3 sm:flex-row">
-              <Input
-                type="email"
-                required
-                placeholder="you@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 border-2 border-secondary-foreground/20 bg-background text-foreground"
-              />
-              <Button type="submit" size="lg" className="h-12 px-6 font-bold shadow-[var(--shadow-glow)]">
-                {c("home.waitlist.button")}
-              </Button>
-            </form>
+          <div className="mt-10 flex justify-center">
+            <Button asChild size="lg" className="h-12 px-8 text-base font-bold shadow-[var(--shadow-glow)]">
+              {signedIn ? (
+                <Link to="/lobby/new">
+                  {c("home.signup.signedInButton")} <ArrowRight className="ml-1" />
+                </Link>
+              ) : (
+                <Link to="/auth" search={{ tab: "signup", redirect: "/lobby" }}>
+                  {c("home.signup.button")} <ArrowRight className="ml-1" />
+                </Link>
+              )}
+            </Button>
+          </div>
+          {!signedIn && (
+            <p className="mt-4 text-xs text-secondary-foreground/60">{c("home.signup.footnote")}</p>
           )}
-          <p className="mt-4 text-xs text-secondary-foreground/60">
-            {c("home.waitlist.footnote")}
-          </p>
         </div>
       </section>
 
