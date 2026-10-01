@@ -25,6 +25,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as LobbyNewRouteImport } from './routes/lobby_.new'
 import { Route as LobbyNewOfflineRouteImport } from './routes/lobby_.new-offline'
 import { Route as WatchKeyRouteImport } from './routes/watch.$key'
+import { Route as AuthenticatedAdminContentRouteImport } from './routes/_authenticated/admin.content'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as ApiPublicAuctionTickRouteImport } from './routes/api.public.auction-tick'
 import { Route as ApiPublicAuthEmailHookRouteImport } from './routes/api.public.auth-email-hook'
@@ -113,6 +114,12 @@ const WatchKeyRoute = WatchKeyRouteImport.update({
   path: '/watch/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminContentRoute =
+  AuthenticatedAdminContentRouteImport.update({
+    id: '/admin/content',
+    path: '/admin/content',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/admin/users',
   path: '/admin/users',
@@ -171,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/lobby/new': typeof LobbyNewRoute
   '/lobby/new-offline': typeof LobbyNewOfflineRoute
   '/watch/$key': typeof WatchKeyRoute
+  '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
@@ -196,6 +204,7 @@ export interface FileRoutesByTo {
   '/lobby/new': typeof LobbyNewRoute
   '/lobby/new-offline': typeof LobbyNewOfflineRoute
   '/watch/$key': typeof WatchKeyRoute
+  '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
@@ -223,6 +232,7 @@ export interface FileRoutesById {
   '/lobby_/new': typeof LobbyNewRoute
   '/lobby_/new-offline': typeof LobbyNewOfflineRoute
   '/watch/$key': typeof WatchKeyRoute
+  '/_authenticated/admin/content': typeof AuthenticatedAdminContentRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/auction-tick': typeof ApiPublicAuctionTickRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/lobby/new'
     | '/lobby/new-offline'
     | '/watch/$key'
+    | '/admin/content'
     | '/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/auth-email-hook'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/lobby/new'
     | '/lobby/new-offline'
     | '/watch/$key'
+    | '/admin/content'
     | '/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/auth-email-hook'
@@ -301,6 +313,7 @@ export interface FileRouteTypes {
     | '/lobby_/new'
     | '/lobby_/new-offline'
     | '/watch/$key'
+    | '/_authenticated/admin/content'
     | '/_authenticated/admin/users'
     | '/api/public/auction-tick'
     | '/api/public/auth-email-hook'
@@ -448,6 +461,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WatchKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/content': {
+      id: '/_authenticated/admin/content'
+      path: '/admin/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AuthenticatedAdminContentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/admin/users'
@@ -511,6 +531,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedMeRoute: typeof AuthenticatedMeRoute
   AuthenticatedRankingsRoute: typeof AuthenticatedRankingsRoute
+  AuthenticatedAdminContentRoute: typeof AuthenticatedAdminContentRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
 }
 
@@ -518,6 +539,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedMeRoute: AuthenticatedMeRoute,
   AuthenticatedRankingsRoute: AuthenticatedRankingsRoute,
+  AuthenticatedAdminContentRoute: AuthenticatedAdminContentRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
 }
 

@@ -177,12 +177,12 @@ function AdminUsersPage() {
 
   async function handleRefreshRookies() {
     setDataBusy("rookies");
-    appendLog("Recomputing rookie flags from NBA.com…");
+    appendLog("Recomputing rookie flags from ESPN draft results…");
     try {
       const res = await refreshRookies();
       appendLog(`Rookie flags updated: ${res.rookies} active rookies.`);
       if (res.rookies > 0) toast.success(`${res.rookies} rookies flagged`);
-      else toast.error("No rookies returned by NBA.com");
+      else toast.error("No draft class found");
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e);
       appendLog(`Rookie refresh failed: ${m}`);
@@ -331,6 +331,16 @@ function AdminUsersPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-md border border-border p-4">
+                  <div className="mb-1 text-sm font-bold">Site content</div>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Edit the wording on the homepage, Terms of Service and Privacy Policy —
+                    including page titles and descriptions. Saving publishes immediately.
+                  </p>
+                  <Button asChild size="sm">
+                    <Link to="/admin/content">Edit site content</Link>
+                  </Button>
+                </div>
+                <div className="rounded-md border border-border p-4">
                   <div className="mb-1 text-sm font-bold">HoopRank rankings</div>
                   <p className="mb-2 text-xs text-muted-foreground">
                     HoopRank follows Sleeper's current player rankings (rookies included),
@@ -397,8 +407,8 @@ function AdminUsersPage() {
                   <div className="mb-1 text-sm font-bold">Rookie flags</div>
                   <p className="mb-3 text-xs text-muted-foreground">
                     Recompute which active players count as rookies (used by the
-                    rookies-only draft pool) from NBA.com's rookie leaderboard.
-                    Re-run at the start of each season.
+                    rookies-only draft pool) from ESPN's draft results, with draft
+                    slots. Runs automatically for rookie drafts; re-run after the NBA draft.
                   </p>
                   <Button
                     size="sm"

@@ -15,28 +15,41 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { DraftBoardSchematic } from "@/components/DraftBoardSchematic";
+import { MiniMarkdown } from "@/components/MiniMarkdown";
+import { contentReader, contentValue } from "@/lib/siteContent";
+import { getSiteContentServer } from "@/lib/siteContent.functions";
 
 export const Route = createFileRoute("/")({
   component: Landing,
-  head: () => ({
-    meta: [
-      { title: "HoopRoom — Real-time NBA Mock Drafts" },
-      {
-        name: "description",
-        content:
-          "Live NBA fantasy mock drafts with real-time picks, smart rankings, and AI draft grades. The modern alternative to legacy mock draft sites.",
-      },
-      { property: "og:title", content: "HoopRoom — Real-time NBA Mock Drafts" },
-      {
-        property: "og:description",
-        content:
-          "Live NBA fantasy mock drafts with real-time picks, smart rankings, and AI draft grades.",
-      },
-    ],
-  }),
+  // Copy is editable in Admin Tools → Site content.
+  loader: () => getSiteContentServer({ data: { prefix: "home." } }),
+  head: ({ loaderData }) => {
+    const title = contentValue(loaderData, "home.meta.title");
+    const description = contentValue(loaderData, "home.meta.description");
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+      ],
+    };
+  },
 });
 
+const FEATURE_ICONS = [<Zap />, <Trophy />, <Clock />, <ArrowRight />, <Brain />, <Users />];
+// [HoopRoom has it, legacy sites have it] for each comparison row.
+const COMPARE_MARKS: Array<[boolean, boolean]> = [
+  [true, false],
+  [true, false],
+  [true, false],
+  [true, true],
+  [true, false],
+  [true, false],
+];
+
 function Landing() {
+  const c = contentReader(Route.useLoaderData());
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const handleSubmit = (e: React.FormEvent) => {
@@ -52,19 +65,17 @@ function Landing() {
           <div className="relative z-10">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-secondary bg-secondary/5 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-secondary">
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-              NBA Season 25-26 · Build Your Draft, Your Way
+              {c("home.hero.badge")}
             </div>
             <h1 className="text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
-              The most customizable
+              {c("home.hero.title")}
               <br />
               <span className="bg-gradient-to-r from-primary to-[oklch(0.78_0.19_55)] bg-clip-text text-transparent">
-                draft room in fantasy hoops.
+                {c("home.hero.titleHighlight")}
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground md:text-xl">
-              Snake or auction. Live, slow, or offline. You set the rules, the clock,
-              the rosters — we handle the board. When you're done, export your
-              draft results and let the games begin!
+              {c("home.hero.subtitle")}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
@@ -73,19 +84,19 @@ function Landing() {
                 className="h-12 px-6 text-base font-bold shadow-[var(--shadow-glow)]"
               >
                 <Link to="/lobby/new">
-                  Host a Draft <ArrowRight className="ml-1" />
+                  {c("home.hero.primaryCta")} <ArrowRight className="ml-1" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 border-2 px-6 text-base font-bold">
-                <Link to="/lobby">Browse Lobby</Link>
+                <Link to="/lobby">{c("home.hero.secondaryCta")}</Link>
               </Button>
             </div>
             <div className="mt-10 flex items-center gap-6 text-sm">
-              <Stat number="Live or Slow" label="Snake or auction, your call" />
+              <Stat number={c("home.stats.1.number")} label={c("home.stats.1.label")} />
               <div className="h-10 w-px bg-border" />
-              <Stat number="450+" label="Active NBA players" />
+              <Stat number={c("home.stats.2.number")} label={c("home.stats.2.label")} />
               <div className="h-10 w-px bg-border" />
-              <Stat number="1-Click" label="Export to any platform" />
+              <Stat number={c("home.stats.3.number")} label={c("home.stats.3.label")} />
             </div>
           </div>
           <div className="relative">
@@ -109,20 +120,16 @@ function Landing() {
               className="h-14 w-14 rounded-xl"
             />
             <div>
-              <h2 className="text-3xl font-black tracking-tight md:text-4xl">About HoopRoom</h2>
+              <h2 className="text-3xl font-black tracking-tight md:text-4xl">{c("home.about.title")}</h2>
               <p className="text-xs font-bold uppercase tracking-widest text-primary">
                 hooproom.app
               </p>
             </div>
           </div>
-          <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-            <strong className="text-foreground">HoopRoom</strong> is a free web app for running
-            NBA fantasy basketball drafts. Commissioners create a draft room, invite their
-            league, and run a live snake draft, an auction draft, a multi-day slow draft, or an
-            in-person offline draft — with fully customizable roster slots, pick clocks, budgets
-            and keepers. When the draft ends, every team's results can be exported to CSV and
-             viewed on a draft summary page.
-          </p>
+          <MiniMarkdown
+            source={c("home.about.body")}
+            className="mt-6 space-y-4 text-lg leading-relaxed text-muted-foreground"
+          />
         </div>
       </section>
 
@@ -131,43 +138,19 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-6 py-20">
           <div className="mb-12 max-w-2xl">
             <div className="text-xs font-bold uppercase tracking-widest text-primary">
-              The Toolkit
+              {c("home.features.eyebrow")}
             </div>
-            <h2 className="mt-2 text-4xl font-black md:text-5xl">
-              Built for managers who want control.
-            </h2>
+            <h2 className="mt-2 text-4xl font-black md:text-5xl">{c("home.features.title")}</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Feature
-              icon={<Zap />}
-              title="Snake & auction"
-              copy="Run a classic snake or a full auction with concurrent nominations and per-team quotas. Your call."
-            />
-            <Feature
-              icon={<Trophy />}
-              title="Custom everything"
-              copy="Roster slots, scoring, pick clocks, budgets, nomination caps. Configure the lobby to match your league."
-            />
-            <Feature
-              icon={<Clock />}
-              title="Live or slow"
-              copy="Real-time rooms with sub-second picks, or multi-day slow drafts with autopick queues. Draft on your schedule."
-            />
-            <Feature
-              icon={<ArrowRight />}
-              title="Export anywhere"
-              copy="One-click CSV export. Drop your results into ESPN, Yahoo, Sleeper, Fantrax — wherever your league actually lives."
-            />
-            <Feature
-              icon={<Brain />}
-              title="Personal rankings & queues"
-              copy="Pre-rank your board. Powers 'best available' suggestions and autopicks when you can't make it."
-            />
-            <Feature
-              icon={<Users />}
-              title="Offline draft assist"
-              copy="Drafting in person? Use HoopRoom as the war room — track picks, see best available, export when you're done."
-            />
+            {FEATURE_ICONS.map((icon, i) => (
+              <Feature
+                key={i}
+                icon={icon}
+                title={c(`home.features.${i + 1}.title`)}
+                copy={c(`home.features.${i + 1}.copy`)}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -176,15 +159,10 @@ function Landing() {
       <section id="compare" className="mx-auto max-w-7xl px-6 py-20">
         <div className="mb-12 text-center">
           <div className="text-xs font-bold uppercase tracking-widest text-primary">
-            The Difference
+            {c("home.compare.eyebrow")}
           </div>
-          <h2 className="mt-2 text-4xl font-black md:text-5xl">
-            HoopRoom vs. the old guard.
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-            Most mock sites lock you into their format and their platform. HoopRoom is the
-            pre-draft toolkit — you customize the room, then take the results wherever you want.
-          </p>
+          <h2 className="mt-2 text-4xl font-black md:text-5xl">{c("home.compare.title")}</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">{c("home.compare.subtitle")}</p>
         </div>
         <Card className="overflow-hidden border-2 shadow-[var(--shadow-bold)]">
           <div className="grid grid-cols-3 border-b-2 border-border bg-muted">
@@ -195,19 +173,12 @@ function Landing() {
               HoopRoom
             </div>
             <div className="p-5 text-center text-sm font-bold uppercase tracking-widest text-muted-foreground">
-              Legacy mock sites
+              {c("home.compare.competitor")}
             </div>
           </div>
-          {[
-            ["Snake + auction in one tool", true, false],
-            ["Custom rules, clocks & rosters", true, false],
-            ["Concurrent auction nominations", true, false],
-            ["Slow drafts with autopick queues", true, true],
-            ["1-click CSV export to any platform", true, false],
-            ["Offline / in-person draft assist", true, false],
-          ].map(([label, us, them]) => (
-            <div key={label as string} className="grid grid-cols-3 border-b border-border last:border-0">
-              <div className="p-5 text-sm font-semibold">{label}</div>
+          {COMPARE_MARKS.map(([us, them], i) => (
+            <div key={i} className="grid grid-cols-3 border-b border-border last:border-0">
+              <div className="p-5 text-sm font-semibold">{c(`home.compare.${i + 1}`)}</div>
               <div className="flex items-center justify-center border-x-2 border-border bg-primary/5 p-5">
                 {us ? <Check className="text-primary" /> : <X className="text-muted-foreground" />}
               </div>
@@ -223,20 +194,17 @@ function Landing() {
       <section id="waitlist" className="bg-[var(--gradient-hero)] text-secondary-foreground" style={{ background: "var(--gradient-hero)" }}>
         <div className="mx-auto max-w-3xl px-6 py-24 text-center">
           <div className="text-xs font-bold uppercase tracking-widest text-primary">
-            Early Access
+            {c("home.waitlist.eyebrow")}
           </div>
-          <h2 className="mt-3 text-4xl font-black md:text-6xl">
-            Get in before tip-off.
-          </h2>
+          <h2 className="mt-3 text-4xl font-black md:text-6xl">{c("home.waitlist.title")}</h2>
           <p className="mx-auto mt-5 max-w-xl text-lg text-secondary-foreground/80">
-            We're seeding the first 500 drafters with founder badges, free premium for
-            the season, and direct input on the roadmap.
+            {c("home.waitlist.body")}
           </p>
           {submitted ? (
             <div className="mx-auto mt-10 max-w-md rounded-xl border-2 border-primary bg-primary/10 p-6">
-              <div className="text-2xl font-black text-primary">You're in. 🏀</div>
+              <div className="text-2xl font-black text-primary">{c("home.waitlist.successTitle")}</div>
               <p className="mt-2 text-sm text-secondary-foreground/80">
-                We'll email you the second drafts open. Spread the word.
+                {c("home.waitlist.successBody")}
               </p>
             </div>
           ) : (
@@ -250,12 +218,12 @@ function Landing() {
                 className="h-12 border-2 border-secondary-foreground/20 bg-background text-foreground"
               />
               <Button type="submit" size="lg" className="h-12 px-6 font-bold shadow-[var(--shadow-glow)]">
-                Join waitlist
+                {c("home.waitlist.button")}
               </Button>
             </form>
           )}
           <p className="mt-4 text-xs text-secondary-foreground/60">
-            No spam. One email when we launch.
+            {c("home.waitlist.footnote")}
           </p>
         </div>
       </section>
