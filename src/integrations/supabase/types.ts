@@ -1319,6 +1319,8 @@ export type Database = {
         Returns: number
       }
       request_autopick: { Args: { _room_id: string }; Returns: boolean }
+      get_room_invite: { Args: { _room_id: string }; Returns: Json }
+      join_room: { Args: { _room_id: string; _team_name: string }; Returns: string }
       request_sleeper_ranks: { Args: never; Returns: number }
       import_sleeper_ranks: { Args: never; Returns: Json }
       sync_rookie_class: { Args: { _picks: Json; _year: number }; Returns: number }

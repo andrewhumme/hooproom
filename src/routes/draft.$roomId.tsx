@@ -197,6 +197,7 @@ function DraftRoomPage() {
   const pickAssignments = usePickAssignments(roomId);
 
   const autopickFiredRef = useRef<number>(-1); // last pick_number autopick was attempted for
+  const reloadRef = useRef<() => void>(() => {});
 
   // The draft room needs an account. Signed-out visitors sign in first;
   // view-only watching without an account lives at /watch/<key>.
@@ -218,7 +219,23 @@ function DraftRoomPage() {
       ]);
       if (!mounted) return;
       if (r.error) {
-        setError("Room not found");
+        // Private rooms are only visible to their host and members — an
+        // invitee opening the link gets the lobby via get_room_invite.
+        const { data: invite } = await supabase.rpc("get_room_invite", { _room_id: roomId });
+        if (!mounted) return;
+        const inv = invite as { room: Room; participants?: Participant[] } | null;
+        if (inv?.room?.status === "waiting") {
+          setError(null);
+          setRoom(inv.room);
+          setParticipants(inv.participants ?? []);
+          setPicks([]);
+        } else if (inv?.room) {
+          setError(
+            "This draft has already started. Ask the commissioner for the watch link to follow along.",
+          );
+        } else {
+          setError("Room not found");
+        }
         return;
       }
       setRoom(r.data as Room);
@@ -227,6 +244,7 @@ function DraftRoomPage() {
     };
 
     loadAll();
+    reloadRef.current = loadAll;
 
     const channel = supabase
       .channel(`draft-${roomId}`)
@@ -704,17 +722,6 @@ function DraftRoomPage() {
     setActionBusy(true);
     setError(null);
     try {
-      // Idempotent join — if the user already has a seat (from a prior tab,
-      // reconnect, or realtime lag), treat it as success instead of showing
-      // a scary red error.
-      const { data: existing } = await supabase
-        .from("draft_participants")
-        .select("id")
-        .eq("room_id", roomId)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (existing) return;
-
       // Prefer the profile display name (set on /me), fall back to auth
       // metadata, then the email prefix — anything but a generic "Team".
       const { data: profile } = await supabase
@@ -728,25 +735,20 @@ function DraftRoomPage() {
         user.email?.split("@")[0] ||
         "Team";
 
-      const { error } = await supabase.from("draft_participants").insert({
-        room_id: roomId,
-        user_id: user.id,
-        team_name: teamName,
-      });
-
+      // join_room works for private rooms opened from an invite link, and is
+      // idempotent (already seated → success). It reports full / started /
+      // spectate-only rooms with a readable message.
+      const { error } = await supabase.rpc("join_room", { _room_id: roomId, _team_name: teamName });
       if (error) {
-        // 23505 = unique_violation — a concurrent insert (double-click, second
+        // 23505 = unique_violation — a concurrent join (double-click, second
         // tab) beat us to it. That's fine, they're seated.
         if ((error as { code?: string }).code === "23505") return;
-        throw error;
+        throw new Error(error.message);
       }
+      // Now a member: reload through the normal (RLS) path for full room data.
+      reloadRef.current();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to join";
-      setError(
-        /row-level security|permission/i.test(msg)
-          ? "Couldn't join this room — it may be full, already started, or spectate-only. Try refreshing."
-          : msg,
-      );
+      setError(err instanceof Error ? err.message : "Failed to join");
     } finally {
       setActionBusy(false);
     }
