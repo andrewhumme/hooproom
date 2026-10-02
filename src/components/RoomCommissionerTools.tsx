@@ -633,6 +633,22 @@ function CustomPicksPanel({
     return m;
   }, [assignments]);
 
+  // Picks each team owns across the whole draft. Every team should end with
+  // exactly `rounds` picks (one per roster spot); uneven trades leave one
+  // team with extra picks and another short.
+  const pickCounts = useMemo(() => {
+    const counts = Array.from({ length: teamCount }, () => 0);
+    for (let round = 1; round <= rounds; round++) {
+      for (let teamIdx = 1; teamIdx <= teamCount; teamIdx++) {
+        const pickNumber = teamPickNumber(teamCount, reversalRounds, round, teamIdx);
+        const owner = assignmentMap.get(pickNumber) ?? teamIdx;
+        if (owner >= 1 && owner <= teamCount) counts[owner - 1]++;
+      }
+    }
+    return counts;
+  }, [teamCount, rounds, reversalRounds, assignmentMap]);
+  const unbalanced = pickCounts.some((n) => n !== rounds);
+
   const setPick = async (pickNumber: number, teamIdx: number) => {
     onError(null);
     const { error } = await supabase.rpc("pick_assignment_set", {
@@ -750,6 +766,43 @@ function CustomPicksPanel({
             })}
           </tbody>
         </table>
+      </div>
+      <div
+        className={`mt-3 rounded-md border p-3 ${
+          unbalanced ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30" : "border-border bg-muted/20"
+        }`}
+      >
+        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+          <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+            Picks per team
+          </div>
+          <div className={`text-[11px] font-bold ${unbalanced ? "text-amber-800 dark:text-amber-300" : "text-muted-foreground"}`}>
+            {unbalanced
+              ? `Uneven — every team should have ${rounds} picks (one per roster spot).`
+              : `Balanced — every team has ${rounds} picks.`}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
+          {pickCounts.map((n, i) => {
+            const diff = n - rounds;
+            return (
+              <div
+                key={i}
+                className={`flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs ${
+                  diff === 0
+                    ? "border-border bg-background"
+                    : "border-amber-400 bg-amber-100 font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
+                }`}
+              >
+                <span className="truncate">{teamName(i + 1)}</span>
+                <span className="shrink-0 tabular-nums">
+                  {n}
+                  {diff !== 0 && <span className="ml-1">({diff > 0 ? `+${diff}` : diff})</span>}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
