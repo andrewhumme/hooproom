@@ -52,7 +52,7 @@ import {
   type TeamCategoryTotals,
 } from "@/components/CategoryHeatmap";
 import { compareByRank } from "@/lib/playerRankings";
-import { compareByHoopRank, hoopRankOf, hoopZOf, UNRANKED } from "@/lib/playerRanking";
+import { compareByHoopRank, hoopRankOf, hoopZOf, UNRANKED, type RankMap } from "@/lib/playerRanking";
 import { useHoopRanks } from "@/hooks/useHoopRanks";
 
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
@@ -1004,24 +1004,11 @@ function DraftRoomPage() {
           </Card>
 
           {room.room_type === "league" && room.scheduled_start_at && (
-            <Card className="mt-6 border-2 border-primary/30 bg-primary/5 p-4">
-              <div className="text-xs font-black uppercase tracking-widest text-primary">
-                Scheduled league draft
-              </div>
-              <div className="mt-1 text-lg font-black">
-                {new Date(room.scheduled_start_at).toLocaleString(undefined, {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                The draft room opens automatically at this time — or whenever the commissioner
-                starts it. A 2-minute countdown runs before the first pick.
-              </p>
-            </Card>
+            <ScheduledLeagueCard
+              scheduledAt={room.scheduled_start_at}
+              isHost={isHost}
+              openSeats={Math.max(0, room.team_count - participants.length)}
+            />
           )}
 
           {room.room_type === "mock" && room.auto_start_at && (
@@ -1222,6 +1209,16 @@ function DraftRoomPage() {
             </div>
 
           </Card>
+
+          <LobbyRankings
+            players={availablePlayers}
+            boardRanks={boardRanks}
+            hoopRanks={hoopRanks}
+            loading={playersLoading}
+            search={search}
+            onSearch={setSearch}
+            rookieBoard={room.player_pool === "rookies"}
+          />
 
           {isHost && (
             <RoomCommissionerTools
@@ -2375,5 +2372,128 @@ function StartDraftSummary({
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * League draft schedule. The scheduled time is when managers are told it's
+ * draft time — the commissioner always starts the draft (after the review).
+ */
+function ScheduledLeagueCard({
+  scheduledAt,
+  isHost,
+  openSeats,
+}: {
+  scheduledAt: string;
+  isHost: boolean;
+  openSeats: number;
+}) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+  const when = new Date(scheduledAt);
+  const due = now >= when.getTime();
+  const label = when.toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return (
+    <Card className={`mt-6 border-2 p-4 ${due ? "border-primary bg-primary/10" : "border-primary/30 bg-primary/5"}`}>
+      <div className="text-xs font-black uppercase tracking-widest text-primary">
+        {due ? "It's draft time" : "Scheduled league draft"}
+      </div>
+      <div className="mt-1 text-lg font-black">{label}</div>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {due
+          ? isHost
+            ? `Review the teams, draft order and picks, then click Start draft below.${
+                openSeats > 0 ? ` ${openSeats} open seat${openSeats === 1 ? "" : "s"} will be filled by bots.` : ""
+              }`
+            : "Waiting for the commissioner to start the draft. Browse the player rankings below while you wait."
+          : "The commissioner starts the draft once teams and picks are set — then a 2-minute countdown runs before the first pick."}
+      </p>
+    </Card>
+  );
+}
+
+/** Read-only player rankings for managers waiting in the lobby. */
+function LobbyRankings({
+  players,
+  boardRanks,
+  hoopRanks,
+  loading,
+  search,
+  onSearch,
+  rookieBoard,
+}: {
+  players: DraftablePlayer[];
+  boardRanks: Record<string, number>;
+  hoopRanks: RankMap;
+  loading: boolean;
+  search: string;
+  onSearch: (v: string) => void;
+  rookieBoard: boolean;
+}) {
+  const shown = players.slice(0, 100);
+  return (
+    <Card className="mt-6 border-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-border p-4">
+        <div>
+          <h2 className="text-lg font-black">Player rankings</h2>
+          <p className="text-xs text-muted-foreground">
+            The order bots and autopicks use. Queue players once the draft starts.
+          </p>
+        </div>
+        <Input
+          value={search}
+          onChange={(e) => onSearch(e.target.value)}
+          placeholder="Search players…"
+          className="h-9 w-full sm:w-56"
+        />
+      </div>
+      {loading && players.length === 0 ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <ul className="max-h-[50vh] divide-y divide-border overflow-y-auto">
+          {shown.map((p) => {
+            const board = boardRanks[p.id];
+            const hr = hoopRankOf(hoopRanks, p.id);
+            return (
+              <li key={p.id} className="flex items-center gap-3 px-4 py-2">
+                <span
+                  className={`w-9 shrink-0 text-center text-xs font-black tabular-nums ${board != null ? "text-primary" : "text-muted-foreground"}`}
+                  title={
+                    board != null
+                      ? `${rookieBoard ? "Rookie" : "HoopRoom"} Big Board #${board}`
+                      : hr === UNRANKED
+                        ? "No HoopRank yet"
+                        : `HoopRank #${hr}`
+                  }
+                >
+                  {board != null ? `★${board}` : hr === UNRANKED ? "—" : hr}
+                </span>
+                <PlayerAvatar name={p.name} team={p.team} nbaPlayerId={p.nbaPlayerId} shape="square" size={26} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-bold">{p.name}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {p.team} · {p.position}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+          {shown.length === 0 && (
+            <li className="px-4 py-8 text-center text-sm text-muted-foreground">No players match.</li>
+          )}
+        </ul>
+      )}
+    </Card>
   );
 }
