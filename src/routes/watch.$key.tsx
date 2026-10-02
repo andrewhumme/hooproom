@@ -275,28 +275,30 @@ function WatchView({ snap, skewMs }: { snap: Snapshot; skewMs: number }) {
           {roundOrder.length > 0 && (
             <div className="mt-4">
               <div className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Round {onClock?.round} order
+                Round {onClock?.round} {onClock && snakeTeamForPick(room.current_pick_number, room.team_count, room.reversal_rounds).reverse ? "← reverse" : "→ forward"}
               </div>
               <div className="flex gap-1.5 overflow-x-auto pb-1">
-                {roundOrder.map(({ pickNumber, pickInRound, teamIdx }) => {
-                  const current = pickNumber === room.current_pick_number;
-                  const done = pickNumber < room.current_pick_number;
+                {/* Fixed seat order; each box shows that team's pick(s) this round. */}
+                {seats.map((idx) => {
+                  const mine = roundOrder.filter((o) => o.teamIdx === idx);
+                  const current = onClock?.teamIdx === idx;
+                  const done = mine.length > 0 && mine.every((o) => o.pickNumber < room.current_pick_number);
                   return (
                     <div
-                      key={pickNumber}
+                      key={idx}
                       className={`flex w-[110px] shrink-0 flex-col gap-0.5 rounded-md border-2 px-2 py-1.5 ${
                         current
                           ? "border-primary bg-primary text-primary-foreground"
-                          : done
+                          : done || mine.length === 0
                             ? "border-border bg-muted/40 opacity-60"
                             : "border-border bg-card"
                       }`}
                     >
                       <div className="text-[10px] font-black opacity-80">
-                        {pickInRound}
+                        {mine.length ? mine.map((o) => o.pickInRound).join(" · ") : "—"}
                         {current ? " · On clock" : ""}
                       </div>
-                      <div className="truncate text-xs font-black">{teamName(teamIdx)}</div>
+                      <div className="truncate text-xs font-black">{teamName(idx)}</div>
                     </div>
                   );
                 })}

@@ -1505,14 +1505,22 @@ function DraftRoomPage() {
               gridTemplateColumns: `var(--lg-cols)`,
             }}
           >
-            {roundOrder.map(({ pickNumber, pickInRound, idx }) => {
+            {/* Boxes stay in seat order all draft; each shows that team's
+                pick(s) in the current round, so a snake turn reads as the
+                direction flipping rather than teams jumping around. */}
+            {Array.from({ length: room.team_count }, (_, i) => i + 1).map((idx) => {
               const team = slotMap.get(idx);
               const teamPicks = picks.filter((p) => p.team_idx === idx).length;
-              const onClock = isDrafting && pickNumber === currentPickNumber;
+              const onClock = isDrafting && currentTeamIdx === idx;
               const isMe = team?.user_id === user?.id;
+              // Traded picks: a team can own several picks in a round, or none.
+              const picksThisRound = roundOrder
+                .filter((o) => o.idx === idx)
+                .map((o) => o.pickInRound)
+                .join(" · ");
               return (
                 <button
-                  key={pickNumber ?? `seat-${idx}`}
+                  key={`seat-${idx}`}
                   type="button"
                   onClick={() => setViewingTeamIdx(idx)}
                   className={`flex w-[110px] shrink-0 snap-start flex-col items-start gap-1 rounded-md border-2 px-2 py-2 text-left transition hover:-translate-y-0.5 lg:w-auto lg:min-w-0 lg:shrink lg:px-1.5 lg:py-1.5 lg:gap-0.5 ${
@@ -1525,11 +1533,12 @@ function DraftRoomPage() {
                 >
                   <div className="flex w-full items-center justify-between gap-1">
                     <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-black lg:h-4 lg:w-4 lg:text-[9px] ${
+                      title={picksThisRound ? `Pick ${picksThisRound} this round` : "No pick this round"}
+                      className={`flex h-5 min-w-5 shrink-0 items-center justify-center rounded px-1 text-[10px] font-black lg:h-4 lg:min-w-4 lg:text-[9px] ${
                         onClock ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-foreground"
                       }`}
                     >
-                      {pickInRound}
+                      {picksThisRound || "—"}
                     </span>
                     {onClock && (
                       <span className="truncate text-[9px] font-black uppercase tracking-wider lg:text-[8px]">
