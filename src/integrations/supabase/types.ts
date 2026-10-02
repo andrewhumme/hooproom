@@ -1352,6 +1352,16 @@ export type Database = {
         Returns: number
       }
       request_autopick: { Args: { _room_id: string }; Returns: boolean }
+      recap_recipients: {
+        Args: { _room_id: string }
+        Returns: {
+          draft_position: number | null
+          email: string
+          manager_name: string
+          participant_id: string
+          team_name: string
+        }[]
+      }
       get_room_invite: { Args: { _room_id: string }; Returns: Json }
       join_room: { Args: { _room_id: string; _team_name: string }; Returns: string }
       request_sleeper_ranks: { Args: never; Returns: number }

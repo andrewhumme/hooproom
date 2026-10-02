@@ -33,6 +33,7 @@ import { Route as ApiPublicLobbyTickRouteImport } from './routes/api.public.lobb
 import { Route as ApiPublicSnakeTickRouteImport } from './routes/api.public.snake-tick'
 import { Route as ApiPublicSyncDraftOrderRouteImport } from './routes/api.public.sync-draft-order'
 import { Route as DraftRoomIdSummaryRouteImport } from './routes/draft.$roomId_.summary'
+import { Route as ApiPublicHooksDraftCompleteRouteImport } from './routes/api/public/hooks/draft-complete'
 import { Route as ApiPublicHooksRefreshSeasonStatsRouteImport } from './routes/api/public/hooks/refresh-season-stats'
 
 const IndexRoute = IndexRouteImport.update({
@@ -155,6 +156,12 @@ const DraftRoomIdSummaryRoute = DraftRoomIdSummaryRouteImport.update({
   path: '/draft/$roomId/summary',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksDraftCompleteRoute =
+  ApiPublicHooksDraftCompleteRouteImport.update({
+    id: '/api/public/hooks/draft-complete',
+    path: '/api/public/hooks/draft-complete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRefreshSeasonStatsRoute =
   ApiPublicHooksRefreshSeasonStatsRouteImport.update({
     id: '/api/public/hooks/refresh-season-stats',
@@ -186,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
+  '/api/public/hooks/draft-complete': typeof ApiPublicHooksDraftCompleteRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
 }
 export interface FileRoutesByTo {
@@ -212,6 +220,7 @@ export interface FileRoutesByTo {
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId/summary': typeof DraftRoomIdSummaryRoute
+  '/api/public/hooks/draft-complete': typeof ApiPublicHooksDraftCompleteRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
 }
 export interface FileRoutesById {
@@ -240,6 +249,7 @@ export interface FileRoutesById {
   '/api/public/snake-tick': typeof ApiPublicSnakeTickRoute
   '/api/public/sync-draft-order': typeof ApiPublicSyncDraftOrderRoute
   '/draft/$roomId_/summary': typeof DraftRoomIdSummaryRoute
+  '/api/public/hooks/draft-complete': typeof ApiPublicHooksDraftCompleteRoute
   '/api/public/hooks/refresh-season-stats': typeof ApiPublicHooksRefreshSeasonStatsRoute
 }
 export interface FileRouteTypes {
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/api/public/snake-tick'
     | '/api/public/sync-draft-order'
     | '/draft/$roomId/summary'
+    | '/api/public/hooks/draft-complete'
     | '/api/public/hooks/refresh-season-stats'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/api/public/snake-tick'
     | '/api/public/sync-draft-order'
     | '/draft/$roomId/summary'
+    | '/api/public/hooks/draft-complete'
     | '/api/public/hooks/refresh-season-stats'
   id:
     | '__root__'
@@ -321,6 +333,7 @@ export interface FileRouteTypes {
     | '/api/public/snake-tick'
     | '/api/public/sync-draft-order'
     | '/draft/$roomId_/summary'
+    | '/api/public/hooks/draft-complete'
     | '/api/public/hooks/refresh-season-stats'
   fileRoutesById: FileRoutesById
 }
@@ -344,6 +357,7 @@ export interface RootRouteChildren {
   ApiPublicSnakeTickRoute: typeof ApiPublicSnakeTickRoute
   ApiPublicSyncDraftOrderRoute: typeof ApiPublicSyncDraftOrderRoute
   DraftRoomIdSummaryRoute: typeof DraftRoomIdSummaryRoute
+  ApiPublicHooksDraftCompleteRoute: typeof ApiPublicHooksDraftCompleteRoute
   ApiPublicHooksRefreshSeasonStatsRoute: typeof ApiPublicHooksRefreshSeasonStatsRoute
 }
 
@@ -517,6 +531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DraftRoomIdSummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/draft-complete': {
+      id: '/api/public/hooks/draft-complete'
+      path: '/api/public/hooks/draft-complete'
+      fullPath: '/api/public/hooks/draft-complete'
+      preLoaderRoute: typeof ApiPublicHooksDraftCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/refresh-season-stats': {
       id: '/api/public/hooks/refresh-season-stats'
       path: '/api/public/hooks/refresh-season-stats'
@@ -566,6 +587,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSnakeTickRoute: ApiPublicSnakeTickRoute,
   ApiPublicSyncDraftOrderRoute: ApiPublicSyncDraftOrderRoute,
   DraftRoomIdSummaryRoute: DraftRoomIdSummaryRoute,
+  ApiPublicHooksDraftCompleteRoute: ApiPublicHooksDraftCompleteRoute,
   ApiPublicHooksRefreshSeasonStatsRoute: ApiPublicHooksRefreshSeasonStatsRoute,
 }
 export const routeTree = rootRouteImport
