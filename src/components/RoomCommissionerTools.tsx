@@ -633,9 +633,8 @@ function CustomPicksPanel({
     return m;
   }, [assignments]);
 
-  // Picks each team owns across the whole draft. Every team should end with
-  // exactly `rounds` picks (one per roster spot); uneven trades leave one
-  // team with extra picks and another short.
+  // Picks each team owns across the whole draft. Uneven trades are fine:
+  // each team's roster gains/loses FLX spots to match (adjustSlotsForPicks).
   const pickCounts = useMemo(() => {
     const counts = Array.from({ length: teamCount }, () => 0);
     for (let round = 1; round <= rounds; round++) {
@@ -769,17 +768,17 @@ function CustomPicksPanel({
       </div>
       <div
         className={`mt-3 rounded-md border p-3 ${
-          unbalanced ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30" : "border-border bg-muted/20"
+          unbalanced ? "border-primary/40 bg-primary/5" : "border-border bg-muted/20"
         }`}
       >
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
           <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
             Picks per team
           </div>
-          <div className={`text-[11px] font-bold ${unbalanced ? "text-amber-800 dark:text-amber-300" : "text-muted-foreground"}`}>
+          <div className="text-[11px] font-bold text-muted-foreground">
             {unbalanced
-              ? `Uneven — every team should have ${rounds} picks (one per roster spot).`
-              : `Balanced — every team has ${rounds} picks.`}
+              ? "Rosters adjust automatically: each extra pick adds a FLX spot; each pick traded away removes one (then a bench spot)."
+              : `Every team has ${rounds} picks.`}
           </div>
         </div>
         <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
@@ -791,13 +790,17 @@ function CustomPicksPanel({
                 className={`flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs ${
                   diff === 0
                     ? "border-border bg-background"
-                    : "border-amber-400 bg-amber-100 font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
+                    : "border-primary/40 bg-background font-bold"
                 }`}
               >
                 <span className="truncate">{teamName(i + 1)}</span>
                 <span className="shrink-0 tabular-nums">
                   {n}
-                  {diff !== 0 && <span className="ml-1">({diff > 0 ? `+${diff}` : diff})</span>}
+                  {diff !== 0 && (
+                    <span className="ml-1 text-primary">
+                      ({diff > 0 ? `+${diff}` : diff} roster spot{Math.abs(diff) === 1 ? "" : "s"})
+                    </span>
+                  )}
                 </span>
               </div>
             );

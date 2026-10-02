@@ -130,3 +130,19 @@ export function assignPicksToSlots<P extends { player_position: string | null }>
 
   return result;
 }
+
+/**
+ * A team's roster for one draft after pick trades: each extra pick it owns
+ * adds a FLX spot; each pick traded away removes a FLX spot, then a bench spot
+ * if it runs out of FLX. Keeps the roster exactly as big as the team's picks,
+ * so there's never an overflow player or a permanently empty spot.
+ */
+export function adjustSlotsForPicks(cfg: SlotConfig, pickDelta: number): SlotConfig {
+  if (pickDelta === 0) return cfg;
+  if (pickDelta > 0) return { ...cfg, FLX: (cfg.FLX || 0) + pickDelta };
+  let remove = -pickDelta;
+  const fromFlx = Math.min(remove, cfg.FLX || 0);
+  remove -= fromFlx;
+  const fromBn = Math.min(remove, cfg.BN || 0);
+  return { ...cfg, FLX: (cfg.FLX || 0) - fromFlx, BN: (cfg.BN || 0) - fromBn };
+}

@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { sendDraftRecaps } from "@/lib/draftRecap.functions";
+import { usePickAssignments } from "@/hooks/usePickAssignments";
+import { picksPerTeam } from "@/lib/pickOrder";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
 import {
+  adjustSlotsForPicks,
   assignPicksToSlots,
   buildSlotSpots,
   totalSlots,
@@ -56,6 +59,7 @@ type Room = {
   host_user_id: string;
   team_count: number;
   rounds: number;
+  reversal_rounds?: number[] | null;
   pick_clock_sec: number;
   scoring_format: string;
   status: "waiting" | "drafting" | "paused" | "complete";
@@ -184,6 +188,17 @@ function DraftSummaryPage() {
     };
   }, [room]);
   const rosterSlotCount = slotCfg ? totalSlots(slotCfg) : room?.rounds ?? 0;
+
+  // Pick trades adjust each team's FLX spots (see adjustSlotsForPicks).
+  const pickAssignments = usePickAssignments(roomId);
+  const teamPickCounts = useMemo(
+    () =>
+      room ? picksPerTeam(room.rounds, room.team_count, room.reversal_rounds, pickAssignments) : [],
+    [room, pickAssignments],
+  );
+  const teamTotal = (idx: number) => teamPickCounts[idx - 1] ?? rosterSlotCount;
+  const teamCfg = (idx: number) =>
+    slotCfg && room ? adjustSlotsForPicks(slotCfg, teamTotal(idx) - room.rounds) : slotCfg;
 
   const slotMap = useMemo(() => {
     const m = new Map<number, Participant>();
@@ -460,7 +475,7 @@ function DraftSummaryPage() {
                         </div>
                       </div>
                       <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-                        Slot #{teamIdx} · {teamPicks.length}/{rosterSlotCount} picks
+                        Slot #{teamIdx} · {teamPicks.length}/{teamTotal(teamIdx)} picks
                         {teamAutopicks > 0 && (
                           <span className="ml-1 text-primary">
                             · {teamAutopicks} auto
@@ -501,7 +516,7 @@ function DraftSummaryPage() {
                     ) : slotCfg ? (
                       <RosterSlotList
                         picks={teamPicks}
-                        cfg={slotCfg}
+                        cfg={teamCfg(teamIdx) ?? slotCfg}
                         teamCount={room.team_count}
                         showPrice={isAuction}
                       />

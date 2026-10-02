@@ -13,6 +13,7 @@ import { useHoopRanks } from "@/hooks/useHoopRanks";
 import { useBigBoard } from "@/hooks/useBigBoard";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import {
+  adjustSlotsForPicks,
   assignPicksToSlots,
   buildSlotSpots,
   eligibleSlotsForPosition,
@@ -20,7 +21,7 @@ import {
   type SlotKey,
 } from "@/lib/rosterSlots";
 import { downloadDraftXlsx } from "@/lib/draftExport";
-import { teamForPick } from "@/lib/pickOrder";
+import { picksPerTeam, teamForPick } from "@/lib/pickOrder";
 import { usePickAssignments } from "@/hooks/usePickAssignments";
 import { WatchLinkButton } from "@/components/WatchLinkButton";
 import {
@@ -237,15 +238,22 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
     [picks, onClockTeamIdx]
   );
 
+  // Pick trades give the team on the clock extra (or fewer) FLX spots.
+  const onClockSlotConfig = useMemo(() => {
+    if (onClockTeamIdx == null) return slotConfig;
+    const counts = picksPerTeam(room.rounds, room.team_count, room.reversal_rounds, pickAssignments);
+    return adjustSlotsForPicks(slotConfig, (counts[onClockTeamIdx - 1] ?? room.rounds) - room.rounds);
+  }, [slotConfig, onClockTeamIdx, room, pickAssignments]);
+
   const onClockOpenSlots = useMemo(() => {
     if (onClockTeamIdx == null) return new Set<SlotKey>();
-    const assigned = assignPicksToSlots(onClockPicks, slotConfig);
+    const assigned = assignPicksToSlots(onClockPicks, onClockSlotConfig);
     const taken = new Set(assigned.map((a) => a.spotKey).filter(Boolean));
-    const spots = buildSlotSpots(slotConfig);
+    const spots = buildSlotSpots(onClockSlotConfig);
     const openPositions = new Set<SlotKey>();
     for (const s of spots) if (!taken.has(s.key)) openPositions.add(s.pos);
     return openPositions;
-  }, [onClockPicks, onClockTeamIdx, slotConfig]);
+  }, [onClockPicks, onClockTeamIdx, onClockSlotConfig]);
 
   const canDraftPlayer = useCallback(
     (p: DraftablePlayer) => {
@@ -571,7 +579,7 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
         <TeamRosterQuickView
           participant={onClockTeam}
           picks={onClockPicks}
-          slotConfig={slotConfig}
+          slotConfig={onClockSlotConfig}
         />
       </div>
       <div className="mt-4">

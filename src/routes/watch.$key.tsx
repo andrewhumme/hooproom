@@ -4,7 +4,7 @@ import { ArrowLeft, Eye, Loader2, Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDuration } from "@/lib/utils";
-import { roundPickOrder, snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
+import { picksPerTeam, roundPickOrder, snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
 
 // Public, view-only draft page. No account or session required: everything
 // comes from get_watch_snapshot(), polled every few seconds.
@@ -211,6 +211,9 @@ function WatchView({ snap, skewMs }: { snap: Snapshot; skewMs: number }) {
   }, [picks]);
 
   const seats = Array.from({ length: room.team_count }, (_, i) => i + 1);
+  // Teams that traded for extra picks get extra roster spots — show them all.
+  const pickCounts = picksPerTeam(room.rounds, room.team_count, room.reversal_rounds, assignments);
+  const boardRows = Math.max(room.rounds, ...pickCounts);
   const recent = [...picks].sort((a, b) => b.pick_number - a.pick_number).slice(0, 8);
 
   return (
@@ -364,12 +367,12 @@ function WatchView({ snap, skewMs }: { snap: Snapshot; skewMs: number }) {
                 >
                   <div className="truncate text-xs font-black">{teamName(idx)}</div>
                   <div className="text-[10px] font-bold opacity-70">
-                    {picksByTeam.get(idx)?.length ?? 0}/{room.rounds}
+                    {picksByTeam.get(idx)?.length ?? 0}/{pickCounts[idx - 1] ?? room.rounds}
                   </div>
                 </div>
               );
             })}
-            {Array.from({ length: room.rounds }).flatMap((_, row) =>
+            {Array.from({ length: boardRows }).flatMap((_, row) =>
               seats.map((idx) => {
                 const pk = picksByTeam.get(idx)?.[row];
                 return (

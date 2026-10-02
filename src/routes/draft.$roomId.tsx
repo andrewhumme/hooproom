@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { roundPickOrder, snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
+import { picksPerTeam, roundPickOrder, snakeTeamForPick, teamForPick } from "@/lib/pickOrder";
 import { usePickAssignments } from "@/hooks/usePickAssignments";
 import { WatchLinkButton } from "@/components/WatchLinkButton";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
@@ -56,7 +56,7 @@ import { compareByHoopRank, hoopRankOf, hoopZOf, UNRANKED } from "@/lib/playerRa
 import { useHoopRanks } from "@/hooks/useHoopRanks";
 
 import { downloadDraftXlsx, type PickRow as ExportPickRow } from "@/lib/draftExport";
-import { assignPicksToSlots, buildSlotSpots, eligibleSlotsForPosition, totalSlots, type SlotConfig, type SlotKey } from "@/lib/rosterSlots";
+import { adjustSlotsForPicks, assignPicksToSlots, buildSlotSpots, eligibleSlotsForPosition, totalSlots, type SlotConfig, type SlotKey } from "@/lib/rosterSlots";
 import { formatDuration } from "@/lib/utils";
 import {
   ArrowDown,
@@ -477,6 +477,25 @@ function DraftRoomPage() {
   );
   const totalPicks = room ? room.team_count * rosterSlotCount : 0;
 
+  // Pick trades: a team that owns extra picks gets matching extra FLX spots
+  // (and one that traded picks away gets fewer), so rosters always fit.
+  const teamPickCounts = useMemo(
+    () =>
+      room ? picksPerTeam(room.rounds, room.team_count, room.reversal_rounds, pickAssignments) : [],
+    [room, pickAssignments],
+  );
+  const teamTotal = useCallback(
+    (idx: number) => teamPickCounts[idx - 1] ?? rosterSlotCount,
+    [teamPickCounts, rosterSlotCount],
+  );
+  const teamSlotCfg = useCallback(
+    (idx: number | null | undefined): SlotConfig | null =>
+      slotCfg && room && idx
+        ? adjustSlotsForPicks(slotCfg, (teamPickCounts[idx - 1] ?? room.rounds) - room.rounds)
+        : slotCfg,
+    [slotCfg, room, teamPickCounts],
+  );
+
   // HoopRank — z-score based ranking tuned to this room's scoring format.
   const scoringFormat = room?.scoring_format;
   const teamCount = room?.team_count;
@@ -578,15 +597,16 @@ function DraftRoomPage() {
   // greedy logic used when actually assigning picks (FLX/BN accept anyone;
   // G/F accept guards/forwards; specific slots require a positional match).
   const myOpenSlotPositions = useMemo(() => {
-    if (!slotCfg || !meParticipant?.draft_position) return null;
+    const myCfg = teamSlotCfg(meParticipant?.draft_position);
+    if (!myCfg || !meParticipant?.draft_position) return null;
     const myPicks = picks.filter((p) => p.team_idx === meParticipant.draft_position);
-    const assigned = assignPicksToSlots(myPicks, slotCfg);
+    const assigned = assignPicksToSlots(myPicks, myCfg);
     const takenKeys = new Set(
       assigned.map((a) => a.spotKey).filter((k): k is string => !!k),
     );
-    const remaining = buildSlotSpots(slotCfg).filter((s) => !takenKeys.has(s.key));
+    const remaining = buildSlotSpots(myCfg).filter((s) => !takenKeys.has(s.key));
     return new Set<SlotKey>(remaining.map((s) => s.pos));
-  }, [slotCfg, meParticipant, picks]);
+  }, [teamSlotCfg, meParticipant, picks]);
 
   const canFitPlayer = useCallback(
     (pos: string | null) => {
@@ -1245,15 +1265,42 @@ function DraftRoomPage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  onClick={handleStart}
-                  size="lg"
-                  className="font-bold shadow-[var(--shadow-glow)]"
-                  disabled={actionBusy || participants.length === 0}
-                >
-                  {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
-                  Start draft
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      size="lg"
+                      className="font-bold shadow-[var(--shadow-glow)]"
+                      disabled={actionBusy || participants.length === 0}
+                    >
+                      {actionBusy ? <Loader2 className="animate-spin" /> : <Play />}
+                      Start draft
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-h-[85vh] overflow-y-auto">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Ready to start?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Review the draft before it locks in. Seats, pick trades and settings can't
+                        change once it starts.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <StartDraftSummary
+                      formatLabel={
+                        room.draft_format === "snake"
+                          ? `Snake · ${formatDuration(room.pick_clock_sec)} pick clock`
+                          : `Auction · $${room.auction_budget} budget`
+                      }
+                      teamCount={room.team_count}
+                      rounds={room.rounds}
+                      participants={participants}
+                      pickCounts={room.draft_format === "snake" ? teamPickCounts : []}
+                    />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Back to lobby</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleStart}>Start draft</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
@@ -1516,7 +1563,7 @@ function DraftRoomPage() {
                       onClock ? "text-primary-foreground/80" : "text-muted-foreground"
                     }`}
                   >
-                    {teamPicks}/{rosterSlotCount}
+                    {teamPicks}/{teamTotal(idx)}
                   </div>
                 </button>
               );
@@ -1924,7 +1971,7 @@ function DraftRoomPage() {
                 </h3>
                 <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
                   {meParticipant
-                    ? `${picks.filter((p) => p.user_id === user?.id).length}/${rosterSlotCount} slots filled`
+                    ? `${picks.filter((p) => p.user_id === user?.id).length}/${teamTotal(meParticipant.draft_position ?? 0)} slots filled`
                     : "Spectating — join a seat to draft players"}
                 </p>
               </div>
@@ -1940,7 +1987,7 @@ function DraftRoomPage() {
                         .sort((a, b) => a.pick_number - b.pick_number)
                     : []
                 }
-                cfg={slotCfg}
+                cfg={teamSlotCfg(meParticipant?.draft_position) ?? slotCfg}
                 teamCount={room.team_count}
               />
             </Card>
@@ -2053,7 +2100,7 @@ function DraftRoomPage() {
                         )}
                       </div>
                       <span className="text-xs font-bold text-muted-foreground">
-                        {teamPicks}/{rosterSlotCount}
+                        {teamPicks}/{teamTotal(idx)}
                       </span>
                     </button>
                   </li>
@@ -2127,7 +2174,7 @@ function DraftRoomPage() {
                     {team?.team_name ?? `Team ${viewingTeamIdx} (Auto)`}
                   </DialogTitle>
                   <DialogDescription>
-                    Slot #{viewingTeamIdx} · {teamPicks.length}/{rosterSlotCount} picks
+                    Slot #{viewingTeamIdx} · {teamPicks.length}/{teamTotal(viewingTeamIdx)} picks
                   </DialogDescription>
                 </DialogHeader>
                 <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border">
@@ -2138,7 +2185,7 @@ function DraftRoomPage() {
                   ) : slotCfg ? (
                     <RosterSlotList
                       picks={teamPicks.slice().sort((a, b) => a.pick_number - b.pick_number)}
-                      cfg={slotCfg}
+                      cfg={teamSlotCfg(viewingTeamIdx) ?? slotCfg}
                       teamCount={room.team_count}
                     />
                   ) : null}
@@ -2268,5 +2315,71 @@ function LobbyCountdown({ deadline }: { deadline: string }) {
         </div>
       </div>
     </Card>
+  );
+}
+
+/** Pre-start review shown in the commissioner's Start draft confirmation. */
+function StartDraftSummary({
+  formatLabel,
+  teamCount,
+  rounds,
+  participants,
+  pickCounts,
+}: {
+  formatLabel: string;
+  teamCount: number;
+  rounds: number;
+  participants: Participant[];
+  pickCounts: number[];
+}) {
+  const bySeat = new Map(participants.filter((p) => p.draft_position).map((p) => [p.draft_position!, p]));
+  const unseated = participants.filter((p) => !p.draft_position).length;
+  const openSeats = Math.max(0, teamCount - participants.length);
+  const adjusted = pickCounts.some((n) => n !== rounds);
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+        <div className="font-bold">{formatLabel}</div>
+        <div className="text-xs text-muted-foreground">
+          {teamCount} teams · {rounds} rounds
+          {openSeats > 0 && ` · ${openSeats} open seat${openSeats === 1 ? "" : "s"} will be filled by bots`}
+          {unseated > 0 && ` · ${unseated} team${unseated === 1 ? "" : "s"} without a seat will be placed randomly`}
+        </div>
+      </div>
+      <div>
+        <div className="mb-1 text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+          Draft order
+        </div>
+        <ol className="divide-y divide-border rounded-md border border-border">
+          {Array.from({ length: teamCount }, (_, i) => i + 1).map((seat) => {
+            const team = bySeat.get(seat);
+            const picks = pickCounts[seat - 1] ?? rounds;
+            const diff = picks - rounds;
+            return (
+              <li key={seat} className="flex items-center gap-2 px-3 py-1.5">
+                <span className="w-5 shrink-0 text-xs font-black text-muted-foreground">{seat}</span>
+                <span className="min-w-0 flex-1 truncate font-bold">
+                  {team?.team_name ?? <span className="font-normal italic text-muted-foreground">Open — bot</span>}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {picks} picks
+                  {diff !== 0 && (
+                    <span className="ml-1 font-bold text-primary">
+                      ({diff > 0 ? `+${diff}` : diff} FLX)
+                    </span>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+      {adjusted && (
+        <p className="text-xs text-muted-foreground">
+          Pick trades are reflected in roster sizes: each extra pick adds a FLX spot, and each pick
+          traded away removes one (then a bench spot), so every roster fits its picks.
+        </p>
+      )}
+    </div>
   );
 }

@@ -54,3 +54,21 @@ export function roundPickOrder(
     };
   });
 }
+
+/**
+ * How many picks each team owns across the whole draft (index 0 = team 1),
+ * honoring custom assignments. Without trades every team owns `rounds`.
+ */
+export function picksPerTeam(
+  rounds: number,
+  teamCount: number,
+  reversalRounds: number[] | null | undefined,
+  assignments: ReadonlyMap<number, number>,
+): number[] {
+  const counts = Array.from({ length: teamCount }, () => 0);
+  for (let pickNumber = 1; pickNumber <= rounds * teamCount; pickNumber++) {
+    const team = teamForPick(pickNumber, teamCount, reversalRounds, assignments);
+    if (team >= 1 && team <= teamCount) counts[team - 1]++;
+  }
+  return counts;
+}
