@@ -1714,7 +1714,7 @@ function DraftRoomPage() {
                     }`}
                   >
                     <span title={room?.player_pool === "rookies" ? "NBA draft slot" : "HoopRank — z-score rating across your league's scoring categories"}>
-                      {room?.player_pool === "rookies" ? "Draft # · Player" : "HoopRank · Player"}
+                      HoopRank · Player
                     </span>{" "}
                     {sortKey === "rank" ? <ArrowDown className="ml-0.5 inline-block h-3 w-3 text-orange-500" /> : ""}
 
