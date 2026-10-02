@@ -52,7 +52,7 @@ const SCHEMA = z.object({
   slots_c: z.number().int().min(0).max(10),
   slots_flx: z.number().int().min(0).max(10),
   slots_bn: z.number().int().min(0).max(15),
-  reversal_rounds: z.array(z.number().int().min(2).max(29)).max(10),
+  reversal_rounds: z.array(z.number().int().min(2).max(100)).max(10),
   auto_start_at: z.string().nullable(),
   scheduled_start_at: z.string().nullable(),
   room_type: z.enum(["mock", "league"]),
@@ -171,6 +171,8 @@ function NewRoomPage() {
       if (rounds < 1) return "Add at least one roster slot.";
       if (poolSize && teamCount * rounds > poolSize)
         return `Only ${poolSize} players in this pool — reduce teams or roster slots.`;
+      if (draftFormat === "snake" && reversalsEnabled && reversalRounds.length === 0)
+        return "Pick at least one reversal round, or set Reversal rounds to No.";
 
     }
     return null;
@@ -235,9 +237,9 @@ function NewRoomPage() {
     });
   }, [maxRounds]);
 
-  // Drop any reversal rounds outside the valid range when slots change
+  // Drop any reversal rounds past the last round when slots change
   useEffect(() => {
-    setReversalRounds((prev) => prev.filter((r) => r >= 2 && r <= rounds - 1));
+    setReversalRounds((prev) => prev.filter((r) => r >= 2 && r <= rounds));
   }, [rounds]);
 
 
@@ -697,11 +699,11 @@ function NewRoomPage() {
             </div>
             )}
 
-            {step === 2 && draftFormat === "snake" && (
+            {step === 3 && draftFormat === "snake" && (
               <div>
                 <Label>Reversal rounds</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Add double-pick reversals — the team picking last keeps the next round's first pick, then the snake continues.
+                  A reversal round runs in the same direction as the round before it instead of snaking back — whoever picked first last round picks first again. In a 2-round draft, reversing R2 gives a straight (linear) order.
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <ClockChip
@@ -720,17 +722,17 @@ function NewRoomPage() {
                 </div>
                 {reversalsEnabled && (
                   <>
-                    {rounds < 3 ? (
+                    {rounds < 2 ? (
                       <p className="mt-2 text-xs italic text-muted-foreground">
-                        Add at least 3 roster slots to enable reversals.
+                        Add at least 2 roster slots to enable reversals.
                       </p>
                     ) : (
                       <>
                         <p className="mt-3 text-xs text-muted-foreground">
-                          Pick from rounds 2–{Math.max(2, rounds - 1)}.
+                          {rounds === 2 ? "Reverse round 2." : `Pick from rounds 2–${rounds}.`}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {Array.from({ length: rounds - 2 }, (_, i) => i + 2).map((r) => {
+                          {Array.from({ length: rounds - 1 }, (_, i) => i + 2).map((r) => {
                             const active = reversalRounds.includes(r);
                             return (
                               <button
@@ -759,6 +761,7 @@ function NewRoomPage() {
                 )}
               </div>
             )}
+
 
             {step === 2 && playerPool !== "rookies" && (
               <div>
