@@ -531,19 +531,6 @@ function DraftRoomPage() {
   const { rankMap: globalBoardRanks } = useBigBoard("global");
   const { rankMap: rookieBoardRanks } = useBigBoard("rookie");
   const boardRanks = room?.player_pool === "rookies" ? rookieBoardRanks : globalBoardRanks;
-  const boardCount = Object.keys(boardRanks).length;
-
-  /** Load my Big Board (minus already-drafted players) into the draft queue. */
-  const fillQueueFromBoard = useCallback(async () => {
-    const ordered = Object.entries(boardRanks)
-      .filter(([id]) => !takenIds.has(id) && !queuedIds.has(id))
-      .sort((a, b) => a[1] - b[1]);
-    for (const [id] of ordered) {
-      const p = players.find((pl) => pl.id === id);
-      if (!p) continue;
-      await queueApi.add({ id: p.id, name: p.name, position: p.position, team: p.team });
-    }
-  }, [boardRanks, takenIds, queuedIds, players, queueApi]);
 
   const availablePlayers = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -2007,8 +1994,6 @@ function DraftRoomPage() {
                 onMoveUp={queueApi.moveUp}
                 onMoveDown={queueApi.moveDown}
                 isSlow={isSlow}
-                boardCount={boardCount}
-                onFillFromBoard={fillQueueFromBoard}
               />
             </div>
           )}
