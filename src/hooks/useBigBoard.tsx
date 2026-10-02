@@ -9,23 +9,31 @@ export type BoardEntry = {
   rank: number;
 };
 
+export type BoardKind = "global" | "rookie";
+
+const TABLE = {
+  global: "global_player_ranks",
+  rookie: "rookie_player_ranks",
+} as const;
+
 /**
- * The official HoopRoom Big Board — one global, admin-curated ranking that
- * applies in every draft room. Everyone can read it; only admins can save it
- * (enforced by RLS). Players not on the board fall back to the z-score
- * HoopRank formula.
+ * An admin-curated HoopRoom Big Board. "global" applies in every draft room;
+ * "rookie" applies only to rookie-only drafts, in place of the global board.
+ * Everyone can read them; only admins can save (enforced by RLS). Players not
+ * on the board fall back to HoopRank.
  */
-export function useBigBoard() {
+export function useBigBoard(kind: BoardKind = "global") {
+  const table = TABLE[kind];
   const [board, setBoard] = useState<BoardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
     const { data, error } = await supabase
-      .from("global_player_ranks")
+      .from(table)
       .select("player_id, player_name, player_position, player_team, rank")
       .order("rank", { ascending: true });
     if (!error) setBoard((data ?? []) as BoardEntry[]);
-  }, []);
+  }, [table]);
 
   useEffect(() => {
     let mounted = true;
@@ -38,22 +46,22 @@ export function useBigBoard() {
     };
   }, [reload]);
 
-  /** Replace the whole global board with `entries` (ordered best → worst). Admin only. */
+  /** Replace the whole board with `entries` (ordered best → worst). Admin only. */
   const replaceAll = useCallback(
     async (entries: Omit<BoardEntry, "rank">[]) => {
       const del = await supabase
-        .from("global_player_ranks")
+        .from(table)
         .delete()
         .not("id", "is", null);
       if (del.error) throw new Error(del.error.message);
       if (entries.length > 0) {
         const rows = entries.map((e, i) => ({ ...e, rank: i + 1 }));
-        const ins = await supabase.from("global_player_ranks").insert(rows);
+        const ins = await supabase.from(table).insert(rows);
         if (ins.error) throw new Error(ins.error.message);
       }
       await reload();
     },
-    [reload],
+    [reload, table],
   );
 
   /** player_id -> board rank (1 = best). */

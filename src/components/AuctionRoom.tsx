@@ -455,7 +455,10 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
     [playerById],
   );
   // Admin Big Board first, then HoopRank for this league's scoring format and shape.
-  const { rankMap: boardRanks } = useBigBoard();
+  // Rookie-only drafts use the Rookie Big Board in place of the global one.
+  const { rankMap: globalBoardRanks } = useBigBoard("global");
+  const { rankMap: rookieBoardRanks } = useBigBoard("rookie");
+  const boardRanks = room.player_pool === "rookies" ? rookieBoardRanks : globalBoardRanks;
   const hoopRanks = useHoopRanks(room.scoring_format, room.team_count, totalSlots);
   const filteredPlayers = useMemo(() => {
     const q = search.toLowerCase().trim();

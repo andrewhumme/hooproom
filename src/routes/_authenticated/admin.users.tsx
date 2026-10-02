@@ -444,6 +444,9 @@ function AdminUsersPage() {
                   <Button asChild size="sm" variant="outline">
                     <Link to="/rankings">Open Big Board</Link>
                   </Button>
+                  <Button asChild size="sm" variant="outline" className="ml-2">
+                    <Link to="/rankings" search={{ board: "rookie" }}>Rookie Big Board</Link>
+                  </Button>
                 </div>
 
               </div>

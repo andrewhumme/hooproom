@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { checkIsAdmin } from "@/lib/admin.functions";
-import { useBigBoard, type BoardEntry } from "@/hooks/useBigBoard";
+import { z } from "zod";
+import { useBigBoard, type BoardEntry, type BoardKind } from "@/hooks/useBigBoard";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
 import { getPlayerRanksServer } from "@/lib/playerRanking.functions";
-import { hoopRankOf, UNRANKED, type RankMap } from "@/lib/playerRanking";
+import { compareByHoopRank, hoopRankOf, UNRANKED, type RankMap } from "@/lib/playerRanking";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import {
@@ -24,6 +25,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/rankings")({
+  validateSearch: z.object({ board: z.enum(["global", "rookie"]).optional() }),
   component: BigBoardPage,
   head: () => ({
     meta: [
@@ -50,7 +52,14 @@ const BOARD_SIZE = 60;
 type Item = Omit<BoardEntry, "rank">;
 
 function BigBoardPage() {
-  const { board, loading: boardLoading, replaceAll } = useBigBoard();
+  const { board: kind = "global" } = Route.useSearch();
+  // Remount per board so the editor never mixes the two lists.
+  return <BoardEditor key={kind} kind={kind} />;
+}
+
+function BoardEditor({ kind }: { kind: BoardKind }) {
+  const isRookie = kind === "rookie";
+  const { board, loading: boardLoading, replaceAll } = useBigBoard(kind);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -78,7 +87,7 @@ function BigBoardPage() {
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      fetchActivePlayersServer({ data: { pool: "all" } }),
+      fetchActivePlayersServer({ data: { pool: isRookie ? "rookies" : "all" } }),
       getPlayerRanksServer({
         data: { scoringFormat: "9-CAT", teamCount: 12, rosterSize: 13 },
       }),
@@ -98,13 +107,18 @@ function BigBoardPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isRookie]);
 
+  // Default order to seed / reset from. Rookie board: the whole class in
+  // HoopRank order, unranked rookies in NBA draft order.
   const hoopTop = useCallback(
     (n: number): Item[] =>
-      [...players]
-        .filter((p) => hoopRankOf(ranks, p.id) !== UNRANKED)
-        .sort((a, b) => hoopRankOf(ranks, a.id) - hoopRankOf(ranks, b.id))
+      (isRookie
+        ? [...players].sort(compareByHoopRank(ranks))
+        : [...players]
+            .filter((p) => hoopRankOf(ranks, p.id) !== UNRANKED)
+            .sort((a, b) => hoopRankOf(ranks, a.id) - hoopRankOf(ranks, b.id))
+      )
         .slice(0, n)
         .map((p) => ({
           player_id: p.id,
@@ -112,8 +126,9 @@ function BigBoardPage() {
           player_position: p.position || null,
           player_team: p.team || null,
         })),
-    [players, ranks],
+    [players, ranks, isRookie],
   );
+  const defaultSize = isRookie ? players.length : BOARD_SIZE;
 
   // Seed the editor: saved board if there is one, otherwise HoopRank's top 60.
   useEffect(() => {
@@ -130,10 +145,10 @@ function BigBoardPage() {
       );
       seeded.current = true;
     } else if (players.length > 0) {
-      setItems(hoopTop(BOARD_SIZE));
+      setItems(hoopTop(defaultSize));
       seeded.current = true;
     }
-  }, [board, boardLoading, poolLoading, players, hoopTop]);
+  }, [board, boardLoading, poolLoading, players, hoopTop, defaultSize]);
 
   const onBoard = useMemo(
     () => new Set(items.map((i) => i.player_id)),
@@ -188,7 +203,9 @@ function BigBoardPage() {
     try {
       await replaceAll(items);
       setDirty(false);
-      toast.success("Big Board published to all draft rooms");
+      toast.success(
+        isRookie ? "Rookie Big Board published to rookie drafts" : "Big Board published to all draft rooms",
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't save the board");
     } finally {
@@ -197,7 +214,7 @@ function BigBoardPage() {
   };
 
   const resetToHoopRank = () => {
-    setItems(hoopTop(BOARD_SIZE));
+    setItems(hoopTop(defaultSize));
     setDirty(true);
   };
 
@@ -233,12 +250,33 @@ function BigBoardPage() {
         </Link>
       </Button>
 
+      <div className="mb-4 inline-flex rounded-lg border-2 border-border p-1">
+        <Button asChild size="sm" variant={isRookie ? "ghost" : "default"} className="font-bold">
+          <Link to="/rankings" search={{ board: "global" }}>Global Big Board</Link>
+        </Button>
+        <Button asChild size="sm" variant={isRookie ? "default" : "ghost"} className="font-bold">
+          <Link to="/rankings" search={{ board: "rookie" }}>Rookie Big Board</Link>
+        </Button>
+      </div>
+
       <div className="mb-6">
-        <h1 className="text-3xl font-black tracking-tight">HoopRoom Big Board</h1>
+        <h1 className="text-3xl font-black tracking-tight">
+          {isRookie ? "Rookie Big Board" : "HoopRoom Big Board"}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Admin only. Rank the top {BOARD_SIZE} manually — saving pushes this
-          order live to every HoopRoom draft room. HoopRank (current rankings,
-          updated daily) takes over for everyone below the board.
+          {isRookie ? (
+            <>
+              Admin only. Order the rookie class for rookie-only drafts — saving pushes it live
+              to their player lists, bots and autopicks (in place of the Global Big Board).
+              Rookies you leave off follow HoopRank, then NBA draft order.
+            </>
+          ) : (
+            <>
+              Admin only. Rank the top {BOARD_SIZE} manually — saving pushes this order live to
+              every HoopRoom draft room (rookie-only drafts use the Rookie Big Board instead).
+              HoopRank (current rankings, updated daily) takes over for everyone below the board.
+            </>
+          )}
         </p>
       </div>
 
@@ -252,7 +290,8 @@ function BigBoardPage() {
           Save board
         </Button>
         <Button variant="outline" onClick={resetToHoopRank} disabled={busy}>
-          <RotateCcw className="mr-1 h-4 w-4" /> Reset to HoopRank top {BOARD_SIZE}
+          <RotateCcw className="mr-1 h-4 w-4" />{" "}
+          {isRookie ? "Reset to HoopRank order" : `Reset to HoopRank top ${BOARD_SIZE}`}
         </Button>
         <span className="text-xs font-bold text-muted-foreground">
           {items.length} ranked{dirty ? " · unsaved changes" : ""}
@@ -265,7 +304,7 @@ function BigBoardPage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search a player to add to the board…"
+            placeholder={isRookie ? "Search a rookie to add to the board…" : "Search a player to add to the board…"}
             className="pl-9"
           />
         </div>
@@ -385,8 +424,8 @@ function BigBoardPage() {
           </ul>
           {items.length === 0 && (
             <div className="px-4 py-10 text-center text-sm text-muted-foreground">
-              The board is empty — search above to add players, or reset to the
-              HoopRank top {BOARD_SIZE}.
+              The board is empty — search above to add players, or reset to{" "}
+              {isRookie ? "the HoopRank order" : `the HoopRank top ${BOARD_SIZE}`}.
             </div>
           )}
         </Card>

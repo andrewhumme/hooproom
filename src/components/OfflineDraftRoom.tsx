@@ -198,7 +198,10 @@ export function OfflineDraftRoom({ room, participants, picks, isHost }: Props) {
   const takenIds = useMemo(() => new Set(picks.map((p) => p.player_id)), [picks]);
 
   // Admin Big Board first, then HoopRank for this league's scoring format and shape.
-  const { rankMap: boardRanks } = useBigBoard();
+  // Rookie-only drafts use the Rookie Big Board in place of the global one.
+  const { rankMap: globalBoardRanks } = useBigBoard("global");
+  const { rankMap: rookieBoardRanks } = useBigBoard("rookie");
+  const boardRanks = room.player_pool === "rookies" ? rookieBoardRanks : globalBoardRanks;
   const hoopRanks = useHoopRanks(room.scoring_format, room.team_count, room.rounds);
   const rankedPlayers = useMemo(() => {
     const rookiePool = room.player_pool === "rookies";

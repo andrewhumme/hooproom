@@ -508,7 +508,10 @@ function DraftRoomPage() {
 
   // Personal Big Board — manual top-N ranks that override HoopRank for the
   // players on it. Everyone else stays on the z-score formula.
-  const { rankMap: boardRanks } = useBigBoard();
+  // Rookie-only drafts use the Rookie Big Board in place of the global one.
+  const { rankMap: globalBoardRanks } = useBigBoard("global");
+  const { rankMap: rookieBoardRanks } = useBigBoard("rookie");
+  const boardRanks = room?.player_pool === "rookies" ? rookieBoardRanks : globalBoardRanks;
   const boardCount = Object.keys(boardRanks).length;
 
   /** Load my Big Board (minus already-drafted players) into the draft queue. */
@@ -1775,7 +1778,7 @@ function DraftRoomPage() {
                             return (
                               <span
                                 className="w-7 shrink-0 text-center text-[10px] font-black tabular-nums text-primary"
-                                title={`HoopRoom Big Board #${myRank}`}
+                                title={`${room?.player_pool === "rookies" ? "Rookie" : "HoopRoom"} Big Board #${myRank}`}
                               >
                                 ★{myRank}
                               </span>
