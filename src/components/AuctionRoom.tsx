@@ -23,7 +23,6 @@ import { WatchLinkButton } from "@/components/WatchLinkButton";
 import { PlayerStatsModal } from "@/components/PlayerStatsModal";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActivePlayersServer } from "@/lib/players.functions";
-import { getAuctionValuesServer } from "@/lib/auctionValues.functions";
 import type { DraftablePlayer } from "@/lib/balldontlie";
 import { compareByRank } from "@/lib/playerRankings";
 import { compareByHoopRank } from "@/lib/playerRanking";
@@ -221,26 +220,21 @@ export function AuctionRoom({ room, userId, participants, picks }: Props) {
       .finally(() => setPlayersLoading(false));
   }, [room.status, room.player_pool]);
 
-  // Suggested auction values (z-score). Recompute when league shape changes.
+  // Suggested prices: the room's shared price table (HoopRank order on the
+  // league's money curve), the same numbers the bots bid up to. Frozen once
+  // the auction starts.
   useEffect(() => {
     if (room.status === "waiting") return;
-    getAuctionValuesServer({
-      data: {
-        teamCount: room.team_count,
-        rosterSize: totalSlots,
-        budget: room.auction_budget,
-        scoringFormat: room.scoring_format,
-      },
-    })
-      .then(setValueByKey)
-      .catch((e) => console.error("auction values failed", e));
-  }, [
-    room.status,
-    room.team_count,
-    totalSlots,
-    room.auction_budget,
-    room.scoring_format,
-  ]);
+    let cancelled = false;
+    supabase.rpc("auction_values", { _room_id: room.id }).then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) return console.error("auction values failed", error.message);
+      setValueByKey(Object.fromEntries((data ?? []).map((r) => [r.loose_key, r.dollars])));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [room.status, room.id]);
 
   // ---- subscribe to auction tables ----
   useEffect(() => {

@@ -1352,6 +1352,7 @@ export type Database = {
         Returns: number
       }
       request_autopick: { Args: { _room_id: string }; Returns: boolean }
+      auction_values: { Args: { _room_id: string }; Returns: { dollars: number; loose_key: string }[] }
       recap_recipients: {
         Args: { _room_id: string }
         Returns: {
