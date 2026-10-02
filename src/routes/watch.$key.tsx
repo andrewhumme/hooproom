@@ -275,14 +275,20 @@ function WatchView({ snap, skewMs }: { snap: Snapshot; skewMs: number }) {
           {roundOrder.length > 0 && (
             <div className="mt-4">
               <div className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Round {onClock?.round} {onClock && snakeTeamForPick(room.current_pick_number, room.team_count, room.reversal_rounds).reverse ? "← reverse" : "→ forward"}
+                Round {onClock?.round}{" "}
+                {onClock &&
+                snakeTeamForPick(room.current_pick_number, room.team_count, room.reversal_rounds)
+                  .reverse
+                  ? "← reverse"
+                  : "→ forward"}
               </div>
               <div className="flex gap-1.5 overflow-x-auto pb-1">
                 {/* Fixed seat order; each box shows that team's pick(s) this round. */}
                 {seats.map((idx) => {
                   const mine = roundOrder.filter((o) => o.teamIdx === idx);
                   const current = onClock?.teamIdx === idx;
-                  const done = mine.length > 0 && mine.every((o) => o.pickNumber < room.current_pick_number);
+                  const done =
+                    mine.length > 0 && mine.every((o) => o.pickNumber < room.current_pick_number);
                   return (
                     <div
                       key={idx}
