@@ -1363,6 +1363,18 @@ export type Database = {
           team_name: string
         }[]
       }
+      claim_on_clock_email: {
+        Args: { _room_id: string; _pick_number: number }
+        Returns: {
+          email: string
+          manager_name: string
+          team_name: string
+          room_name: string
+          round: number
+          pick_in_round: number
+          pick_clock_sec: number
+        }[]
+      }
       get_room_invite: { Args: { _room_id: string }; Returns: Json }
       join_room: { Args: { _room_id: string; _team_name: string }; Returns: string }
       request_sleeper_ranks: { Args: never; Returns: number }

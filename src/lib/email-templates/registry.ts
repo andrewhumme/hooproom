@@ -19,8 +19,10 @@ export interface TemplateEntry {
  */
 import { template as draftReminderTemplate } from './draft-reminder'
 import { template as draftRecapTemplate } from './draft-recap'
+import { template as onTheClockTemplate } from './on-the-clock'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'draft-reminder': draftReminderTemplate,
   'draft-recap': draftRecapTemplate,
+  'on-the-clock': onTheClockTemplate,
 }
